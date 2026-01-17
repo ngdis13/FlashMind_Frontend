@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native'
+import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
   container: {
@@ -18,11 +18,6 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 8,
   },
-  inputContainer: {
-    gap: 12,
-    width: '100%',
-    marginBottom: 16,
-  },
   buttonContainer: {
     position: 'absolute',
     width: '100%',
@@ -32,4 +27,4 @@ export const styles = StyleSheet.create({
     bottom: 30,
     paddingHorizontal: 10,
   },
-})
+});

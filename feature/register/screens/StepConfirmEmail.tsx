@@ -1,25 +1,26 @@
 // import { useRouter } from 'expo-router'
-import React from 'react'
-import { styles } from '../styles/StepConfirmEmail.styles'
-import { View } from 'react-native'
-import { MainButton } from '@/components/MainButton'
-import { Typography } from '@/styles'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import React from 'react';
+import { styles } from '../styles/StepConfirmEmail.styles';
+import { View } from 'react-native';
+import { MainButton } from '@/components/MainButton';
+import { Typography } from '@/styles';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { CodeInput } from '../components/CodeInput'
+import { CodeInput } from '../components/CodeInput';
+import { useRouter } from 'expo-router';
 
 export default function StepConfirmEmail() {
   // const [email, setEmail] = useState('')
   // const [password, setPassword] = useState('')
   // const [twicePassword, setTwicePassword] = useState('')
 
-  // const router = useRouter()
+  const router = useRouter();
 
   const handleContinue = () => {
-    console.log('pressed')
-  }
+    router.push('/welcome');
+  };
 
-  const handleCodeFilled = () => {}
+  const handleCodeFilled = () => {};
 
   return (
     <SafeAreaView style={styles.container}>
@@ -36,10 +37,13 @@ export default function StepConfirmEmail() {
       </View>
 
       <CodeInput length={6} onCodeFilled={handleCodeFilled} />
+      <Typography variant="h3" color={'#585858'}>
+        Отправить код повторно через 60 сек
+      </Typography>
 
       <View style={styles.buttonContainer}>
         <MainButton title="Подтвердить" onPress={handleContinue} />
       </View>
     </SafeAreaView>
-  )
+  );
 }
