@@ -3,20 +3,16 @@ import { StyleSheet } from "react-native"
 export const styles = StyleSheet.create({
     container: {
       flex: 1,
-      justifyContent: "center",
+      paddingTop: 100,
       alignItems: "center",
       padding: 24,
-      backgroundColor: "#fff",
+      backgroundColor: "#F6F9FC",
       paddingHorizontal: 10,
     },
     title: {
       fontSize: 26,
-      fontWeight: "bold",
       marginBottom: 24,
       textAlign: "center",
-    },
-    changePassword: {
-        marginBottom: 111,
     },
     logoImage: {
         width: 150,
@@ -31,9 +27,11 @@ export const styles = StyleSheet.create({
         marginBottom: 16,
     },
     buttonContainer: {
+        position: "absolute",
         width: "100%",
-        maxWidth: 400,
         alignItems: "center", 
         gap: 16, 
+        bottom: 30,
+        paddingHorizontal: 10,
     }
   })

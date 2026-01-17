@@ -4,6 +4,8 @@ import { SafeAreaView, View, Text, Image, TouchableWithoutFeedback } from 'react
 import { Typography } from '@/styles/Typography';
 import { styles } from './notfound.styles';
 
+import { LogoSadStar } from '@/components/LogoSadStar';
+
 export default function NotFoundPage() {
   const router = useRouter();
 
@@ -20,11 +22,7 @@ export default function NotFoundPage() {
       <SafeAreaView style={styles.container}>
         <View style={{ alignItems: 'center' }}>
           <Text style={styles.logoText}>404</Text>
-          <Image
-            source={require('../../assets/FlashMindSadStar.png')}
-            style={styles.logoImage}
-            resizeMode="contain"
-          />
+          <LogoSadStar size={190} style={{ marginBottom: 24 }} />
           <Typography variant="h2" color="#FFFFFF" style={styles.mainText}>
             Упс, кажется разработчики еще не создали эту страницу
           </Typography>

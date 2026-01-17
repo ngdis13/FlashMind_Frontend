@@ -1,9 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Alert,
-  Pressable,
-} from 'react-native';
+import { View, Alert, Pressable } from 'react-native';
 import { MainButton } from '../../components/MainButton';
 import { SecondButton } from '@/components/SecondButton';
 import { useUserStore } from '../../store/userStore';
@@ -12,6 +8,7 @@ import { styles } from './login.styles';
 import { Image } from 'react-native';
 import { Typography } from '@/styles/Typography';
 import { Input } from '@/components/Input';
+import {Logo } from '@/components/Logo';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -38,45 +35,24 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.container}>
-      <Image
-        source={require('../../assets/FlashMindLogo.png')}
-        style={styles.logoImage}
-        resizeMode="contain"
-      />
+      <Logo size={150} style={{ marginBottom: 16 }} />
       <Typography variant="h1" style={styles.title}>
         Добро пожаловать в Flashmind!
       </Typography>
 
       <View style={styles.inputContainer}>
-        <Input
-          placeholder="Email"
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-        />
+        <Input placeholder="Email" value={email} onChangeText={setEmail} autoCapitalize="none" />
 
-        <Input
-          placeholder="Пароль"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
+        <Input placeholder="Пароль" value={password} onChangeText={setPassword} secureTextEntry />
       </View>
 
-
-      <Pressable onPress={handleChangePassword} style={styles.changePassword}>
+      <Pressable onPress={handleChangePassword}>
         <Typography variant="h2">Забыли пароль?</Typography>
       </Pressable>
 
       <View style={styles.buttonContainer}>
-        <MainButton
-          title="Войти"
-          onPress={handleLogin}
-        />
-        <SecondButton
-          title="Регистрация"
-          onPress={handleRegister}
-        />
+        <MainButton title="Войти" onPress={handleLogin} />
+        <SecondButton title="Регистрация" onPress={handleRegister} />
       </View>
     </View>
   );
