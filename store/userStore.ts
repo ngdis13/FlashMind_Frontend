@@ -1,32 +1,15 @@
-import { create } from "zustand"
+// store/userStore.ts (или где у тебя стор)
+import { create } from 'zustand'
 
-interface User {
-  id: string
-  email: string
-}
-
-interface UserStore {
-  user: User | null
-  token: string | null
+type UserState = {
+  isAuthenticated: boolean
   login: (email: string, password: string) => Promise<void>
-  logout: () => void
+  // ... другие поля и методы
 }
 
-export const useUserStore = create<UserStore>((set) => ({
-  user: null,
-  token: null,
-
-  login: async (email, password) => {
-    // Здесь могла бы быть настоящая API-авторизация 👇
-    if (email === "test@mail.com" && password === "12345") {
-      set({
-        user: { id: "1", email },
-        token: "fake-jwt-token",
-      })
-    } else {
-      throw new Error("Неверный логин или пароль")
-    }
+export const useUserStore = create<UserState>()((_set) => ({
+  isAuthenticated: false,
+  login: async (_email, _password) => {
+    // твоя логика
   },
-
-  logout: () => set({ user: null, token: null }),
 }))

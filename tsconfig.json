@@ -15,9 +15,13 @@
     "resolveJsonModule": true,
     "baseUrl": "./",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@/components/*": ["./components/*"],
+      "@/styles/*":     ["./styles/*"],
+      "@/assets/*":     ["./assets/*"]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx"],
+  "include": ["**/*.ts", "**/*.tsx"
+],
   "exclude": ["node_modules"]
 }

@@ -1,21 +1,21 @@
-import { useRouter } from 'expo-router';
-import React from 'react';
-import { SafeAreaView, View, Text, Image, TouchableWithoutFeedback } from 'react-native';
-import { Typography } from '@/styles/Typography';
-import { styles } from './notfound.styles';
+import { useRouter } from 'expo-router'
+import React from 'react'
+import { SafeAreaView, View, Text, TouchableWithoutFeedback } from 'react-native'
+import { Typography } from '@/styles'
+import { styles } from './notfound.styles'
 
-import { LogoSadStar } from '@/components/LogoSadStar';
+import { LogoSadStar } from '@/components/LogoSadStar'
 
 export default function NotFoundPage() {
-  const router = useRouter();
+  const router = useRouter()
 
   const handlePress = () => {
     if (router.canGoBack()) {
-      router.back();
+      router.back()
     } else {
-      router.push('/');
+      router.push('/')
     }
-  };
+  }
 
   return (
     <TouchableWithoutFeedback onPress={handlePress}>
@@ -29,5 +29,5 @@ export default function NotFoundPage() {
         </View>
       </SafeAreaView>
     </TouchableWithoutFeedback>
-  );
+  )
 }

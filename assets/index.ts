@@ -1,4 +1,8 @@
+
+import logoSrc from './images/FlashMindLogo.png'
+import sadStarSrc from './images/FlashMindSadStar.png'
+
 export const Images = {
-    logo: require('./images/FlashMindLogo.png'),
-    logoSadStar: require('./images/FlashMindSadStar.png')
-}
+  logo: logoSrc,
+  logoSadStar: sadStarSrc,
+} as const

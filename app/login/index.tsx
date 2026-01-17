@@ -1,37 +1,52 @@
-import React, { useState } from 'react';
-import { View, Alert, Pressable } from 'react-native';
-import { MainButton } from '../../components/MainButton';
-import { SecondButton } from '@/components/SecondButton';
-import { useUserStore } from '../../store/userStore';
-import { useRouter } from 'expo-router';
-import { styles } from './login.styles';
-import { Image } from 'react-native';
-import { Typography } from '@/styles/Typography';
-import { Input } from '@/components/Input';
-import {Logo } from '@/components/Logo';
+import React, { useState } from 'react'
+import { View, Alert, Pressable } from 'react-native'
+import { MainButton } from '../../components/MainButton'
+import { SecondButton } from '@/components/SecondButton'
+import { useUserStore } from '../../store/userStore'
+import { useRouter } from 'expo-router'
+import { styles } from './login.styles'
+import { Typography } from '@/styles'
+import { Input } from '@/components/Input'
+import { Logo } from '@/components/Logo'
 
 export default function LoginScreen() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const login = useUserStore((state: { login: any }) => state.login);
-  const router = useRouter();
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const { login } = useUserStore()
+
+  const router = useRouter()
 
   const handleLogin = async () => {
     try {
-      await login(email, password);
-      Alert.alert('Успех', 'Вы вошли в систему!');
-      router.push('/'); // переход на главную
-    } catch (err: any) {
-      Alert.alert('Ошибка', err.message);
+      await login(email, password)
+      Alert.alert('Успех', 'Вы вошли в систему!')
+      router.push('/') // переход на главную
+    } catch (err: unknown) {
+      let message = 'Неизвестная ошибка'
+
+      if (err instanceof Error) {
+        message = err.message
+      } else if (typeof err === 'string') {
+        message = err
+      } else if (
+        err &&
+        typeof err === 'object' &&
+        'message' in err &&
+        typeof (err as { message: unknown }).message === 'string'
+      ) {
+        message = (err as { message: string }).message
+      }
+
+      Alert.alert('Ошибка', message)
     }
-  };
+  }
 
   const handleRegister = () => {
-    router.push('/register');
-  };
+    router.push('/register')
+  }
   const handleChangePassword = () => {
-    router.push('/not-found');
-  };
+    router.push('/not-found')
+  }
 
   return (
     <View style={styles.container}>
@@ -55,5 +70,5 @@ export default function LoginScreen() {
         <SecondButton title="Регистрация" onPress={handleRegister} />
       </View>
     </View>
-  );
+  )
 }
