@@ -1,5 +1,5 @@
-import WelcomeScreen from '@/feature/onbording/screens/WelcomeStep';
+import FirstStepScreen from '@/feature/onbording/screens/FirstStep';
 
 export default function OnboardingWelcome() {
-  return <WelcomeScreen />;
+  return <FirstStepScreen />;
 }

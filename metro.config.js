@@ -1,9 +1,9 @@
 // metro.config.js   ← обязательно в корне, рядом с package.json
-import { getDefaultConfig } from 'expo/metro-config';
+const { getDefaultConfig } = require('expo/metro-config');
 
 const config = getDefaultConfig(__dirname);
 
-export default config;
+module.exports = config;
 
 module.exports = (async () => {
   const config = await getDefaultConfig(__dirname);

@@ -1,15 +1,16 @@
-// eslint.config.js
-import js from '@eslint/js'
-import globals from 'globals'
-import tseslint from 'typescript-eslint'
-import prettierConfig from 'eslint-config-prettier'
+import js from '@eslint/js';
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
+import prettierConfig from 'eslint-config-prettier';
 
 export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   prettierConfig,
 
+  // ─────────────────────────────────────────────
   // Общие настройки для всего проекта
+  // ─────────────────────────────────────────────
   {
     files: ['**/*.{js,jsx,ts,tsx}'],
     languageOptions: {
@@ -26,14 +27,14 @@ export default tseslint.config(
     rules: {
       '@typescript-eslint/no-unused-vars': [
         'warn',
-        { 
-          varsIgnorePattern: '^_', 
-          argsIgnorePattern: '^_', 
-          caughtErrorsIgnorePattern: '^_' 
+        {
+          varsIgnorePattern: '^_',
+          argsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
         },
       ],
 
-      // ── Разрешаем импорты изображений, шрифтов и других статических ассетов ──
+      // Запрещаем require в коде приложения
       '@typescript-eslint/no-require-imports': [
         'error',
         {
@@ -51,7 +52,19 @@ export default tseslint.config(
     },
   },
 
-  // Специфично для расширений (с учётом пробелов в имени папки)
+  // ─────────────────────────────────────────────
+  // Разрешаем require в metro.config.js (Node / Metro)
+  // ─────────────────────────────────────────────
+  {
+    files: ['metro.config.js'],
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
+    },
+  },
+
+  // ─────────────────────────────────────────────
+  // Специфично для расширений
+  // ─────────────────────────────────────────────
   {
     files: [
       'FlashMind/Shared\\ \\(App\\)/**/*.{js,jsx}',
@@ -72,4 +85,4 @@ export default tseslint.config(
       ],
     },
   }
-)
+);
