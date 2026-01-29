@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { styles } from './welcome.styles';
+import { styles } from '../styles/WelcomeStep.styles';
 import { useRouter } from 'expo-router';
 import { TouchableWithoutFeedback } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -11,7 +11,7 @@ export default function WelcomeScreen() {
   const router = useRouter();
 
   const handlePress = () => {
-    router.push('/onbording');
+    router.push('/onbording/first-step');
   };
 
   return (

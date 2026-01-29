@@ -1,10 +1,10 @@
-import React from 'react'
-import { Image, ImageStyle } from 'react-native'
-import { Images } from '@/assets'
+import React from 'react';
+import { Image, ImageStyle } from 'react-native';
+import { Images } from '@/assets';
 
-type LogoProps = {
-  size?: number
-  style?: ImageStyle
+interface LogoProps {
+  size?: number;
+  style?: ImageStyle;
 }
 
 export const Logo = ({ size = 150, style }: LogoProps) => (
@@ -13,4 +13,4 @@ export const Logo = ({ size = 150, style }: LogoProps) => (
     style={[{ width: size, height: size, marginBottom: 12 }, style]}
     resizeMode="contain"
   />
-)
+);

@@ -18,10 +18,11 @@
       "@/*": ["./*"],
       "@/components/*": ["./components/*"],
       "@/styles/*":     ["./styles/*"],
-      "@/assets/*":     ["./assets/*"]
+      "@/assets/*":     ["./assets/*"],
+      "@/onbording/*": ["./feature/onbording/*"]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx"
+  "include": ["**/*.ts", "**/*.tsx", "declarations.d.ts"
 ],
   "exclude": ["node_modules"]
 }

@@ -17,7 +17,7 @@ export default function StepConfirmEmail() {
   const router = useRouter();
 
   const handleContinue = () => {
-    router.push('/welcome');
+    router.push('/onbording');
   };
 
   const handleCodeFilled = () => {};
