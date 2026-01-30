@@ -4,7 +4,7 @@ import { styles } from '../styles/WelcomeStep.styles';
 import { useRouter } from 'expo-router';
 import { TouchableWithoutFeedback } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Typography } from '@/styles';
+import { Typography } from '@/styles/Typography';
 import { Logo } from '@/components/Logo';
 
 export default function WelcomeScreen() {

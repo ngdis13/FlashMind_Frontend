@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router';
 import React from 'react';
 import { View, Text, TouchableWithoutFeedback } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Typography } from '@/styles';
+import { Typography } from '@/styles/Typography';
 import { styles } from './notfound.styles';
 
 import { LogoSadStar } from '@/components/LogoSadStar';

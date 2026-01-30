@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Pressable, TextInput, View, StyleSheet } from 'react-native';
-import { Typography } from '@/styles';
+import { Typography } from '@/styles/Typography';
 
 type CodeInputProps = {
   length?: number;

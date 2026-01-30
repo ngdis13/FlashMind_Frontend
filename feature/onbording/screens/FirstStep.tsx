@@ -3,7 +3,8 @@ import { View } from 'react-native';
 import { styles } from '../styles/FirstStep.styles';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Typography } from '@/styles';
+import { Typography } from '@/styles/Typography';
+import { commonStyles } from '@/styles/Common';
 import { SvgXml } from 'react-native-svg';
 
 import { MainButton } from '@/components/MainButton';
@@ -57,7 +58,7 @@ export default function FirstStepScreen() {
             onPress={handleOther}
           />
         </View>
-        <View style={styles.buttonContainer}>
+        <View style={commonStyles.buttonContainer}>
           <MainButton title="Дальше" onPress={handlePress} />
         </View>
       </View>

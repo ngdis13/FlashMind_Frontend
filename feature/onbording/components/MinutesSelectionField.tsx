@@ -6,7 +6,8 @@ import {
   TextInput,
   Pressable,
 } from 'react-native';
-import { Typography } from '@/styles';
+import { Typography } from '@/styles/Typography';
+import { colors } from '@/styles/Colors';
 
 interface MinutesSelectionFieldProps {
   initialValue?: number;
@@ -86,7 +87,7 @@ const styles = StyleSheet.create({
 
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
-    borderColor: '#6E75D9',
+    borderColor: colors.mainColor,
     borderWidth: 2,
 
     height: 56,
@@ -99,7 +100,7 @@ const styles = StyleSheet.create({
     width: 33,
     height: 33,
     borderRadius: 20,
-    backgroundColor: '#6E75D9',
+    backgroundColor: colors.mainColor,
     alignItems: 'center',
     justifyContent: 'center',
   },

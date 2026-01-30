@@ -1,9 +1,10 @@
 import { StyleSheet } from 'react-native';
+import { colors } from '@/styles/Colors';
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F6F9FC',
+    backgroundColor: colors.background,
   },
   progressLineBox: {
     maxWidth: 400,
@@ -16,12 +17,5 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 10,
     gap: 40,
-  },
-  buttonContainer: {
-    position: 'absolute',
-    width: '100%',
-    bottom: 30,
-    paddingHorizontal: 10,
-    alignItems: 'center',
   },
 });

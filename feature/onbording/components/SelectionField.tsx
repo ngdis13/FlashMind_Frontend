@@ -5,7 +5,7 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
-import { Typography } from '@/styles';
+import { Typography } from '@/styles/Typography';
 
 interface SelectionProps {
   image: ReactNode;

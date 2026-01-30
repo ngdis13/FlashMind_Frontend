@@ -1,10 +1,11 @@
-import { StyleSheet } from 'react-native'
+import { StyleSheet } from 'react-native';
+import { colors } from '@/styles/Colors';
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    backgroundColor: '#F6F9FC',
+    backgroundColor: colors.background,
     paddingHorizontal: 10,
     paddingTop: 100,
   },
@@ -31,4 +32,4 @@ export const styles = StyleSheet.create({
     bottom: 30,
     paddingHorizontal: 10,
   },
-})
+});

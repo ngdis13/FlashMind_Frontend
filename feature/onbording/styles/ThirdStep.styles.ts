@@ -4,28 +4,28 @@ import { colors } from '@/styles/Colors';
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
     backgroundColor: colors.background,
-    paddingHorizontal: 10,
-    paddingTop: 100,
   },
-  pageNames: {
-    marginBottom: 16,
-    textAlign: 'center',
+  progressLineBox: {
     maxWidth: 400,
-  },
-  infoContainer: {
-    gap: 8,
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  buttonContainer: {
-    position: 'absolute',
     width: '100%',
+    alignSelf: 'center',
+  },
+  content: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 12,
-    bottom: 30,
     paddingHorizontal: 10,
+  },
+  typography: {
+    textAlign: 'center',
+    maxWidth: 400,
+    marginBottom: 24,
+  },
+  inputContainer: {
+    gap: 12,
+    width: '100%',
+    marginBottom: 16,
+    maxWidth: 400,
   },
 });

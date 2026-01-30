@@ -3,7 +3,7 @@ import React from 'react';
 import { styles } from '../styles/StepConfirmEmail.styles';
 import { View } from 'react-native';
 import { MainButton } from '@/components/MainButton';
-import { Typography } from '@/styles';
+import { Typography } from '@/styles/Typography';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CodeInput } from '../components/CodeInput';
