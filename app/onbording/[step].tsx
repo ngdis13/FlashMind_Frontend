@@ -1,8 +1,8 @@
 import { useLocalSearchParams } from 'expo-router';
-import SecondStepScreen from '@/feature/onbording/screens/SecondStep';
-import ThirdStepScreen from '@/feature/onbording/screens/ThirdStep';
-import FourthStepScreen from '@/feature/onbording/screens/FourthStep';
-import WelcomeScreen from '@/feature/onbording/screens/WelcomeStep';
+import SecondStepScreen from '@/feature/auth/onbording/screens/SecondStep';
+import ThirdStepScreen from '@/feature/auth/onbording/screens/ThirdStep';
+import FourthStepScreen from '@/feature/auth/onbording/screens/FourthStep';
+import WelcomeScreen from '@/feature/auth/onbording/screens/WelcomeStep';
 
 export default function OnbordingStepScreens() {
   const { step } = useLocalSearchParams();

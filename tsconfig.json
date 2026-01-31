@@ -19,7 +19,7 @@
       "@/components/*": ["./components/*"],
       "@/styles/*":     ["./styles/*"],
       "@/assets/*":     ["./assets/*"],
-      "@/onbording/*": ["./feature/onbording/*"]
+      "@/onbording/*": ["feature/auth/onbording/*"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx", "declarations.d.ts"

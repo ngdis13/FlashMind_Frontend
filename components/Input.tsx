@@ -1,19 +1,30 @@
-import React from 'react'
-import { TextInput, StyleSheet, Text, TextInputProps, ViewStyle } from 'react-native'
+import React from 'react';
+import {
+  TextInput,
+  StyleSheet,
+  Text,
+  TextInputProps,
+  StyleProp,
+  TextStyle,
+} from 'react-native';
 
 interface InputProps extends TextInputProps {
-  label?: string
-  style?: ViewStyle | ViewStyle[]
+  label?: string;
+  style?: StyleProp<TextStyle>;
 }
 
 export const Input = ({ label, style, ...props }: InputProps) => {
   return (
     <>
       {label && <Text style={styles.label}>{label}</Text>}
-      <TextInput style={[styles.input, style]} placeholderTextColor="#999" {...props} />
+      <TextInput
+        style={[styles.input, style]}
+        placeholderTextColor="#999"
+        {...props}
+      />
     </>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
   label: {
@@ -43,4 +54,4 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 4, // для Android
   },
-})
+});

@@ -19,7 +19,10 @@ export default function FourthStepScreen() {
     router.push('/onbording/welcome-last-step');
   };
 
+  // Функция отвечает за выбор аватара из галереи устройства
   const handlePickAvatar = async () => {
+    // Запрашиваем разрешение на доступ к галерее
+    // iOS / Android не дают доступ без явного разрешения пользователя
     const { status } =
       await ImagePicker.requestMediaLibraryPermissionsAsync();
 
@@ -29,13 +32,21 @@ export default function FourthStepScreen() {
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
+      // Разрешаем выбирать только изображения (без видео)
       mediaTypes: ['images'],
+      // Позволяем пользователю обрезать изображение перед выбором
       allowsEditing: true,
+      // Соотношение сторон при обрезке (1:1 — квадрат, идеально для аватара)
       aspect: [1, 1],
+      // Качество изображения (0–1)
+      // 0.8 — хороший баланс между качеством и размером файла
       quality: 0.8,
     });
 
+    // Если пользователь НЕ нажал "Отмена"
     if (!result.canceled) {
+      // Берём URI выбранного изображения
+      // assets[0] — потому что пользователь выбирает одно фото
       setAvatarUri(result.assets[0].uri);
     }
   };
