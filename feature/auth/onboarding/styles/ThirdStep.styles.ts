@@ -25,7 +25,21 @@ export const styles = StyleSheet.create({
   inputContainer: {
     gap: 12,
     width: '100%',
-    marginBottom: 16,
     maxWidth: 400,
+  },
+  input: {
+    width: '100%',
+  },
+  field: {
+    width: '100%',
+    gap: 4,
+  },
+  inputError: {
+    borderColor: colors.errorColor,
+    color: colors.errorColor,
+  },
+  errorText: {
+    color: colors.errorColor,
+    textAlign: 'center',
   },
 });

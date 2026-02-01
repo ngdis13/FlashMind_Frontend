@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View } from 'react-native';
 import { styles } from '../styles/FirstStep.styles';
 import { useRouter } from 'expo-router';
@@ -18,16 +18,26 @@ import { SelectionField } from '../components/SelectionField';
 
 export default function FirstStepScreen() {
   const router = useRouter();
+  const [choice, setChoice] = useState('');
 
   const handlePress = () => {
     router.push('/onbording/second-step');
   };
 
-  const handleExam = () => {};
+  const handleLanguage = () => {
+    setChoice('Выучить новый язык');
+    handlePress();
+  };
 
-  const handleLanguage = () => {};
+  const handleExam = () => {
+    setChoice('Подготовиться к экзамену');
+    handlePress();
+  };
 
-  const handleOther = () => {};
+  const handleOther = () => {
+    setChoice('Другое');
+    handlePress();
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -57,9 +67,6 @@ export default function FirstStepScreen() {
             title="Другое"
             onPress={handleOther}
           />
-        </View>
-        <View style={commonStyles.buttonContainer}>
-          <MainButton title="Дальше" onPress={handlePress} />
         </View>
       </View>
     </SafeAreaView>

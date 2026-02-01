@@ -22,6 +22,11 @@ export const styles = StyleSheet.create({
   input: {
     width: '100%',
     maxWidth: 400,
+    marginBottom: 8,
+  },
+  inputError: {
+    borderColor: colors.errorColor,
+    color: colors.errorColor,
   },
   buttonContainer: {
     position: 'absolute',

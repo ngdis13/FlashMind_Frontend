@@ -1,3 +1,4 @@
+import { colors } from '@/styles/Colors';
 import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
@@ -25,6 +26,25 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 16,
     marginBottom: 16,
+  },
+  passwordWrapper: {
+    position: 'relative',
+    width: '100%',
+    maxWidth: 400,
+    alignSelf: 'center',
+  },
+  input: {
+    width: '100%',
+  },
+  inputError: {
+    borderColor: colors.errorColor,
+    color: colors.errorColor,
+  },
+  eyeButton: {
+    position: 'absolute',
+    right: 16,
+    top: '50%',
+    transform: [{ translateY: -12 }], // 24 / 2
   },
   buttonContainer: {
     position: 'absolute',

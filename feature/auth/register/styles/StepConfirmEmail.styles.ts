@@ -7,7 +7,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.background,
     paddingHorizontal: 10,
-    paddingTop: 100,
+    paddingTop: 214,
   },
   pageNames: {
     marginBottom: 16,

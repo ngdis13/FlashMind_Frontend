@@ -9,13 +9,23 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Input } from '@/components/Input';
 import { useRouter } from 'expo-router';
+import { isValidEmail } from '../../validators/email.validator';
+import { colors } from '@/styles/Colors';
 
 export default function FirstStepResetPassword() {
   const [email, setEmail] = useState('');
+  const [error, setError] = useState('');
+
+  const isButtonActive = email.trim() !== '';
+
   const router = useRouter();
 
   const handleContinue = () => {
-    router.push('/reset-password/second-step');
+    if (isValidEmail(email)) {
+      router.push('/reset-password/second-step');
+    } else {
+      setError('Неверный email');
+    }
   };
 
   return (
@@ -28,20 +38,34 @@ export default function FirstStepResetPassword() {
         <Typography variant="h2">
           Мы отправим вам код для сброса пароля
         </Typography>
-      </View>
 
-      <Input
-        style={styles.input}
-        placeholder="Email*"
-        value={email}
-        onChangeText={setEmail}
-        autoCapitalize="none"
-      />
+        <Input
+          style={[
+            styles.input,
+            error ? styles.inputError : undefined,
+          ]}
+          placeholder="Email*"
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+        />
+
+        {error ? (
+          <Typography
+            variant="h2"
+            color={colors.errorColor}
+            style={{ alignSelf: 'center' }}
+          >
+            {error}
+          </Typography>
+        ) : null}
+      </View>
 
       <View style={styles.buttonContainer}>
         <MainButton
           title="Сбросить пароль"
           onPress={handleContinue}
+          disabled={!isButtonActive}
         />
       </View>
     </SafeAreaView>

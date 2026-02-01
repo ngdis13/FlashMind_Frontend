@@ -10,8 +10,8 @@ import { Input } from '@/components/Input';
 import { MainButton } from '@/components/MainButton';
 import { Typography } from '@/styles/Typography';
 
-import { OpenEyesIcon } from '../assets/assets-components/OpenEyesIcon';
-import { CloseEyesIcon } from '../assets/assets-components/CloseEyesIcon';
+import { OpenEyesIcon } from '../../assets/Icons/OpenEyesIcon';
+import { CloseEyesIcon } from '../../assets/Icons/CloseEyesIcon';
 
 export default function ThirdStepResetPassword() {
   const [password, setPassword] = useState('');
@@ -22,6 +22,9 @@ export default function ThirdStepResetPassword() {
   const [error, setError] = useState('');
   const [passwordError, setPasswordError] = useState(false);
   const [confirmError, setConfirmError] = useState(false);
+
+  const isButtonActive =
+    password.trim() !== '' && confirmPassword.trim() !== '';
 
   const router = useRouter();
 
@@ -114,6 +117,7 @@ export default function ThirdStepResetPassword() {
         <MainButton
           title="Сбросить пароль"
           onPress={handleContinue}
+          disabled={!isButtonActive}
         />
       </View>
     </SafeAreaView>

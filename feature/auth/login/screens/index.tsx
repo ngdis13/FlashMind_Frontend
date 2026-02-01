@@ -7,37 +7,31 @@ import { styles } from '../styles/login.styles';
 import { Typography } from '@/styles/Typography';
 import { Input } from '@/components/Input';
 import { Logo } from '@/components/Logo';
-import { useUserStore } from '@/store/userStore';
+import { OpenEyesIcon } from '../../assets/Icons/OpenEyesIcon';
+import { CloseEyesIcon } from '../../assets/Icons/CloseEyesIcon';
+import { isValidEmail } from '../../validators/email.validator';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login } = useUserStore();
+
+  const [passwordError, setPasswordError] = useState(false);
+  const [emailError, setEmailError] = useState(false);
+
+  const [showPassword, setShowPassword] = useState(false);
+
+  const isButtonActive =
+    email.trim() !== '' && password.trim() !== '';
 
   const router = useRouter();
 
   const handleLogin = async () => {
-    try {
-      await login(email, password);
+    //тут запрос на сервер должен быть
+    if (isValidEmail(email)) {
       Alert.alert('Успех', 'Вы вошли в систему!');
-      router.push('/'); // переход на главную
-    } catch (err: unknown) {
-      let message = 'Неизвестная ошибка';
-
-      if (err instanceof Error) {
-        message = err.message;
-      } else if (typeof err === 'string') {
-        message = err;
-      } else if (
-        err &&
-        typeof err === 'object' &&
-        'message' in err &&
-        typeof (err as { message: unknown }).message === 'string'
-      ) {
-        message = (err as { message: string }).message;
-      }
-
-      Alert.alert('Ошибка', message);
+      router.push('/not-found');
+    } else {
+      setEmailError(true);
     }
   };
 
@@ -57,18 +51,41 @@ export default function LoginScreen() {
 
       <View style={styles.inputContainer}>
         <Input
+          style={[
+            styles.input,
+            emailError ? styles.inputError : undefined,
+          ]}
           placeholder="Email"
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
         />
 
-        <Input
-          placeholder="Пароль"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
+        <View style={styles.passwordWrapper}>
+          <Input
+            style={[
+              styles.input,
+              passwordError ? styles.inputError : undefined,
+            ]}
+            placeholder="Пароль*"
+            value={password}
+            onChangeText={setPassword}
+            autoCapitalize="none"
+            secureTextEntry={!showPassword}
+          />
+
+          <Pressable
+            onPress={() => setShowPassword((prev) => !prev)}
+            hitSlop={10}
+            style={styles.eyeButton}
+            accessibilityRole="button"
+            accessibilityLabel={
+              showPassword ? 'Скрыть пароль' : 'Показать пароль'
+            }
+          >
+            {showPassword ? <OpenEyesIcon /> : <CloseEyesIcon />}
+          </Pressable>
+        </View>
       </View>
 
       <Pressable onPress={handleChangePassword}>
@@ -76,7 +93,11 @@ export default function LoginScreen() {
       </Pressable>
 
       <View style={styles.buttonContainer}>
-        <MainButton title="Войти" onPress={handleLogin} />
+        <MainButton
+          title="Войти"
+          onPress={handleLogin}
+          disabled={!isButtonActive}
+        />
         <SecondButton title="Регистрация" onPress={handleRegister} />
       </View>
     </View>
