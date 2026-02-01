@@ -1,13 +1,19 @@
+//Основные рабочие импорты
 import React, { useState } from 'react';
-import * as ImagePicker from 'expo-image-picker';
-import { View, Text, Image, Pressable } from 'react-native';
-import { styles } from '../styles/FourthStep.styles';
+import { View, Image, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
-import { TouchableWithoutFeedback } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as ImagePicker from 'expo-image-picker';
+
+//Стили
+import { styles } from '../styles/FourthStep.styles';
 import { Typography } from '@/styles/Typography';
 import { commonStyles } from '@/styles/Common';
+
+//Иконки
 import { AddAvatar } from '../assets/assetsComponents/AddAvatar';
+
+//Дополнительные компоненты
 import { ProgressLineAnimated } from '@/components/ProgressLine';
 import { MainButton } from '@/components/MainButton';
 
@@ -15,8 +21,8 @@ export default function FourthStepScreen() {
   const router = useRouter();
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
 
-  const handlePress = () => {
-    router.push('/onbording/welcome-last-step');
+  const handleNextStep = () => {
+    router.push('/onboarding/welcome-last-step');
   };
 
   // Функция отвечает за выбор аватара из галереи устройства
@@ -84,7 +90,10 @@ export default function FourthStepScreen() {
         </Typography>
       </View>
       <View style={commonStyles.buttonContainer}>
-        <MainButton title="Вперед к знаниям" onPress={handlePress} />
+        <MainButton
+          title="Вперед к знаниям"
+          onPress={handleNextStep}
+        />
       </View>
     </SafeAreaView>
   );

@@ -1,42 +1,38 @@
+//Основные рабочие импорты
 import React, { useState } from 'react';
 import { View } from 'react-native';
-import { styles } from '../styles/FirstStep.styles';
-import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+
+//Стили
 import { Typography } from '@/styles/Typography';
-import { commonStyles } from '@/styles/Common';
-import { SvgXml } from 'react-native-svg';
+import { styles } from '../styles/FirstStep.styles';
 
-import { MainButton } from '@/components/MainButton';
-import { ProgressLineAnimated } from '@/components/ProgressLine';
-
+//Иконки
 import { ExamIcon } from '../assets/assetsComponents/ExamIcon';
 import { LanguageIcon } from '../assets/assetsComponents/LanguageIcon';
 import { OtherIcon } from '../assets/assetsComponents/OtherIcon';
 
+//Дополнительные компоненты
 import { SelectionField } from '../components/SelectionField';
+import { ProgressLineAnimated } from '@/components/ProgressLine';
 
+/**
+ * Первый шаг онбординга.
+ *
+ * Экран позволяет пользователю выбрать основную цель обучения.
+ * Выбор цели используется для дальнейшей персонализации приложения.
+ */
 export default function FirstStepScreen() {
   const router = useRouter();
   const [choice, setChoice] = useState('');
 
-  const handlePress = () => {
-    router.push('/onbording/second-step');
-  };
-
-  const handleLanguage = () => {
-    setChoice('Выучить новый язык');
-    handlePress();
-  };
-
-  const handleExam = () => {
-    setChoice('Подготовиться к экзамену');
-    handlePress();
-  };
-
-  const handleOther = () => {
-    setChoice('Другое');
-    handlePress();
+  /**
+   * Обрабатывает выбор цели и переходит к следующему шагу онбординга.
+   */
+  const handleSelect = (value: string) => {
+    setChoice(value);
+    router.push('/onboarding/second-step');
   };
 
   return (
@@ -55,17 +51,17 @@ export default function FirstStepScreen() {
           <SelectionField
             image={<LanguageIcon />}
             title="Выучить новый язык"
-            onPress={handleLanguage}
+            onPress={() => handleSelect('Выучить новый язык')}
           />
           <SelectionField
             image={<ExamIcon />}
             title="Подготовиться к экзамену"
-            onPress={handleExam}
+            onPress={() => handleSelect('Подготовиться к экзамену')}
           />
           <SelectionField
             image={<OtherIcon />}
             title="Другое"
-            onPress={handleOther}
+            onPress={() => handleSelect('Другое')}
           />
         </View>
       </View>

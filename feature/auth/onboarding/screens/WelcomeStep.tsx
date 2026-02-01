@@ -1,21 +1,34 @@
+//Основные рабочие импорты
 import React from 'react';
-import { View, Text } from 'react-native';
-import { styles } from '../styles/WelcomeStep.styles';
+import { View, TouchableWithoutFeedback } from 'react-native';
 import { useRouter } from 'expo-router';
-import { TouchableWithoutFeedback } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+//Стили
+import { styles } from '../styles/WelcomeStep.styles';
 import { Typography } from '@/styles/Typography';
+
+//Иконки
 import { Logo } from '@/components/Logo';
 
+/**
+ * Приветственный экран приложения.
+ *
+ * Первый экран онбординга, который знакомит пользователя
+ * с приложением и брендом.
+ *
+ * Нажатие в любую область экрана переводит пользователя
+ * к первому шагу онбординга.
+ */
 export default function WelcomeScreen() {
   const router = useRouter();
 
-  const handlePress = () => {
-    router.push('/onbording/first-step');
+  const handleStart = () => {
+    router.push('/onboarding/first-step');
   };
 
   return (
-    <TouchableWithoutFeedback onPress={handlePress}>
+    <TouchableWithoutFeedback onPress={handleStart}>
       <SafeAreaView style={styles.container}>
         <View style={{ alignItems: 'center' }}>
           <Logo size={190} />

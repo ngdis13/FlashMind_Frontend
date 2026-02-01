@@ -1,42 +1,66 @@
+//Основные рабочие импорты
 import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { styles } from '../styles/ThirdStep.styles';
-import { ProgressLineAnimated } from '@/components/ProgressLine';
 import { View } from 'react-native';
-import { MainButton } from '@/components/MainButton';
+
+//Стили
+import { styles } from '../styles/ThirdStep.styles';
 import { Typography } from '@/styles/Typography';
 import { commonStyles } from '@/styles/Common';
-import { Input } from '@/components/Input';
+
+//Иконки
 import { LogoHappyStar } from '@/components/LogoHappyStar';
-import { colors } from '@/styles/Colors';
+
+//Дополнительные компоненты
+import { ProgressLineAnimated } from '@/components/ProgressLine';
+import { MainButton } from '@/components/MainButton';
+import { Input } from '@/components/Input';
+
+//Дополнительные функции
 import { validateNameField } from '../../validators/user-name.validator';
 
+/**
+ * Третий шаг онбординга.
+ *
+ * Экран позволяет пользователю ввести имя и фамилию.
+ * Эти данные используются для дальнейшей персонализации.
+ */
 export default function ThirdStepScreen() {
   const router = useRouter();
 
   const [name, setName] = useState('');
   const [lastname, setLastName] = useState('');
+  const [errors, setErrors] = useState<{
+    name: string | null;
+    lastname: string | null;
+  }>({
+    name: null,
+    lastname: null,
+  });
 
-  const [nameError, setNameError] = useState<string | null>(null);
-  const [lastNameError, setLastNameError] = useState<string | null>(
-    null
-  );
+  const isButtonActive =
+    name.trim() !== '' &&
+    lastname.trim() !== '' &&
+    !errors.name &&
+    !errors.lastname;
 
-  const isButtonActive = name.trim() !== '' && lastname.trim() !== '';
-
+  /**
+   * Обрабатывает нажатие кнопки, выполняя валидацию полей.
+   */
   const handlePress = () => {
-    const nameError = validateNameField(name, 'Имя');
-    const lastNameError = validateNameField(lastname, 'Фамилия');
+    const newErrors = {
+      name: validateNameField(name, 'Имя'),
+      lastname: validateNameField(lastname, 'Фамилия'),
+    };
 
-    setNameError(nameError);
-    setLastNameError(lastNameError);
+    setErrors(newErrors);
 
-    if (nameError || lastNameError) {
+    if (newErrors.name || newErrors.lastname) {
       return;
     }
 
-    router.push('/onbording/fourth-step');
+    router.push('/onboarding/fourth-step');
   };
 
   return (
@@ -57,21 +81,21 @@ export default function ThirdStepScreen() {
             <Input
               style={[
                 styles.input,
-                nameError ? styles.inputError : undefined,
+                errors.name ? styles.inputError : undefined,
               ]}
               placeholder="Имя"
               value={name}
               onChangeText={(text) => {
                 setName(text);
-                if (nameError) {
-                  setNameError(null);
+                if (errors.name) {
+                  setErrors((prev) => ({ ...prev, name: null }));
                 }
               }}
               autoCapitalize="none"
             />
-            {nameError && (
+            {errors.name && (
               <Typography variant="h3" style={styles.errorText}>
-                {nameError}
+                {errors.name}
               </Typography>
             )}
           </View>
@@ -80,22 +104,22 @@ export default function ThirdStepScreen() {
             <Input
               style={[
                 styles.input,
-                lastNameError ? styles.inputError : undefined,
+                errors.lastname ? styles.inputError : undefined,
               ]}
               placeholder="Фамилия"
               value={lastname}
               onChangeText={(text) => {
                 setLastName(text);
-                if (nameError) {
-                  setNameError(null);
+                if (errors.lastname) {
+                  setErrors((prev) => ({ ...prev, lastname: null }));
                 }
               }}
               autoCapitalize="none"
             />
           </View>
-          {lastNameError && (
+          {errors.lastname && (
             <Typography variant="h3" style={styles.errorText}>
-              {lastNameError}
+              {errors.lastname}
             </Typography>
           )}
         </View>

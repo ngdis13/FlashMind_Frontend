@@ -35,7 +35,7 @@ export default function StepConfirmEmail() {
       // тут позже можно показать ошибку
       return;
     }
-    router.push('/onbording');
+    router.push('/onboarding');
   };
 
   const handleResendCode = () => {
