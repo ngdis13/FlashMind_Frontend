@@ -1,0 +1,58 @@
+{
+  "name": "flashmind",
+  "version": "1.0.0",
+  "main": "expo-router/entry",
+  "type": "module",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "web": "expo start --web",
+    "web:build": "expo export --platform web",
+    "lint": "node ./node_modules/eslint/bin/eslint.js . --ext .js,.jsx,.ts,.tsx",
+    "prepare": "husky",
+    "lint:fix": "node ./node_modules/eslint/bin/eslint.js . --fix",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "expo-font": "~14.0.10",
+    "expo-image-picker": "~17.0.10",
+    "expo-linear-gradient": "~15.0.8",
+    "expo-router": "~6.0.21",
+    "expo-splash-screen": "~31.0.13",
+    "expo-status-bar": "~3.0.9",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-native": "0.81.5",
+    "react-native-safe-area-context": "^5.6.2",
+    "react-native-screens": "^4.19.0",
+    "react-native-svg": "15.12.1",
+    "react-native-web": "^0.21.0",
+    "zustand": "^5.0.9"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "@types/react": "~19.1.0",
+    "babel-plugin-module-resolver": "^5.0.2",
+    "babel-preset-expo": "^54.0.9",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-native": "^5.0.0",
+    "expo": "^54.0.32",
+    "globals": "^17.0.0",
+    "husky": "^9.1.7",
+    "react-native-svg-transformer": "^1.5.2",
+    "typescript": "~5.9.2",
+    "typescript-eslint": "^8.53.0"
+  },
+  "private": true,
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "node ./node_modules/eslint/bin/eslint.js --fix",
+      "node ./node_modules/prettier/bin/prettier.cjs --write"
+    ]
+  }
+}

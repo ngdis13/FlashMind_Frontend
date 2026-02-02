@@ -1,0 +1,963 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		CC9F0DF62F0D5C7000C0E3C9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC9F0DF52F0D5C7000C0E3C9 /* AppDelegate.swift */; };
+		CC9F0DF82F0D5C7000C0E3C9 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC9F0DF72F0D5C7000C0E3C9 /* SceneDelegate.swift */; };
+		CC9F0DFB2F0D5C7000C0E3C9 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CC9F0DF92F0D5C7000C0E3C9 /* LaunchScreen.storyboard */; };
+		CC9F0DFE2F0D5C7000C0E3C9 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CC9F0DFC2F0D5C7000C0E3C9 /* Main.storyboard */; };
+		CC9F0E072F0D5C7000C0E3C9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC9F0E062F0D5C7000C0E3C9 /* AppDelegate.swift */; };
+		CC9F0E0A2F0D5C7000C0E3C9 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CC9F0E082F0D5C7000C0E3C9 /* Main.storyboard */; };
+		CC9F0E112F0D5C7000C0E3C9 /* FlashMind Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = CC9F0E102F0D5C7000C0E3C9 /* FlashMind Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		CC9F0E1B2F0D5C7000C0E3C9 /* FlashMind Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = CC9F0E1A2F0D5C7000C0E3C9 /* FlashMind Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		CC9F0E212F0D5C7000C0E3C9 /* Main.html in Resources */ = {isa = PBXBuildFile; fileRef = CC9F0DDC2F0D5C6D00C0E3C9 /* Main.html */; };
+		CC9F0E222F0D5C7000C0E3C9 /* Main.html in Resources */ = {isa = PBXBuildFile; fileRef = CC9F0DDC2F0D5C6D00C0E3C9 /* Main.html */; };
+		CC9F0E232F0D5C7000C0E3C9 /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = CC9F0DDE2F0D5C6D00C0E3C9 /* Icon.png */; };
+		CC9F0E242F0D5C7000C0E3C9 /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = CC9F0DDE2F0D5C6D00C0E3C9 /* Icon.png */; };
+		CC9F0E252F0D5C7000C0E3C9 /* Style.css in Resources */ = {isa = PBXBuildFile; fileRef = CC9F0DDF2F0D5C6D00C0E3C9 /* Style.css */; };
+		CC9F0E262F0D5C7000C0E3C9 /* Style.css in Resources */ = {isa = PBXBuildFile; fileRef = CC9F0DDF2F0D5C6D00C0E3C9 /* Style.css */; };
+		CC9F0E272F0D5C7000C0E3C9 /* Script.js in Resources */ = {isa = PBXBuildFile; fileRef = CC9F0DE02F0D5C6D00C0E3C9 /* Script.js */; };
+		CC9F0E282F0D5C7000C0E3C9 /* Script.js in Resources */ = {isa = PBXBuildFile; fileRef = CC9F0DE02F0D5C6D00C0E3C9 /* Script.js */; };
+		CC9F0E292F0D5C7000C0E3C9 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC9F0DE12F0D5C6D00C0E3C9 /* ViewController.swift */; };
+		CC9F0E2A2F0D5C7000C0E3C9 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC9F0DE12F0D5C6D00C0E3C9 /* ViewController.swift */; };
+		CC9F0E2B2F0D5C7000C0E3C9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CC9F0DE22F0D5C7000C0E3C9 /* Assets.xcassets */; };
+		CC9F0E2C2F0D5C7000C0E3C9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CC9F0DE22F0D5C7000C0E3C9 /* Assets.xcassets */; };
+		CC9F0E2D2F0D5C7000C0E3C9 /* SafariWebExtensionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC9F0DE42F0D5C7000C0E3C9 /* SafariWebExtensionHandler.swift */; };
+		CC9F0E2E2F0D5C7000C0E3C9 /* SafariWebExtensionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC9F0DE42F0D5C7000C0E3C9 /* SafariWebExtensionHandler.swift */; };
+		CC9F0E2F2F0D5C7000C0E3C9 /* _locales in Resources */ = {isa = PBXBuildFile; fileRef = CC9F0DE62F0D5C7000C0E3C9 /* _locales */; };
+		CC9F0E302F0D5C7000C0E3C9 /* _locales in Resources */ = {isa = PBXBuildFile; fileRef = CC9F0DE62F0D5C7000C0E3C9 /* _locales */; };
+		CC9F0E312F0D5C7000C0E3C9 /* images in Resources */ = {isa = PBXBuildFile; fileRef = CC9F0DE72F0D5C7000C0E3C9 /* images */; };
+		CC9F0E322F0D5C7000C0E3C9 /* images in Resources */ = {isa = PBXBuildFile; fileRef = CC9F0DE72F0D5C7000C0E3C9 /* images */; };
+		CC9F0E332F0D5C7000C0E3C9 /* manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = CC9F0DE82F0D5C7000C0E3C9 /* manifest.json */; };
+		CC9F0E342F0D5C7000C0E3C9 /* manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = CC9F0DE82F0D5C7000C0E3C9 /* manifest.json */; };
+		CC9F0E352F0D5C7000C0E3C9 /* background.js in Resources */ = {isa = PBXBuildFile; fileRef = CC9F0DE92F0D5C7000C0E3C9 /* background.js */; };
+		CC9F0E362F0D5C7000C0E3C9 /* background.js in Resources */ = {isa = PBXBuildFile; fileRef = CC9F0DE92F0D5C7000C0E3C9 /* background.js */; };
+		CC9F0E372F0D5C7000C0E3C9 /* content.js in Resources */ = {isa = PBXBuildFile; fileRef = CC9F0DEA2F0D5C7000C0E3C9 /* content.js */; };
+		CC9F0E382F0D5C7000C0E3C9 /* content.js in Resources */ = {isa = PBXBuildFile; fileRef = CC9F0DEA2F0D5C7000C0E3C9 /* content.js */; };
+		CC9F0E392F0D5C7000C0E3C9 /* popup.html in Resources */ = {isa = PBXBuildFile; fileRef = CC9F0DEB2F0D5C7000C0E3C9 /* popup.html */; };
+		CC9F0E3A2F0D5C7000C0E3C9 /* popup.html in Resources */ = {isa = PBXBuildFile; fileRef = CC9F0DEB2F0D5C7000C0E3C9 /* popup.html */; };
+		CC9F0E3B2F0D5C7000C0E3C9 /* popup.css in Resources */ = {isa = PBXBuildFile; fileRef = CC9F0DEC2F0D5C7000C0E3C9 /* popup.css */; };
+		CC9F0E3C2F0D5C7000C0E3C9 /* popup.css in Resources */ = {isa = PBXBuildFile; fileRef = CC9F0DEC2F0D5C7000C0E3C9 /* popup.css */; };
+		CC9F0E3D2F0D5C7000C0E3C9 /* popup.js in Resources */ = {isa = PBXBuildFile; fileRef = CC9F0DED2F0D5C7000C0E3C9 /* popup.js */; };
+		CC9F0E3E2F0D5C7000C0E3C9 /* popup.js in Resources */ = {isa = PBXBuildFile; fileRef = CC9F0DED2F0D5C7000C0E3C9 /* popup.js */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		CC9F0E122F0D5C7000C0E3C9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CC9F0DD62F0D5C6D00C0E3C9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CC9F0E0F2F0D5C7000C0E3C9;
+			remoteInfo = "FlashMind Extension (iOS)";
+		};
+		CC9F0E1C2F0D5C7000C0E3C9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CC9F0DD62F0D5C6D00C0E3C9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CC9F0E192F0D5C7000C0E3C9;
+			remoteInfo = "FlashMind Extension (macOS)";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		CC9F0E442F0D5C7000C0E3C9 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				CC9F0E112F0D5C7000C0E3C9 /* FlashMind Extension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CC9F0E4B2F0D5C7000C0E3C9 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				CC9F0E1B2F0D5C7000C0E3C9 /* FlashMind Extension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		CC9F0DDD2F0D5C6D00C0E3C9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = Base; path = ../Base.lproj/Main.html; sourceTree = "<group>"; };
+		CC9F0DDE2F0D5C6D00C0E3C9 /* Icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Icon.png; sourceTree = "<group>"; };
+		CC9F0DDF2F0D5C6D00C0E3C9 /* Style.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = Style.css; sourceTree = "<group>"; };
+		CC9F0DE02F0D5C6D00C0E3C9 /* Script.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = Script.js; sourceTree = "<group>"; };
+		CC9F0DE12F0D5C6D00C0E3C9 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		CC9F0DE22F0D5C7000C0E3C9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		CC9F0DE42F0D5C7000C0E3C9 /* SafariWebExtensionHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariWebExtensionHandler.swift; sourceTree = "<group>"; };
+		CC9F0DE62F0D5C7000C0E3C9 /* _locales */ = {isa = PBXFileReference; lastKnownFileType = folder; path = _locales; sourceTree = "<group>"; };
+		CC9F0DE72F0D5C7000C0E3C9 /* images */ = {isa = PBXFileReference; lastKnownFileType = folder; path = images; sourceTree = "<group>"; };
+		CC9F0DE82F0D5C7000C0E3C9 /* manifest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = manifest.json; sourceTree = "<group>"; };
+		CC9F0DE92F0D5C7000C0E3C9 /* background.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = background.js; sourceTree = "<group>"; };
+		CC9F0DEA2F0D5C7000C0E3C9 /* content.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = content.js; sourceTree = "<group>"; };
+		CC9F0DEB2F0D5C7000C0E3C9 /* popup.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = popup.html; sourceTree = "<group>"; };
+		CC9F0DEC2F0D5C7000C0E3C9 /* popup.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = popup.css; sourceTree = "<group>"; };
+		CC9F0DED2F0D5C7000C0E3C9 /* popup.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = popup.js; sourceTree = "<group>"; };
+		CC9F0DF22F0D5C7000C0E3C9 /* FlashMind.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FlashMind.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		CC9F0DF52F0D5C7000C0E3C9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		CC9F0DF72F0D5C7000C0E3C9 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
+		CC9F0DFA2F0D5C7000C0E3C9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		CC9F0DFD2F0D5C7000C0E3C9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		CC9F0DFF2F0D5C7000C0E3C9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		CC9F0E042F0D5C7000C0E3C9 /* FlashMind.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FlashMind.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		CC9F0E062F0D5C7000C0E3C9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		CC9F0E092F0D5C7000C0E3C9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		CC9F0E0B2F0D5C7000C0E3C9 /* FlashMind.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FlashMind.entitlements; sourceTree = "<group>"; };
+		CC9F0E102F0D5C7000C0E3C9 /* FlashMind Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "FlashMind Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CC9F0E152F0D5C7000C0E3C9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		CC9F0E1A2F0D5C7000C0E3C9 /* FlashMind Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "FlashMind Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CC9F0E1F2F0D5C7000C0E3C9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		CC9F0E202F0D5C7000C0E3C9 /* FlashMind.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FlashMind.entitlements; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		CC9F0DEF2F0D5C7000C0E3C9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CC9F0E012F0D5C7000C0E3C9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CC9F0E0D2F0D5C7000C0E3C9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CC9F0E172F0D5C7000C0E3C9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		CC9F0DD52F0D5C6D00C0E3C9 = {
+			isa = PBXGroup;
+			children = (
+				CC9F0DDA2F0D5C6D00C0E3C9 /* Shared (App) */,
+				CC9F0DE32F0D5C7000C0E3C9 /* Shared (Extension) */,
+				CC9F0DF42F0D5C7000C0E3C9 /* iOS (App) */,
+				CC9F0E052F0D5C7000C0E3C9 /* macOS (App) */,
+				CC9F0E142F0D5C7000C0E3C9 /* iOS (Extension) */,
+				CC9F0E1E2F0D5C7000C0E3C9 /* macOS (Extension) */,
+				CC9F0DF32F0D5C7000C0E3C9 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		CC9F0DDA2F0D5C6D00C0E3C9 /* Shared (App) */ = {
+			isa = PBXGroup;
+			children = (
+				CC9F0DE12F0D5C6D00C0E3C9 /* ViewController.swift */,
+				CC9F0DE22F0D5C7000C0E3C9 /* Assets.xcassets */,
+				CC9F0DDB2F0D5C6D00C0E3C9 /* Resources */,
+			);
+			path = "Shared (App)";
+			sourceTree = "<group>";
+		};
+		CC9F0DDB2F0D5C6D00C0E3C9 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				CC9F0DDC2F0D5C6D00C0E3C9 /* Main.html */,
+				CC9F0DDE2F0D5C6D00C0E3C9 /* Icon.png */,
+				CC9F0DDF2F0D5C6D00C0E3C9 /* Style.css */,
+				CC9F0DE02F0D5C6D00C0E3C9 /* Script.js */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		CC9F0DE32F0D5C7000C0E3C9 /* Shared (Extension) */ = {
+			isa = PBXGroup;
+			children = (
+				CC9F0DE42F0D5C7000C0E3C9 /* SafariWebExtensionHandler.swift */,
+				CC9F0DE52F0D5C7000C0E3C9 /* Resources */,
+			);
+			path = "Shared (Extension)";
+			sourceTree = "<group>";
+		};
+		CC9F0DE52F0D5C7000C0E3C9 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				CC9F0DE62F0D5C7000C0E3C9 /* _locales */,
+				CC9F0DE72F0D5C7000C0E3C9 /* images */,
+				CC9F0DE82F0D5C7000C0E3C9 /* manifest.json */,
+				CC9F0DE92F0D5C7000C0E3C9 /* background.js */,
+				CC9F0DEA2F0D5C7000C0E3C9 /* content.js */,
+				CC9F0DEB2F0D5C7000C0E3C9 /* popup.html */,
+				CC9F0DEC2F0D5C7000C0E3C9 /* popup.css */,
+				CC9F0DED2F0D5C7000C0E3C9 /* popup.js */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		CC9F0DF32F0D5C7000C0E3C9 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				CC9F0DF22F0D5C7000C0E3C9 /* FlashMind.app */,
+				CC9F0E042F0D5C7000C0E3C9 /* FlashMind.app */,
+				CC9F0E102F0D5C7000C0E3C9 /* FlashMind Extension.appex */,
+				CC9F0E1A2F0D5C7000C0E3C9 /* FlashMind Extension.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		CC9F0DF42F0D5C7000C0E3C9 /* iOS (App) */ = {
+			isa = PBXGroup;
+			children = (
+				CC9F0DF52F0D5C7000C0E3C9 /* AppDelegate.swift */,
+				CC9F0DF72F0D5C7000C0E3C9 /* SceneDelegate.swift */,
+				CC9F0DF92F0D5C7000C0E3C9 /* LaunchScreen.storyboard */,
+				CC9F0DFC2F0D5C7000C0E3C9 /* Main.storyboard */,
+				CC9F0DFF2F0D5C7000C0E3C9 /* Info.plist */,
+			);
+			path = "iOS (App)";
+			sourceTree = "<group>";
+		};
+		CC9F0E052F0D5C7000C0E3C9 /* macOS (App) */ = {
+			isa = PBXGroup;
+			children = (
+				CC9F0E062F0D5C7000C0E3C9 /* AppDelegate.swift */,
+				CC9F0E082F0D5C7000C0E3C9 /* Main.storyboard */,
+				CC9F0E0B2F0D5C7000C0E3C9 /* FlashMind.entitlements */,
+			);
+			path = "macOS (App)";
+			sourceTree = "<group>";
+		};
+		CC9F0E142F0D5C7000C0E3C9 /* iOS (Extension) */ = {
+			isa = PBXGroup;
+			children = (
+				CC9F0E152F0D5C7000C0E3C9 /* Info.plist */,
+			);
+			path = "iOS (Extension)";
+			sourceTree = "<group>";
+		};
+		CC9F0E1E2F0D5C7000C0E3C9 /* macOS (Extension) */ = {
+			isa = PBXGroup;
+			children = (
+				CC9F0E1F2F0D5C7000C0E3C9 /* Info.plist */,
+				CC9F0E202F0D5C7000C0E3C9 /* FlashMind.entitlements */,
+			);
+			path = "macOS (Extension)";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		CC9F0DF12F0D5C7000C0E3C9 /* FlashMind (iOS) */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CC9F0E452F0D5C7000C0E3C9 /* Build configuration list for PBXNativeTarget "FlashMind (iOS)" */;
+			buildPhases = (
+				CC9F0DEE2F0D5C7000C0E3C9 /* Sources */,
+				CC9F0DEF2F0D5C7000C0E3C9 /* Frameworks */,
+				CC9F0DF02F0D5C7000C0E3C9 /* Resources */,
+				CC9F0E442F0D5C7000C0E3C9 /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CC9F0E132F0D5C7000C0E3C9 /* PBXTargetDependency */,
+			);
+			name = "FlashMind (iOS)";
+			productName = "FlashMind (iOS)";
+			productReference = CC9F0DF22F0D5C7000C0E3C9 /* FlashMind.app */;
+			productType = "com.apple.product-type.application";
+		};
+		CC9F0E032F0D5C7000C0E3C9 /* FlashMind (macOS) */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CC9F0E4C2F0D5C7000C0E3C9 /* Build configuration list for PBXNativeTarget "FlashMind (macOS)" */;
+			buildPhases = (
+				CC9F0E002F0D5C7000C0E3C9 /* Sources */,
+				CC9F0E012F0D5C7000C0E3C9 /* Frameworks */,
+				CC9F0E022F0D5C7000C0E3C9 /* Resources */,
+				CC9F0E4B2F0D5C7000C0E3C9 /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CC9F0E1D2F0D5C7000C0E3C9 /* PBXTargetDependency */,
+			);
+			name = "FlashMind (macOS)";
+			productName = "FlashMind (macOS)";
+			productReference = CC9F0E042F0D5C7000C0E3C9 /* FlashMind.app */;
+			productType = "com.apple.product-type.application";
+		};
+		CC9F0E0F2F0D5C7000C0E3C9 /* FlashMind Extension (iOS) */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CC9F0E412F0D5C7000C0E3C9 /* Build configuration list for PBXNativeTarget "FlashMind Extension (iOS)" */;
+			buildPhases = (
+				CC9F0E0C2F0D5C7000C0E3C9 /* Sources */,
+				CC9F0E0D2F0D5C7000C0E3C9 /* Frameworks */,
+				CC9F0E0E2F0D5C7000C0E3C9 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "FlashMind Extension (iOS)";
+			productName = "FlashMind Extension (iOS)";
+			productReference = CC9F0E102F0D5C7000C0E3C9 /* FlashMind Extension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		CC9F0E192F0D5C7000C0E3C9 /* FlashMind Extension (macOS) */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CC9F0E482F0D5C7000C0E3C9 /* Build configuration list for PBXNativeTarget "FlashMind Extension (macOS)" */;
+			buildPhases = (
+				CC9F0E162F0D5C7000C0E3C9 /* Sources */,
+				CC9F0E172F0D5C7000C0E3C9 /* Frameworks */,
+				CC9F0E182F0D5C7000C0E3C9 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "FlashMind Extension (macOS)";
+			productName = "FlashMind Extension (macOS)";
+			productReference = CC9F0E1A2F0D5C7000C0E3C9 /* FlashMind Extension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		CC9F0DD62F0D5C6D00C0E3C9 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1520;
+				LastUpgradeCheck = 1520;
+				TargetAttributes = {
+					CC9F0DF12F0D5C7000C0E3C9 = {
+						CreatedOnToolsVersion = 15.2;
+					};
+					CC9F0E032F0D5C7000C0E3C9 = {
+						CreatedOnToolsVersion = 15.2;
+					};
+					CC9F0E0F2F0D5C7000C0E3C9 = {
+						CreatedOnToolsVersion = 15.2;
+					};
+					CC9F0E192F0D5C7000C0E3C9 = {
+						CreatedOnToolsVersion = 15.2;
+					};
+				};
+			};
+			buildConfigurationList = CC9F0DD92F0D5C6D00C0E3C9 /* Build configuration list for PBXProject "FlashMind" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = CC9F0DD52F0D5C6D00C0E3C9;
+			productRefGroup = CC9F0DF32F0D5C7000C0E3C9 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				CC9F0DF12F0D5C7000C0E3C9 /* FlashMind (iOS) */,
+				CC9F0E032F0D5C7000C0E3C9 /* FlashMind (macOS) */,
+				CC9F0E0F2F0D5C7000C0E3C9 /* FlashMind Extension (iOS) */,
+				CC9F0E192F0D5C7000C0E3C9 /* FlashMind Extension (macOS) */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		CC9F0DF02F0D5C7000C0E3C9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CC9F0E232F0D5C7000C0E3C9 /* Icon.png in Resources */,
+				CC9F0DFB2F0D5C7000C0E3C9 /* LaunchScreen.storyboard in Resources */,
+				CC9F0E212F0D5C7000C0E3C9 /* Main.html in Resources */,
+				CC9F0E272F0D5C7000C0E3C9 /* Script.js in Resources */,
+				CC9F0E2B2F0D5C7000C0E3C9 /* Assets.xcassets in Resources */,
+				CC9F0DFE2F0D5C7000C0E3C9 /* Main.storyboard in Resources */,
+				CC9F0E252F0D5C7000C0E3C9 /* Style.css in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CC9F0E022F0D5C7000C0E3C9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CC9F0E242F0D5C7000C0E3C9 /* Icon.png in Resources */,
+				CC9F0E262F0D5C7000C0E3C9 /* Style.css in Resources */,
+				CC9F0E0A2F0D5C7000C0E3C9 /* Main.storyboard in Resources */,
+				CC9F0E282F0D5C7000C0E3C9 /* Script.js in Resources */,
+				CC9F0E2C2F0D5C7000C0E3C9 /* Assets.xcassets in Resources */,
+				CC9F0E222F0D5C7000C0E3C9 /* Main.html in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CC9F0E0E2F0D5C7000C0E3C9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CC9F0E352F0D5C7000C0E3C9 /* background.js in Resources */,
+				CC9F0E3B2F0D5C7000C0E3C9 /* popup.css in Resources */,
+				CC9F0E392F0D5C7000C0E3C9 /* popup.html in Resources */,
+				CC9F0E312F0D5C7000C0E3C9 /* images in Resources */,
+				CC9F0E332F0D5C7000C0E3C9 /* manifest.json in Resources */,
+				CC9F0E2F2F0D5C7000C0E3C9 /* _locales in Resources */,
+				CC9F0E372F0D5C7000C0E3C9 /* content.js in Resources */,
+				CC9F0E3D2F0D5C7000C0E3C9 /* popup.js in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CC9F0E182F0D5C7000C0E3C9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CC9F0E362F0D5C7000C0E3C9 /* background.js in Resources */,
+				CC9F0E3C2F0D5C7000C0E3C9 /* popup.css in Resources */,
+				CC9F0E3A2F0D5C7000C0E3C9 /* popup.html in Resources */,
+				CC9F0E322F0D5C7000C0E3C9 /* images in Resources */,
+				CC9F0E342F0D5C7000C0E3C9 /* manifest.json in Resources */,
+				CC9F0E302F0D5C7000C0E3C9 /* _locales in Resources */,
+				CC9F0E382F0D5C7000C0E3C9 /* content.js in Resources */,
+				CC9F0E3E2F0D5C7000C0E3C9 /* popup.js in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		CC9F0DEE2F0D5C7000C0E3C9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CC9F0E292F0D5C7000C0E3C9 /* ViewController.swift in Sources */,
+				CC9F0DF62F0D5C7000C0E3C9 /* AppDelegate.swift in Sources */,
+				CC9F0DF82F0D5C7000C0E3C9 /* SceneDelegate.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CC9F0E002F0D5C7000C0E3C9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CC9F0E2A2F0D5C7000C0E3C9 /* ViewController.swift in Sources */,
+				CC9F0E072F0D5C7000C0E3C9 /* AppDelegate.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CC9F0E0C2F0D5C7000C0E3C9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CC9F0E2D2F0D5C7000C0E3C9 /* SafariWebExtensionHandler.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CC9F0E162F0D5C7000C0E3C9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CC9F0E2E2F0D5C7000C0E3C9 /* SafariWebExtensionHandler.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		CC9F0E132F0D5C7000C0E3C9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CC9F0E0F2F0D5C7000C0E3C9 /* FlashMind Extension (iOS) */;
+			targetProxy = CC9F0E122F0D5C7000C0E3C9 /* PBXContainerItemProxy */;
+		};
+		CC9F0E1D2F0D5C7000C0E3C9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CC9F0E192F0D5C7000C0E3C9 /* FlashMind Extension (macOS) */;
+			targetProxy = CC9F0E1C2F0D5C7000C0E3C9 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		CC9F0DDC2F0D5C6D00C0E3C9 /* Main.html */ = {
+			isa = PBXVariantGroup;
+			children = (
+				CC9F0DDD2F0D5C6D00C0E3C9 /* Base */,
+			);
+			name = Main.html;
+			sourceTree = "<group>";
+		};
+		CC9F0DF92F0D5C7000C0E3C9 /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				CC9F0DFA2F0D5C7000C0E3C9 /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+		CC9F0DFC2F0D5C7000C0E3C9 /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				CC9F0DFD2F0D5C7000C0E3C9 /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		CC9F0E082F0D5C7000C0E3C9 /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				CC9F0E092F0D5C7000C0E3C9 /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		CC9F0E3F2F0D5C7000C0E3C9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		CC9F0E402F0D5C7000C0E3C9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		CC9F0E422F0D5C7000C0E3C9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "iOS (Extension)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "FlashMind Extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = ajs.FlashMind.Extension;
+				PRODUCT_NAME = "FlashMind Extension";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		CC9F0E432F0D5C7000C0E3C9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "iOS (Extension)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "FlashMind Extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = ajs.FlashMind.Extension;
+				PRODUCT_NAME = "FlashMind Extension";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		CC9F0E462F0D5C7000C0E3C9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "iOS (App)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = FlashMind;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+					"-framework",
+					WebKit,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = ajs.FlashMind;
+				PRODUCT_NAME = FlashMind;
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		CC9F0E472F0D5C7000C0E3C9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "iOS (App)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = FlashMind;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+					"-framework",
+					WebKit,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = ajs.FlashMind;
+				PRODUCT_NAME = FlashMind;
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		CC9F0E492F0D5C7000C0E3C9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "macOS (Extension)/FlashMind.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "macOS (Extension)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "FlashMind Extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = ajs.FlashMind.Extension;
+				PRODUCT_NAME = "FlashMind Extension";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		CC9F0E4A2F0D5C7000C0E3C9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "macOS (Extension)/FlashMind.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "macOS (Extension)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "FlashMind Extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = ajs.FlashMind.Extension;
+				PRODUCT_NAME = "FlashMind Extension";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		CC9F0E4D2F0D5C7000C0E3C9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "macOS (App)/FlashMind.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = FlashMind;
+				INFOPLIST_KEY_NSMainStoryboardFile = Main;
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+					"-framework",
+					WebKit,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = ajs.FlashMind;
+				PRODUCT_NAME = FlashMind;
+				SDKROOT = macosx;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		CC9F0E4E2F0D5C7000C0E3C9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "macOS (App)/FlashMind.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = FlashMind;
+				INFOPLIST_KEY_NSMainStoryboardFile = Main;
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+					"-framework",
+					WebKit,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = ajs.FlashMind;
+				PRODUCT_NAME = FlashMind;
+				SDKROOT = macosx;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		CC9F0DD92F0D5C6D00C0E3C9 /* Build configuration list for PBXProject "FlashMind" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CC9F0E3F2F0D5C7000C0E3C9 /* Debug */,
+				CC9F0E402F0D5C7000C0E3C9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CC9F0E412F0D5C7000C0E3C9 /* Build configuration list for PBXNativeTarget "FlashMind Extension (iOS)" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CC9F0E422F0D5C7000C0E3C9 /* Debug */,
+				CC9F0E432F0D5C7000C0E3C9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CC9F0E452F0D5C7000C0E3C9 /* Build configuration list for PBXNativeTarget "FlashMind (iOS)" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CC9F0E462F0D5C7000C0E3C9 /* Debug */,
+				CC9F0E472F0D5C7000C0E3C9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CC9F0E482F0D5C7000C0E3C9 /* Build configuration list for PBXNativeTarget "FlashMind Extension (macOS)" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CC9F0E492F0D5C7000C0E3C9 /* Debug */,
+				CC9F0E4A2F0D5C7000C0E3C9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CC9F0E4C2F0D5C7000C0E3C9 /* Build configuration list for PBXNativeTarget "FlashMind (macOS)" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CC9F0E4D2F0D5C7000C0E3C9 /* Debug */,
+				CC9F0E4E2F0D5C7000C0E3C9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = CC9F0DD62F0D5C6D00C0E3C9 /* Project object */;
+}
