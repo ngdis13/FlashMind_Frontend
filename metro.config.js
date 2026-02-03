@@ -1,4 +1,4 @@
-// metro.config.js   ← обязательно в корне, рядом с package.json
+
 const { getDefaultConfig } = require('expo/metro-config');
 
 const config = getDefaultConfig(__dirname);
