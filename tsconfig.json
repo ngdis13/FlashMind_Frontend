@@ -19,7 +19,9 @@
       "@/components/*": ["./components/*"],
       "@/styles/*":     ["./styles/*"],
       "@/assets/*":     ["./assets/*"],
-      "@/onbording/*": ["feature/auth/onboarding/*"]
+      "@/onbording/*": ["feature/onboarding/*"],
+      "@/constants/*": ["./constants/*"],
+      "@/shared/*": ["./shared/*"],
     }
   },
   "include": ["**/*.ts", "**/*.tsx", "declarations.d.ts"

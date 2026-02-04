@@ -1,75 +1,68 @@
-import { useRouter } from 'expo-router';
-import React, { useState, useEffect } from 'react';
-import { Keyboard, Pressable } from 'react-native';
-import { styles } from '../styles/StepEmail.styles';
-import { View } from 'react-native';
-import { Input } from '@/components/Input';
-import { MainButton } from '@/components/MainButton';
-import { Typography } from '@/styles/Typography';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from "expo-router";
+import React, { useState } from "react";
+import { Keyboard, Pressable } from "react-native";
+import { styles } from "../styles/StepEmail.styles";
+import { View } from "react-native";
+import { Input } from "@/components/Input";
+import { MainButton } from "@/components/MainButton";
+import { Typography } from "@/styles/Typography";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import { Logo } from '@/components/Logo';
-import { OpenEyesIcon } from '../../assets/Icons/OpenEyesIcon';
-import { CloseEyesIcon } from '../../assets/Icons/CloseEyesIcon';
-import { colors } from '@/styles/Colors';
+import { Logo } from "@/components/Logo";
+import { OpenEyesIcon } from "../../assets/Icons/OpenEyesIcon";
+import { CloseEyesIcon } from "../../assets/Icons/CloseEyesIcon";
+import { colors } from "@/styles/Colors";
 
-import { isValidEmail } from '../../validators/email.validator';
+import { isValidEmail } from "../../validators/email.validator";
+
+import { useStartRegistration } from "../hooks/useStartRegistration";
 
 export default function RegisterScreen() {
   const router = useRouter();
+  const { start, loading, error } = useStartRegistration();
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const [showPassword, setShowPassword] = useState(false);
-
-  const [error, setError] = useState('');
 
   const [emailError, setEmailError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
   const [confirmError, setConfirmError] = useState(false);
 
   const isFormFilled =
-    email.trim() !== '' &&
-    password.trim() !== '' &&
-    confirmPassword.trim() !== '';
+    email.trim() !== "" &&
+    password.trim() !== "" &&
+    confirmPassword.trim() !== "";
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     Keyboard.dismiss();
-    let hasError = false;
 
+    setEmailError(false);
     setPasswordError(false);
     setConfirmError(false);
-    setError('');
+
+    if (!isValidEmail(email)) {
+      setEmailError(true);
+      return;
+    }
 
     if (password.length < 8) {
       setPasswordError(true);
-      setError('Пароль должен быть не менее 8 символов');
-      hasError = true;
+      return;
     }
 
     if (password !== confirmPassword) {
       setConfirmError(true);
-      if (!passwordError) {
-        setError('Пароли не совпадают');
-      }
-      hasError = true;
+      return;
     }
 
-    if (!isValidEmail(email)) {
-      setEmailError(true);
-      setError('Неверный email');
-      hasError = true;
-    }
-
-    if (hasError) return;
-
-    router.push('/register/step-confirm-email');
+    start(email, password);
   };
 
   const handleHavingAccount = () => {
-    router.push('/login');
+    router.push("/login");
   };
 
   return (
@@ -82,19 +75,14 @@ export default function RegisterScreen() {
 
       <View style={styles.inputContainer}>
         <Input
-          style={[
-            styles.input,
-            emailError ? styles.inputError : undefined,
-          ]}
+          style={[styles.input, emailError ? styles.inputError : undefined]}
           placeholder="Email*"
           value={email}
           autoCapitalize="none"
           onChangeText={(text) => {
             setEmail(text);
             if (emailError) {
-              // Сбрасываем ошибку, если она была
               setEmailError(false);
-              setError(''); // Убираем текст ошибки
             }
           }}
         />
@@ -118,7 +106,7 @@ export default function RegisterScreen() {
             style={styles.eyeButton}
             accessibilityRole="button"
             accessibilityLabel={
-              showPassword ? 'Скрыть пароль' : 'Показать пароль'
+              showPassword ? "Скрыть пароль" : "Показать пароль"
             }
           >
             {showPassword ? <OpenEyesIcon /> : <CloseEyesIcon />}
@@ -126,10 +114,7 @@ export default function RegisterScreen() {
         </View>
 
         <Input
-          style={[
-            styles.input,
-            confirmError ? styles.inputError : undefined,
-          ]}
+          style={[styles.input, confirmError ? styles.inputError : undefined]}
           placeholder="Подтверждение пароля*"
           value={confirmPassword}
           onChangeText={setConfirmPassword}
@@ -139,9 +124,9 @@ export default function RegisterScreen() {
 
         {error ? (
           <Typography
-            variant="h2"
+            variant="h3"
             color={colors.errorColor}
-            style={{ alignSelf: 'center' }}
+            style={{ alignSelf: "center", textAlign: "center" }}
           >
             {error}
           </Typography>
@@ -155,9 +140,7 @@ export default function RegisterScreen() {
           disabled={!isFormFilled}
         />
         <Pressable onPress={handleHavingAccount}>
-          <Typography variant="h2">
-            У вас уже есть аккаунт?
-          </Typography>
+          <Typography variant="h2">У вас уже есть аккаунт?</Typography>
         </Pressable>
       </View>
     </SafeAreaView>

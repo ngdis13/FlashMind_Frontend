@@ -1,18 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import { styles } from '../styles/StepConfirmEmail.styles';
-import { Pressable, View } from 'react-native';
-import { Typography } from '@/styles/Typography';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useState, useEffect } from "react";
+import { styles } from "../styles/StepConfirmEmail.styles";
+import { Pressable, View } from "react-native";
+import { Typography } from "@/styles/Typography";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import { CodeInput } from '../components/CodeInput';
-import { useRouter } from 'expo-router';
-import { colors } from '@/styles/Colors';
+import { CodeInput } from "../components/CodeInput";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { colors } from "@/styles/Colors";
+
+import { useVerifyRegistrationCode } from "../hooks/useVerifyRegistrationCode";
+import { useResendRegistrationCode } from "../hooks/useResendRegistrationCode";
 
 export default function StepConfirmEmail() {
+  const { email } = useLocalSearchParams<{ email: string }>();
+
+  const { verify, loading, error } = useVerifyRegistrationCode();
+  const { resend } = useResendRegistrationCode();
+
   const [secondLeft, setSecondLeft] = useState(60);
   const [canResend, setCanResend] = useState(false);
-
-  const router = useRouter();
 
   useEffect(() => {
     if (secondLeft === 0) {
@@ -28,18 +34,14 @@ export default function StepConfirmEmail() {
   }, [secondLeft]);
 
   const handleCodeFilled = (code: string) => {
-    // тут будет проверка кода на сервере
-    const isValidCode = true; // временно, потом API
-
-    if (!isValidCode) {
-      // тут позже можно показать ошибку
-      return;
-    }
-    router.push('/onboarding');
+    if (!email) return;
+    verify(email, code);
   };
 
-  const handleResendCode = () => {
-    // тут потом будет запрос на отправку кода
+  const handleResendCode = async () => {
+    if (!email || !canResend) return;
+
+    await resend(email);
     setSecondLeft(60);
     setCanResend(false);
   };
@@ -53,9 +55,15 @@ export default function StepConfirmEmail() {
       <View style={styles.infoContainer}>
         <Typography variant="h2">Пожалуйста, введите код</Typography>
 
-        <Typography variant="h3" color={'#585858'}>
-          Если код не пришел, проверьте папку спам
-        </Typography>
+        {error ? (
+          <Typography variant={"h3"} color={colors.errorColor}>
+            {error}
+          </Typography>
+        ) : (
+          <Typography variant="h3" color={"#585858"}>
+            Если код не пришел, проверьте папку спам
+          </Typography>
+        )}
       </View>
 
       <CodeInput length={6} onCodeFilled={handleCodeFilled} />
@@ -64,7 +72,7 @@ export default function StepConfirmEmail() {
           <Typography
             variant="h3"
             color={colors.darkMainColor}
-            style={{ textDecorationLine: 'underline' }}
+            style={{ textDecorationLine: "underline" }}
           >
             Отправить код повторно
           </Typography>

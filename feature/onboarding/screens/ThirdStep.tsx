@@ -1,24 +1,24 @@
 //Основные рабочие импорты
-import React, { useState } from 'react';
-import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { View } from 'react-native';
+import React, { useState } from "react";
+import { useRouter } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { View } from "react-native";
 
 //Стили
-import { styles } from '../styles/ThirdStep.styles';
-import { Typography } from '@/styles/Typography';
-import { commonStyles } from '@/styles/Common';
+import { styles } from "../styles/ThirdStep.styles";
+import { Typography } from "@/styles/Typography";
+import { commonStyles } from "@/styles/Common";
 
 //Иконки
-import { LogoHappyStar } from '@/components/LogoHappyStar';
+import { LogoHappyStar } from "@/components/LogoHappyStar";
 
 //Дополнительные компоненты
-import { ProgressLineAnimated } from '@/components/ProgressLine';
-import { MainButton } from '@/components/MainButton';
-import { Input } from '@/components/Input';
+import { ProgressLineAnimated } from "@/components/ProgressLine";
+import { MainButton } from "@/components/MainButton";
+import { Input } from "@/components/Input";
 
 //Дополнительные функции
-import { validateNameField } from '../../validators/user-name.validator';
+import { validateNameField } from "../../auth/validators/user-name.validator";
 
 /**
  * Третий шаг онбординга.
@@ -29,8 +29,8 @@ import { validateNameField } from '../../validators/user-name.validator';
 export default function ThirdStepScreen() {
   const router = useRouter();
 
-  const [name, setName] = useState('');
-  const [lastname, setLastName] = useState('');
+  const [name, setName] = useState("");
+  const [lastname, setLastName] = useState("");
   const [errors, setErrors] = useState<{
     name: string | null;
     lastname: string | null;
@@ -40,8 +40,8 @@ export default function ThirdStepScreen() {
   });
 
   const isButtonActive =
-    name.trim() !== '' &&
-    lastname.trim() !== '' &&
+    name.trim() !== "" &&
+    lastname.trim() !== "" &&
     !errors.name &&
     !errors.lastname;
 
@@ -50,8 +50,8 @@ export default function ThirdStepScreen() {
    */
   const handlePress = () => {
     const newErrors = {
-      name: validateNameField(name, 'Имя'),
-      lastname: validateNameField(lastname, 'Фамилия'),
+      name: validateNameField(name, "Имя"),
+      lastname: validateNameField(lastname, "Фамилия"),
     };
 
     setErrors(newErrors);
@@ -60,7 +60,7 @@ export default function ThirdStepScreen() {
       return;
     }
 
-    router.push('/onboarding/fourth-step');
+    router.push("/onboarding/fourth-step");
   };
 
   return (
