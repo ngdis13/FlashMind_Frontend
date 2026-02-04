@@ -14,6 +14,9 @@ import { Logo } from '@/components/Logo';
 import { OpenEyesIcon } from '../../assets/Icons/OpenEyesIcon';
 import { CloseEyesIcon } from '../../assets/Icons/CloseEyesIcon';
 
+import { useAuthStore } from '../../store/auth.store';
+import { login } from '../api/authApi';
+
 interface Errors {
   email: boolean;
   password: boolean;
@@ -40,18 +43,47 @@ export default function LoginScreen() {
 
   const router = useRouter();
 
+  const setAccessToken = useAuthStore((state) => state.setAccessToken);
+
+
   /**
    * Обрабатывает клик по кнопке "Войти".
    * Проверяет корректность введенного email и пароля.
    * Если email корректный, переходит на страницу.
    */
   const handleLogin = async () => {
-    //тут запрос на сервер должен быть
-    if (isValidEmail(email)) {
+    // Сбрасываем предыдущие ошибки
+    setErrors({ email: false, password: false });
+  
+    // 1. Валидация на клиенте ПЕРЕД любым запросом
+    let hasError = false;
+  
+    if (!isValidEmail(email)) {
+      setErrors(prev => ({ ...prev, email: true }));
+      hasError = true;
+    }
+  
+    if (!password.trim()) {
+      setErrors(prev => ({ ...prev, password: true }));
+      hasError = true;
+    }
+  
+    if (hasError) {
+      return;
+    }
+  
+    try {
+      const data = await login({
+        email: email.trim(),
+        password: password.trim(),
+      });
+  
+      setAccessToken(data.access_token);
       Alert.alert('Успех', 'Вы вошли в систему!');
-      router.push('/not-found');
-    } else {
-      setErrors((prev) => ({ ...prev, email: true }));
+      router.replace('/not-found');   
+    } catch (err: any) {
+      const msg = err.message || 'Не удалось войти. Проверьте email и пароль.';
+      Alert.alert('Ошибка входа', msg);
     }
   };
 

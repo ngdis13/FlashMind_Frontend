@@ -1,42 +1,41 @@
 export interface FastApiValidationError {
-    detail:
+  detail:
     | string
     | {
         loc: (string | number)[];
         msg: string;
         type: string;
       }[];
-  };
+}
 
+export interface ApiErrorResponse {
+  detail?: string;
+  message?: string;
+  code?: string;
+}
 
 /**
  * Типизация для запроса регистрации
  */
 export interface RegisterPayload {
-    email: string;
-    password: string;
+  email: string;
+  password: string;
 }
 
 /**
  * Типизация для запроса завершения регистрации и получения токенов
  */
 export interface VerifyCodePayload {
-    email: string;
-    code: string;
+  email: string;
+  code: string;
 }
 
 /**
  * Типизация для повторной отправки кода подтверждения
  */
 export interface ResendCodePayload {
-    email: string;
+  email: string;
 }
 
-
-export interface ApiErrorResponse {
-    detail?: string;
-    message?: string;
-    code?: string;
-  }
 
 

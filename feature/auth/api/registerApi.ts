@@ -3,7 +3,7 @@ import { getAuthApiUrl } from "./getAuthApiUrl";
 import { FastApiValidationError } from "./types";
 
 
-type ApiError = { message?: string; detail?: string };
+interface ApiError { message?: string; detail?: string };
 
 export async function startRegistration(email: string, password: string): Promise<void> {
     try {
