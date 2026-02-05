@@ -16,16 +16,23 @@ export async function login(
   } catch (err: any) {
     const errorData =
       err.response?.data as FastApiValidationError | ApiErrorResponse | undefined;
-
-    // FastAPI validation (422)
+  
+    // 1️⃣ FastAPI validation error (422)
     if (errorData?.detail && Array.isArray(errorData.detail)) {
       throw new Error(errorData.detail[0]?.msg ?? "Ошибка валидации");
     }
-
-    throw new Error(
-      errorData?.msg ||
-      errorData?.detail ||
-      "Неверный email или пароль"
-    );
+  
+    // 2️⃣ Backend вернул строку
+    if (typeof errorData?.detail === "string") {
+      throw new Error(errorData.detail);
+    }
+  
+    // 3️⃣ Backend message
+    if (errorData?.message) {
+      throw new Error(errorData.message);
+    }
+  
+    // 4️⃣ fallback
+    throw new Error("Неверный email или пароль");
   }
 }

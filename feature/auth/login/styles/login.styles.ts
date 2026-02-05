@@ -1,19 +1,31 @@
-import { colors } from '@/styles/Colors';
-import { StyleSheet } from 'react-native';
+import { colors } from "@/styles/Colors";
+import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 100,
-    alignItems: 'center',
+    alignItems: "center",
     padding: 24,
-    backgroundColor: '#F6F9FC',
+    backgroundColor: "#F6F9FC",
     paddingHorizontal: 10,
   },
   title: {
     fontSize: 26,
-    marginBottom: 24,
-    textAlign: 'center',
+    marginBottom: 12,
+    textAlign: "center",
+  },
+  errorContainer: {
+    minHeight: 24,
+    marginBottom: 8,
+    justifyContent: "center",
+    alignItems: "center",
+    maxWidth: 400,
+  },
+  errorMessage: {
+    color: colors.errorColor,
+    marginBottom: 8,
+    textAlign: "center",
   },
   logoImage: {
     width: 150,
@@ -21,35 +33,35 @@ export const styles = StyleSheet.create({
     marginBottom: 16,
   },
   inputContainer: {
-    width: '100%',
+    width: "100%",
     maxWidth: 400,
-    alignItems: 'center',
+    alignItems: "center",
     gap: 16,
     marginBottom: 16,
   },
   passwordWrapper: {
-    position: 'relative',
-    width: '100%',
+    position: "relative",
+    width: "100%",
     maxWidth: 400,
-    alignSelf: 'center',
+    alignSelf: "center",
   },
   input: {
-    width: '100%',
+    width: "100%",
   },
   inputError: {
     borderColor: colors.errorColor,
     color: colors.errorColor,
   },
   eyeButton: {
-    position: 'absolute',
+    position: "absolute",
     right: 16,
-    top: '50%',
+    top: "50%",
     transform: [{ translateY: -12 }], // 24 / 2
   },
   buttonContainer: {
-    position: 'absolute',
-    width: '100%',
-    alignItems: 'center',
+    position: "absolute",
+    width: "100%",
+    alignItems: "center",
     gap: 16,
     bottom: 30,
     paddingHorizontal: 10,
