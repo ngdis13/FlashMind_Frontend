@@ -13,6 +13,7 @@ import { CloseEyesIcon } from "../../assets/Icons/CloseEyesIcon";
 import { useAuthStore } from "../../store/auth.store";
 import { login } from "../api/authApi";
 import { colors } from "@/styles/Colors";
+import { AxiosError } from "axios";
 
 interface Errors {
   email: boolean;
@@ -70,17 +71,20 @@ export default function LoginScreen() {
       setAccessToken(data.access_token);
       Alert.alert("Успех", "Вы вошли в систему!");
       router.replace("/not-found");
-    } catch (err: any) {
-      const msg = err.message || "Не удалось войти. Проверьте email и пароль.";
-      setServerError(msg.split(",").pop()?.trim());
-
-      if (msg.toLowerCase().includes("пароль")) {
-        setErrors((prev) => ({ ...prev, password: true }));
+    } catch (err: unknown) {
+      if (err instanceof AxiosError){
+        const msg = err.message || "Не удалось войти. Проверьте email и пароль.";
+        setServerError(msg.split(",").pop()?.trim() ?? null);
+  
+        if (msg.toLowerCase().includes("пароль")) {
+          setErrors((prev) => ({ ...prev, password: true }));
+        }
+  
+        if (msg.toLowerCase().includes("email")) {
+          setErrors((prev) => ({ ...prev, email: true }));
+        }
       }
 
-      if (msg.toLowerCase().includes("email")) {
-        setErrors((prev) => ({ ...prev, email: true }));
-      }
     }
   };
 

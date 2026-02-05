@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { resendCode } from "../../api/registerApi"; 
+import { AxiosError } from "axios";
 
 export function useResendRegistrationCode() {
   const [loading, setLoading] = useState(false);
@@ -11,10 +12,14 @@ export function useResendRegistrationCode() {
 
     try {
       await resendCode(email);
-    } catch (err: any) {
-      setError(err.message || "Не удалось отправить код");
-    } finally {
-      setLoading(false);
+    } catch (err: unknown) {
+      if (err instanceof AxiosError) {
+        setError(err.response?.data?.message || err.message || "Не удалось отправить код");
+      } else if (err instanceof Error) {
+        setError(err.message || "Не удалось отправить код");
+      } else {
+        setError("Не удалось отправить код");
+      }
     }
   };
 
