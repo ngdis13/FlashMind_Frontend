@@ -1,30 +1,76 @@
-// import { useRouter } from 'expo-router'
-import React, { useState } from 'react';
-import { styles } from '../styles/FirstStep.styles';
+import React, { useState } from "react";
 
-import { View } from 'react-native';
-import { MainButton } from '@/components/MainButton';
-import { Typography } from '@/styles/Typography';
-import { SafeAreaView } from 'react-native-safe-area-context';
+// --------------- Компоненты и хуки ----------------
+import { View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
+import { AxiosError } from "axios";
 
-import { Input } from '@/components/Input';
-import { useRouter } from 'expo-router';
-import { isValidEmail } from '../../validators/email.validator';
-import { colors } from '@/styles/Colors';
+// --------------- Стили и цвета ----------------
+import { styles } from "@/feature-auth/reset-password/styles/FirstStep.styles";
+import { colors } from "@/styles/Colors";
 
+// --------------- Вспомогательные компоненты ----------------
+import { Typography } from "@/styles/Typography";
+import { Input } from "@/components/Input";
+import { MainButton } from "@/components/MainButton";
+
+// --------------- Валидация и API ----------------
+import { isValidEmail } from "@/feature-auth/validators/email.validator";
+import { resetPassword } from "@/feature-auth/reset-password/api/resetPassword.api";
+import { useResetPasswordStore } from "@/feature-auth/store/resetPassword.store";
+
+/**
+ * Экран первого шага сброса пароля, где пользователь вводит свой email.
+ * На этом экране пользователь предоставляет свой email, чтобы получить код для сброса пароля.
+ * После валидации email, система отправляет запрос для сброса пароля.
+ *
+ * @component
+ * @returns {JSX.Element} Компонент первого шага сброса пароля.
+ */
 export default function FirstStepResetPassword() {
-  const [email, setEmail] = useState('');
-  const [error, setError] = useState('');
+  const [emailInput, setEmailInput] = useState(""); // Состояние для хранения введенного email.
+  const [error, setError] = useState(""); // Состояние для ошибок.
+  const [loading, setLoading] = useState(false); // Состояние для загрузки.
 
-  const isButtonActive = email.trim() !== '';
+  const { setEmail } = useResetPasswordStore(); // Хук для работы с хранилищем сброса пароля.
 
-  const router = useRouter();
+  const isButtonActive = emailInput.trim() !== ""; // Проверка активности кнопки (кнопка активна, если введен email).
 
-  const handleContinue = () => {
-    if (isValidEmail(email)) {
-      router.push('/reset-password/second-step');
-    } else {
-      setError('Неверный email');
+  const router = useRouter(); // Хук для навигации между экранами.
+
+  /**
+   * Обработчик нажатия на кнопку продолжить (сброс пароля).
+   * Выполняет проверку на валидность email и отправляет запрос на сброс пароля.
+   * Если email валиден, происходит переход ко второму шагу сброса пароля.
+   *
+   * @async
+   * @function handleContinue
+   */
+  const handleContinue = async () => {
+    setError(""); // Сбрасываем ошибку.
+
+    // Проверка валидности email.
+    if (!isValidEmail(emailInput)) {
+      setError("Неверный email"); // Устанавливаем ошибку, если email невалидный.
+      return;
+    }
+
+    setLoading(true); // Устанавливаем состояние загрузки.
+
+    try {
+      // Отправка запроса на сброс пароля.
+      await resetPassword({ email: emailInput });
+      setEmail(emailInput); // Сохраняем email в хранилище.
+
+      // Переход ко второму шагу.
+      router.push("/reset-password/second-step");
+    } catch (err: unknown) {
+      if (err instanceof AxiosError) {
+        setError(err.message ?? "Произошла ошибка"); // Обработка ошибки при запросе.
+      }
+    } finally {
+      setLoading(false); // Снимаем состояние загрузки.
     }
   };
 
@@ -40,21 +86,18 @@ export default function FirstStepResetPassword() {
         </Typography>
 
         <Input
-          style={[
-            styles.input,
-            error ? styles.inputError : undefined,
-          ]}
+          style={[styles.input, error ? styles.inputError : undefined]}
           placeholder="Email*"
-          value={email}
-          onChangeText={setEmail}
+          value={emailInput}
+          onChangeText={setEmailInput}
           autoCapitalize="none"
         />
 
         {error ? (
           <Typography
-            variant="h2"
+            variant="h3"
             color={colors.errorColor}
-            style={{ alignSelf: 'center' }}
+            style={{ alignSelf: "center" }}
           >
             {error}
           </Typography>
@@ -63,7 +106,7 @@ export default function FirstStepResetPassword() {
 
       <View style={styles.buttonContainer}>
         <MainButton
-          title="Сбросить пароль"
+          title={loading ? "Отправка..." : "Сбросить пароль"}
           onPress={handleContinue}
           disabled={!isButtonActive}
         />

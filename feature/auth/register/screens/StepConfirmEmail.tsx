@@ -1,28 +1,50 @@
 import React, { useState, useEffect } from "react";
-import { styles } from "../styles/StepConfirmEmail.styles";
 import { Pressable, View } from "react-native";
-import { Typography } from "@/styles/Typography";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Typography } from "@/styles/Typography";
+import { useRouter } from "expo-router";
 
-import { CodeInput } from "../components/CodeInput";
-import { useLocalSearchParams, useRouter } from "expo-router";
+// --------------------------- Стили ---------------------------
+import { styles } from "../styles/StepConfirmEmail.styles";
+
+// --------------------------- Компоненты ---------------------------
+import { CodeInput } from "@/feature-auth/components/CodeInput";
+
+// --------------------------- Цвета ---------------------------
 import { colors } from "@/styles/Colors";
 
-import { useVerifyRegistrationCode } from "../hooks/useVerifyRegistrationCode";
-import { useResendRegistrationCode } from "../hooks/useResendRegistrationCode";
+// --------------------------- Сторы и API ---------------------------
+import { useAuthStore } from "../../store/auth.store";
+import { useRegistrationStore } from "../../store/register.store";
+import { resendCode, verifyCode } from "../api/registerApi";
+import { AxiosError } from "axios";
 
+/**
+ * Экран подтверждения email для регистрации.
+ * Пользователь вводит код, который был отправлен на его почту.
+ * В случае успешной верификации, происходит переход на экран onboarding.
+ * Также предусмотрена возможность повторной отправки кода через таймер.
+ *
+ * @component
+ * @returns {JSX.Element} Компонент для ввода кода подтверждения.
+ */
 export default function StepConfirmEmail() {
-  const { email } = useLocalSearchParams<{ email: string }>();
+  const router = useRouter();
+  const { email } = useRegistrationStore((s) => s); // Получаем email из состояния регистрации
+  const setAccessToken = useAuthStore((s) => s.setAccessToken); // Устанавливаем accessToken
 
-  const { verify, loading, error } = useVerifyRegistrationCode();
-  const { resend } = useResendRegistrationCode();
+  // ---------------------------
+  // Состояния для таймера, ошибок и загрузки
+  const [secondLeft, setSecondLeft] = useState(60); // Таймер для отсчета времени для повторной отправки кода
+  const [canResend, setCanResend] = useState(false); // Разрешение на повторную отправку
+  const [loading, setLoading] = useState(false); // Статус загрузки
+  const [error, setError] = useState<string | null>(null); // Состояние ошибки
 
-  const [secondLeft, setSecondLeft] = useState(60);
-  const [canResend, setCanResend] = useState(false);
-
+  // ---------------------------
+  // Таймер обратного отсчета
   useEffect(() => {
     if (secondLeft === 0) {
-      setCanResend(true);
+      setCanResend(true); // Разрешаем повторную отправку, если таймер закончен
       return;
     }
 
@@ -30,43 +52,93 @@ export default function StepConfirmEmail() {
       setSecondLeft((prev) => prev - 1);
     }, 1000);
 
-    return () => clearTimeout(timer);
+    return () => clearTimeout(timer); // Очистка таймера при изменении состояния
   }, [secondLeft]);
 
-  const handleCodeFilled = (code: string) => {
-    if (!email) return;
-    verify(email, code);
+  /**
+   * Обрабатывает введенный код и выполняет его проверку.
+   * В случае успеха, сохраняет токен и переходит на экран onboarding.
+   * В случае ошибки, отображает сообщение.
+   *
+   * @param {string} code - Код, введенный пользователем
+   */
+  const handleCodeFilled = async (code: string) => {
+    setLoading(true);
+    setError(null); // Сбрасываем ошибку
+
+    try {
+      const { access_token } = await verifyCode({email, code});
+      setAccessToken(access_token); // Сохраняем токен
+      router.push("/onboarding"); // Переход на следующий экран
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message || "Неверный код");
+      }
+    } finally {
+      setLoading(false); // Сбрасываем статус загрузки
+    }
   };
 
+  /**
+   * Обрабатывает повторную отправку кода на email пользователя.
+   * Сбрасывает таймер и статус повторной отправки.
+   */
   const handleResendCode = async () => {
-    if (!email || !canResend) return;
+    if (!email || !canResend) return; // Если email нет или повторная отправка не разрешена
 
-    await resend(email);
-    setSecondLeft(60);
-    setCanResend(false);
+    setLoading(true);
+    setError(null); // Сбрасываем ошибку
+
+    try {
+      await resendCode({email}); // Отправляем запрос на повторную отправку кода
+    } catch (err: unknown) {
+      if (err instanceof AxiosError) {
+        setError(
+          err.response?.data?.message ||
+            err.message ||
+            "Не удалось отправить код"
+        );
+      } else if (err instanceof Error) {
+        setError(err.message || "Не удалось отправить код");
+      } else {
+        setError("Не удалось отправить код");
+      }
+    }
+
+    setSecondLeft(60); // Сбрасываем таймер
+    setCanResend(false); // Блокируем возможность повторной отправки до завершения таймера
   };
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Заголовок страницы */}
       <Typography variant="h1" style={styles.pageNames}>
         Мы отправили код подтверждения регистрации на вашу почту
       </Typography>
 
+      {/* Информационный блок */}
       <View style={styles.infoContainer}>
         <Typography variant="h2">Пожалуйста, введите код</Typography>
-
-        {error ? (
-          <Typography variant={"h3"} color={colors.errorColor}>
-            {error}
-          </Typography>
-        ) : (
-          <Typography variant="h3" color={"#585858"}>
-            Если код не пришел, проверьте папку спам
-          </Typography>
-        )}
+        <Typography variant="h3" color={"#585858"}>
+          Если код не пришел, проверьте папку спам
+        </Typography>
       </View>
 
+      {/* Компонент для ввода кода */}
       <CodeInput length={6} onCodeFilled={handleCodeFilled} />
+
+      {/* Сообщение об ошибке при неверном коде */}
+      {error && (
+        <Typography
+          style={{ maxWidth: 400, marginBottom: 8, textAlign: "center" }}
+          variant="h3"
+          color={colors.errorColor}
+        >
+          {error}
+        </Typography>
+      )}
+
+      {/* Возможность повторной отправки кода */}
       {canResend ? (
         <Pressable onPress={handleResendCode}>
           <Typography

@@ -12,12 +12,11 @@ export const styles = StyleSheet.create({
   },
   title: {
     fontSize: 26,
-    marginBottom: 12,
+    marginBottom: 24,
     textAlign: "center",
   },
   errorContainer: {
     minHeight: 24,
-    marginBottom: 8,
     justifyContent: "center",
     alignItems: "center",
     maxWidth: 400,

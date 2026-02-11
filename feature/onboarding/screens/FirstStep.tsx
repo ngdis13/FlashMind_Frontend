@@ -1,45 +1,66 @@
-//Основные рабочие импорты
+// Основные рабочие импорты
 import React, { useState } from 'react';
 import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
-//Стили
+// Стили
 import { Typography } from '@/styles/Typography';
 import { styles } from '../styles/FirstStep.styles';
 
-//Иконки
+// Иконки
 import { ExamIcon } from '../assets/assetsComponents/ExamIcon';
 import { LanguageIcon } from '../assets/assetsComponents/LanguageIcon';
 import { OtherIcon } from '../assets/assetsComponents/OtherIcon';
 
-//Дополнительные компоненты
+// Дополнительные компоненты
 import { SelectionField } from '../components/SelectionField';
 import { ProgressLineAnimated } from '@/components/ProgressLine';
 
 /**
- * Первый шаг онбординга.
+ * Экран первого шага онбординга.
  *
- * Экран позволяет пользователю выбрать основную цель обучения.
- * Выбор цели используется для дальнейшей персонализации приложения.
+ * @description
+ * Пользователь выбирает основную цель обучения. 
+ * Выбор цели используется для персонализации дальнейшего процесса обучения
+ * и управления навигацией к следующему шагу онбординга.
+ *
+ * Особенности:
+ * - Отображает прогресс-линию с текущим шагом.
+ * - Предоставляет три варианта выбора цели с иконками.
+ * - При выборе варианта выполняется переход к следующему шагу.
+ *
+ * @example
+ * ```tsx
+ * <FirstStepScreen />
+ * ```
+ *
+ * @returns {JSX.Element} Компонент экрана первого шага онбординга
  */
 export default function FirstStepScreen() {
   const router = useRouter();
-  const [choice, setChoice] = useState('');
+
+  // Состояние выбранной цели
+  const [_choice, setChoice] = useState('');
 
   /**
-   * Обрабатывает выбор цели и переходит к следующему шагу онбординга.
+   * Обработчик выбора цели.
+   * 
+   * @param {string} value - Выбранная пользователем цель
    */
   const handleSelect = (value: string) => {
     setChoice(value);
-    router.push('/onboarding/second-step');
+    router.push('/onboarding/second-step'); // Переход к следующему шагу онбординга
   };
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Прогресс-линию */}
       <View style={styles.progressLineBox}>
         <ProgressLineAnimated currentStep={1} />
       </View>
+
+      {/* Контент экрана */}
       <View style={styles.content}>
         <Typography
           variant="h1"
@@ -47,6 +68,8 @@ export default function FirstStepScreen() {
         >
           Какая твоя цель?
         </Typography>
+
+        {/* Поля выбора целей */}
         <View style={styles.selectionFields}>
           <SelectionField
             image={<LanguageIcon />}

@@ -1,118 +1,163 @@
-import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Keyboard, Pressable } from "react-native";
+import { View, Pressable, Keyboard } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
+
+// --------------------------- Стили ---------------------------
 import { styles } from "../styles/StepEmail.styles";
-import { View } from "react-native";
+
+// --------------------------- Компоненты ---------------------------
 import { Input } from "@/components/Input";
 import { MainButton } from "@/components/MainButton";
 import { Typography } from "@/styles/Typography";
-import { SafeAreaView } from "react-native-safe-area-context";
-
 import { Logo } from "@/components/Logo";
-import { OpenEyesIcon } from "../../assets/Icons/OpenEyesIcon";
-import { CloseEyesIcon } from "../../assets/Icons/CloseEyesIcon";
+import { OpenEyesIcon } from "@/feature-auth/assets/Icons/OpenEyesIcon";
+import { CloseEyesIcon } from "@/feature-auth/assets/Icons/CloseEyesIcon";
+
+// --------------------------- Цвета ---------------------------
 import { colors } from "@/styles/Colors";
 
-import { isValidEmail } from "../../validators/email.validator";
+// --------------------------- Валидация ---------------------------
+import { isValidEmail } from "@/feature-auth/validators/email.validator";
 
-import { useStartRegistration } from "../hooks/useStartRegistration";
+// --------------------------- API и стор ---------------------------
+import { AxiosError } from "axios";
+import { startRegistration } from "../api/registerApi";
+import { useRegistrationStore } from "../../store/register.store";
 
+/**
+ * Экран регистрации нового пользователя.
+ * Позволяет пользователю ввести email, пароль и подтвердить пароль.
+ * После успешной регистрации выполняется переход на экран подтверждения email.
+ *
+ * @component
+ * @returns {JSX.Element} Компонент экрана регистрации
+ */
 export default function RegisterScreen() {
   const router = useRouter();
-  const { start, loading, error } = useStartRegistration();
+  const { email, setEmail } = useRegistrationStore((s) => s);
 
-  const [email, setEmail] = useState("");
+  // ---------------------------
+  // Состояния для формы
+  const [emailInput, setEmailInput] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // Отображение/скрытие пароля
 
+  // ---------------------------
+  // Состояния ошибок
   const [emailError, setEmailError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
   const [confirmError, setConfirmError] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
 
   const isFormFilled =
-    email.trim() !== "" &&
+    emailInput.trim() !== "" &&
     password.trim() !== "" &&
     confirmPassword.trim() !== "";
 
+  // ---------------------------
+  // Обработчик кнопки "Продолжить"
   const handleContinue = async () => {
     Keyboard.dismiss();
 
+    // Сброс ошибок перед новой проверкой
     setEmailError(false);
     setPasswordError(false);
     setConfirmError(false);
+    setServerError(null);
 
-    if (!isValidEmail(email)) {
+    // ---------------------------
+    // Валидация полей
+    if (!isValidEmail(emailInput)) {
+      setServerError("Email не существует");
       setEmailError(true);
       return;
     }
 
     if (password.length < 8) {
+      setServerError("Пароль меньше 8 символов");
       setPasswordError(true);
       return;
     }
 
     if (password !== confirmPassword) {
+      setServerError("Пароли не совпадают");
       setConfirmError(true);
       return;
     }
 
-    start(email, password);
+    // ---------------------------
+    // Отправка данных на сервер
+    try {
+      setEmail(emailInput.trim());
+      await startRegistration({email: emailInput.trim(), password: password.trim()});
+      router.push("/register/step-confirm-email");
+    } catch (err: unknown) {
+      if (err instanceof AxiosError) {
+        const data = err.response?.data as { message?: string } | undefined;
+        setServerError(data?.message || "Произошла ошибка при регистрации");
+      } else if (err instanceof Error) {
+        setServerError(err.message.replace("Value error,", ""));
+      } else {
+        setServerError("Неизвестная ошибка");
+      }
+    }
   };
 
+  // ---------------------------
+  // Переход на экран логина для уже зарегистрированных пользователей
   const handleHavingAccount = () => {
     router.push("/login");
   };
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Логотип */}
       <Logo size={150} style={{ marginBottom: 16 }} />
 
+      {/* Заголовок страницы */}
       <Typography variant="h1" style={styles.pageNames}>
         Регистрация
       </Typography>
 
+      {/* --------------------------- Форма --------------------------- */}
       <View style={styles.inputContainer}>
+        {/* Email */}
         <Input
           style={[styles.input, emailError ? styles.inputError : undefined]}
           placeholder="Email*"
-          value={email}
+          value={emailInput}
           autoCapitalize="none"
           onChangeText={(text) => {
-            setEmail(text);
-            if (emailError) {
-              setEmailError(false);
-            }
+            setEmailInput(text);
+            if (emailError) setEmailError(false);
           }}
         />
 
+        {/* Пароль */}
         <View style={styles.passwordWrapper}>
           <Input
-            style={[
-              styles.input,
-              passwordError ? styles.inputError : undefined,
-            ]}
+            style={[styles.input, passwordError ? styles.inputError : undefined]}
             placeholder="Пароль*"
             value={password}
             onChangeText={setPassword}
             autoCapitalize="none"
             secureTextEntry={!showPassword}
           />
-
           <Pressable
             onPress={() => setShowPassword((prev) => !prev)}
             hitSlop={10}
             style={styles.eyeButton}
             accessibilityRole="button"
-            accessibilityLabel={
-              showPassword ? "Скрыть пароль" : "Показать пароль"
-            }
+            accessibilityLabel={showPassword ? "Скрыть пароль" : "Показать пароль"}
           >
             {showPassword ? <OpenEyesIcon /> : <CloseEyesIcon />}
           </Pressable>
         </View>
 
+        {/* Подтверждение пароля */}
         <Input
           style={[styles.input, confirmError ? styles.inputError : undefined]}
           placeholder="Подтверждение пароля*"
@@ -122,23 +167,21 @@ export default function RegisterScreen() {
           secureTextEntry
         />
 
-        {error ? (
+        {/* Ошибка сервера */}
+        {serverError && (
           <Typography
             variant="h3"
             color={colors.errorColor}
             style={{ alignSelf: "center", textAlign: "center" }}
           >
-            {error}
+            {serverError}
           </Typography>
-        ) : null}
+        )}
       </View>
 
+      {/* --------------------------- Кнопки --------------------------- */}
       <View style={styles.buttonContainer}>
-        <MainButton
-          title="Продолжить"
-          onPress={handleContinue}
-          disabled={!isFormFilled}
-        />
+        <MainButton title="Продолжить" onPress={handleContinue} disabled={!isFormFilled} />
         <Pressable onPress={handleHavingAccount}>
           <Typography variant="h2">У вас уже есть аккаунт?</Typography>
         </Pressable>

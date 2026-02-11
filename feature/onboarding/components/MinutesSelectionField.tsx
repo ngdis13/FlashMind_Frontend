@@ -9,6 +9,15 @@ import {
 import { Typography } from '@/styles/Typography';
 import { colors } from '@/styles/Colors';
 
+/**
+ * Пропсы компонента выбора минут.
+ *
+ * @interface MinutesSelectionFieldProps
+ * @property {number} [initialValue=20] - Начальное значение поля в минутах.
+ * @property {number} [min=5] - Минимально допустимое значение.
+ * @property {number} [max=1440] - Максимально допустимое значение.
+ * @property {(value: number) => void} [onChange] - Колбэк, вызываемый при изменении значения.
+ */
 interface MinutesSelectionFieldProps {
   initialValue?: number;
   min?: number;
@@ -16,6 +25,28 @@ interface MinutesSelectionFieldProps {
   onChange?: (value: number) => void;
 }
 
+/**
+ * Компонент выбора времени в минутах с кнопками "+" и "−" и возможностью ввода вручную.
+ *
+ * Особенности:
+ * - Ограничивает значения между `min` и `max`.
+ * - Кнопки увеличивают/уменьшают значение на 5 минут.
+ * - Можно кликнуть по числу, чтобы открыть фокус для ручного ввода.
+ * - Подсветка текста при фокусе.
+ *
+ * @example
+ * ```tsx
+ * <MinutesSelectionField
+ *   initialValue={30}
+ *   min={5}
+ *   max={120}
+ *   onChange={(value) => console.log("Выбрано минут:", value)}
+ * />
+ * ```
+ *
+ * @param {MinutesSelectionFieldProps} props - Пропсы компонента
+ * @returns {JSX.Element} Поле выбора минут
+ */
 export const MinutesSelectionField = ({
   initialValue = 20,
   min = 5,
@@ -26,26 +57,37 @@ export const MinutesSelectionField = ({
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<TextInput>(null);
 
+  /**
+   * Возвращает числовое значение поля.
+   * Если текущее значение некорректное, возвращает initialValue.
+   */
   const getNumericValue = () => {
     const num = Number(value);
     return isNaN(num) ? initialValue : num;
   };
 
+  /**
+   * Применяет новое значение с учётом ограничений min/max и вызывает onChange.
+   * @param {number} newValue - Новое значение для установки
+   */
   const applyValue = (newValue: number) => {
     const clamped = Math.min(Math.max(newValue, min), max);
     setValue(clamped.toString());
     onChange?.(clamped);
   };
 
+  /** Снимает фокус с поля ввода */
   const blurInput = () => {
     inputRef.current?.blur();
   };
 
+  /** Уменьшает значение на 5 минут */
   const handleMinus = () => {
     blurInput();
     applyValue(getNumericValue() - 5);
   };
 
+  /** Увеличивает значение на 5 минут */
   const handlePlus = () => {
     blurInput();
     applyValue(getNumericValue() + 5);

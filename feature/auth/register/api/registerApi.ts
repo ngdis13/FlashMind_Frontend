@@ -1,40 +1,46 @@
 import apiClient from "@/shared/api/client";
-import { getAuthApiUrl } from "./getAuthApiUrl";
-import { FastApiValidationError } from "./types";
+import { getAuthApiUrl } from "@/feature-auth/api/getAuthApiUrl";
+import {
+  ApiErrorResponse,
+  FastApiValidationError,
+} from "@/feature-auth/types/api.types";
 import { AxiosError } from "axios";
-
-interface ApiError { 
-  message?: string; 
-  detail?: string; 
-}
+import { RegisterPayload, VerifyCodePayload, ResendCodePayload } from "@/feature-auth/register/types/api.types";
+import { ApiError } from "@/feature-auth/types/api.types";
 
 /**
  * Начало регистрации пользователя
  */
-export async function startRegistration(email: string, password: string): Promise<void> {
+export async function startRegistration(
+  payload: RegisterPayload
+): Promise<void> {
   try {
-    await apiClient.post(getAuthApiUrl("/api/v1/auth/register"), {
-      email,
-      password,
-    });
+    await apiClient.post(getAuthApiUrl("/api/v1/auth/register"), 
+      payload,
+    );
   } catch (err: unknown) {
     if (err instanceof AxiosError) {
-      const errorData = err.response?.data as FastApiValidationError | undefined;
+      const errorData = err.response?.data as
+        | FastApiValidationError
+        | ApiErrorResponse
+        | undefined;
 
-      if (errorData?.detail) {
-        // Если detail массив с объектами {msg, loc, type}
+      if (errorData) {
         if (Array.isArray(errorData.detail)) {
-          const firstError = errorData.detail[0]?.msg;
-          throw new Error(firstError || "Ошибка валидации");
+          throw new Error(errorData.detail[0]?.msg ?? "Ошибка валидации");
         }
 
-        // Если detail строка
         if (typeof errorData.detail === "string") {
           throw new Error(errorData.detail);
+        }
+
+        if ("message" in errorData && typeof errorData.message === "string") {
+          throw new Error(errorData.message);
         }
       }
     }
 
+    // 4️⃣ fallback
     throw new Error("Не удалось начать регистрацию");
   }
 }
@@ -42,11 +48,13 @@ export async function startRegistration(email: string, password: string): Promis
 /**
  * Проверка кода подтверждения регистрации
  */
-export async function verifyCode(email: string, code: string): Promise<{ access_token: string }> {
+export async function verifyCode(
+  payload: VerifyCodePayload
+): Promise<{ access_token: string }> {
   try {
     const resp = await apiClient.post<{ access_token: string }>(
       getAuthApiUrl("/api/v1/auth/register/verify-code"),
-      { email, code }
+      payload
     );
     return resp.data;
   } catch (err: unknown) {
@@ -54,8 +62,8 @@ export async function verifyCode(email: string, code: string): Promise<{ access_
       const errorData = err.response?.data as ApiError | undefined;
       throw new Error(
         errorData?.message ||
-        errorData?.detail ||
-        "Неверный код или ошибка сервера"
+          errorData?.detail ||
+          "Неверный код или ошибка сервера"
       );
     }
 
@@ -66,11 +74,9 @@ export async function verifyCode(email: string, code: string): Promise<{ access_
 /**
  * Повторная отправка кода подтверждения
  */
-export async function resendCode(email: string): Promise<void> {
+export async function resendCode(payload: ResendCodePayload): Promise<void> {
   try {
-    await apiClient.post(getAuthApiUrl("/api/v1/auth/register/resend-code"), {
-      email,
-    });
+    await apiClient.post(getAuthApiUrl("/api/v1/auth/register/resend-code"), payload);
   } catch (err: unknown) {
     if (err instanceof AxiosError) {
       const errorData = err.response?.data as ApiError | undefined;

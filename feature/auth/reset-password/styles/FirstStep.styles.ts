@@ -1,38 +1,38 @@
-import { StyleSheet } from 'react-native';
-import { colors } from '@/styles/Colors';
+import { StyleSheet } from "react-native";
+import { colors } from "@/styles/Colors";
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
     backgroundColor: colors.background,
     paddingHorizontal: 10,
     paddingTop: 250,
   },
   pageNames: {
     marginBottom: 16,
-    textAlign: 'center',
+    textAlign: "center",
     maxWidth: 400,
   },
   infoContainer: {
-    gap: 8,
-    alignItems: 'center',
+    gap: 16,
+    alignItems: "center",
     marginBottom: 24,
   },
   input: {
-    width: '100%',
+    width: "100%",
     maxWidth: 400,
-    marginBottom: 8,
+    marginBottom: 4,
   },
   inputError: {
     borderColor: colors.errorColor,
     color: colors.errorColor,
   },
   buttonContainer: {
-    position: 'absolute',
-    width: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
+    position: "absolute",
+    width: "100%",
+    justifyContent: "center",
+    alignItems: "center",
     gap: 12,
     bottom: 30,
     paddingHorizontal: 10,

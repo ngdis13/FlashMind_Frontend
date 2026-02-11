@@ -7,6 +7,15 @@ import {
 } from 'react-native';
 import { Typography } from '@/styles/Typography';
 
+/**
+ * Пропсы компонента SelectionField.
+ *
+ * @interface SelectionProps
+ * @property {ReactNode} image - Иконка или элемент изображения для отображения слева от текста.
+ * @property {string} title - Заголовок или текст кнопки.
+ * @property {ViewStyle | ViewStyle[]} [style] - Дополнительные стили для контейнера.
+ * @property {() => void} onPress - Функция-обработчик нажатия.
+ */
 interface SelectionProps {
   image: ReactNode;
   title: string;
@@ -14,6 +23,24 @@ interface SelectionProps {
   onPress: () => void;
 }
 
+/**
+ * Компонент выбора (Selection Field) с иконкой и текстом.
+ *
+ * Используется для отображения интерактивного поля выбора с иконкой и заголовком.
+ * Поддерживает кастомное событие нажатия.
+ *
+ * @example
+ * ```tsx
+ * <SelectionField
+ *   image={<Icon name="star" size={24} color="#FFD700" />}
+ *   title="Выбрать звезду"
+ *   onPress={() => console.log("Поле выбрано")}
+ * />
+ * ```
+ *
+ * @param {SelectionProps} props - Пропсы компонента
+ * @returns {JSX.Element} Компонент поля выбора
+ */
 export const SelectionField = ({
   image,
   title,
