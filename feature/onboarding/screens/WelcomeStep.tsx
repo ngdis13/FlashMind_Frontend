@@ -24,7 +24,7 @@ export default function WelcomeScreen() {
   const router = useRouter();
 
   const handleStart = () => {
-    router.push('/onboarding/first-step');
+    router.push('/profile');
   };
 
   return (

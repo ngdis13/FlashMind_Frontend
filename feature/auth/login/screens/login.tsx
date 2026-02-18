@@ -79,7 +79,7 @@ export default function LoginScreen() {
       });
 
       setAccessToken(data.access_token); // Сохраняем токен
-      router.replace("/not-found"); // Переход на экран после авторизации
+      router.replace("/profile"); 
     } catch (err: unknown) {
       // Обработка ошибок с сервера
       if (err instanceof AxiosError) {

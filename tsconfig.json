@@ -23,6 +23,7 @@
       "@/constants/*": ["./constants/*"],
       "@/shared/*": ["./shared/*"],
       "@/feature-auth/*": ["./feature/auth/*"],
+      "@/feature-profile/*": ["./feature/profile/*"],
     }
   },
   "include": ["**/*.ts", "**/*.tsx", "declarations.d.ts"

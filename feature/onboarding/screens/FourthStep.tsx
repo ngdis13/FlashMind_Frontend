@@ -20,6 +20,7 @@ import { MainButton } from '@/components/MainButton';
 export default function FourthStepScreen() {
   const router = useRouter();
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
+  
 
   const handleNextStep = () => {
     router.push('/onboarding/welcome-last-step');
@@ -45,7 +46,6 @@ export default function FourthStepScreen() {
       // Соотношение сторон при обрезке (1:1 — квадрат, идеально для аватара)
       aspect: [1, 1],
       // Качество изображения (0–1)
-      // 0.8 — хороший баланс между качеством и размером файла
       quality: 0.8,
     });
 

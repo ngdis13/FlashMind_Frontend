@@ -16,6 +16,7 @@ export default function WelcomeScreen() {
     }, 5000);
     return () => clearTimeout(timer);
   }, []);
+  
 
   const handleSkip = () => router.push('/login');
 
