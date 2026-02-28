@@ -27,7 +27,7 @@ import { CloseEyesIcon } from "../../assets/Icons/CloseEyesIcon";
 // ────────────────────────────────────────────────
 import { changePassword } from "../api/resetPassword.api";
 import { AxiosError } from "axios";
-import { useAuthStore } from "../../store/auth.store";
+import { useAuthStore } from "../../../../store/auth.store";
 
 /**
  * Третий шаг сброса пароля — ввод и подтверждение нового пароля.

@@ -92,3 +92,22 @@ export interface ApiError {
    */
   detail?: string;
 }
+
+
+export interface LoginPayload {
+  email: string;
+  password: string;
+}
+
+export interface User {
+  id: string;
+  firstName: string;
+  lastName: string;
+  bio: string;
+  avatarUri: string | null;
+}
+
+export interface LoginResponse {
+  access_token: string;
+  user: User;
+}

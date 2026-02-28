@@ -12,7 +12,7 @@ import { Typography } from "@/styles/Typography";
 import { Logo } from "@/components/Logo";
 
 // --------------------------- Стор и хуки ---------------------------
-import { useAuthStore } from "../../store/auth.store";
+import { useAuthStore } from "../../../../store/auth.store";
 
 /**
  * Экран последнего шага сброса пароля.

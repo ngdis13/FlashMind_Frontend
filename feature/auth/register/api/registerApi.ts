@@ -1,4 +1,4 @@
-import apiClient from "@/shared/api/client";
+import apiClient from "@/api/client";
 import { getAuthApiUrl } from "@/feature-auth/api/getAuthApiUrl";
 import {
   ApiErrorResponse,

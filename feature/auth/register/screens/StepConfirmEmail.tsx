@@ -14,7 +14,7 @@ import { CodeInput } from "@/feature-auth/components/CodeInput";
 import { colors } from "@/styles/Colors";
 
 // --------------------------- Сторы и API ---------------------------
-import { useAuthStore } from "../../store/auth.store";
+import { useAuthStore } from "../../../../store/auth.store";
 import { useRegistrationStore } from "../../store/register.store";
 import { resendCode, verifyCode } from "../api/registerApi";
 import { AxiosError } from "axios";

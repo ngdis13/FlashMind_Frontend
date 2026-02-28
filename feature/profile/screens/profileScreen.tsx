@@ -12,10 +12,34 @@ import { SettingsIcon } from "../assets/SettingsIcon";
 
 import { useUserStore } from "@/store/userStore";
 import { useRouter } from "expo-router";
+import { useEffect } from "react";
+import { getUserProfile } from "../api/profile.api";
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { user, setAvatar } = useUserStore();
+  const { user, setUser, setAvatar } = useUserStore();
+
+  useEffect(() => {
+
+    const fetchProfile = async () => {
+      try {
+        const response = await getUserProfile();
+        if (response) {
+          const mappedUserProfile = {
+          firstName: response.first_name,
+          lastName: response.last_name,
+          bio: response.bio,
+          avatarUrl: response.avatar_url || null,
+        };
+          setUser(mappedUserProfile)
+        }
+      } catch (err: unknown) {
+        return err;
+      }
+    };
+
+    fetchProfile();
+  }, [setUser]);
 
   // Функция отвечает за выбор аватара из галереи устройства
   const handlePickAvatar = async () => {
@@ -59,9 +83,9 @@ export default function ProfileScreen() {
 
         <View style={[commonStyles.mainBox, styles.bioBox]}>
           <Pressable onPress={handlePickAvatar}>
-            {user?.avatarUri ? (
+            {user?.avatarUrl ? (
               <Image
-                source={{ uri: user.avatarUri }}
+                source={{ uri: user.avatarUrl }}
                 style={{ width: 100, height: 100, borderRadius: 100 }}
               />
             ) : (

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useRouter } from "expo-router";
 import { AxiosError } from "axios";
 import { View, Pressable } from "react-native";
-import { useAuthStore } from "../../store/auth.store";
+import { useAuthStore } from "../../../../store/auth.store";
 import { login } from "../api/login.api";
 
 // --------------------------- Компоненты ---------------------------

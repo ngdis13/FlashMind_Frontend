@@ -1,4 +1,6 @@
 import axios, { type AxiosError, type AxiosInstance } from "axios";
+import { refreshToken } from "./services/auth.service";
+import { setupAuthInterceptor } from "./interceptors/auth.interceptor";
 
 const apiClient: AxiosInstance = axios.create({
   baseURL: "",                                   
@@ -9,16 +11,7 @@ const apiClient: AxiosInstance = axios.create({
   withCredentials: true,                           // ← очень важно для httpOnly refresh-токена
 });
 
-//глобальный перехватчик ошибок
-apiClient.interceptors.response.use(
-  (response) => response,
-  (error: AxiosError) => {
-    // Здесь можно централизованно обрабатывать 401, 403, 500 и т.д.
-    if (error.response?.status === 401) {
-      console.warn("Unauthorized → возможно токен истёк");
-    }
-    return Promise.reject(error);
-  }
-);
+//Обработка 401 ошибки
+setupAuthInterceptor(apiClient)
 
 export default apiClient;
