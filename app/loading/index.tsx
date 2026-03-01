@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import React, { useEffect } from "react";
+import React from "react";
 import { Text, TouchableWithoutFeedback, View } from "react-native";
 import { Typography } from "@/styles/Typography";
 import { SafeAreaView } from "react-native-safe-area-context";

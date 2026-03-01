@@ -1,6 +1,5 @@
 import { getUserProfile } from "@/feature/profile/api/profile.api";
 import { create } from "zustand";
-import { useAuthStore } from "./auth.store";
 
 export type UserProfile = {
   id?: string;

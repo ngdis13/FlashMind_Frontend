@@ -1,4 +1,4 @@
-import { View, Pressable, Image, TextInput } from "react-native";
+import { View, Pressable, Image} from "react-native";
 import * as ImagePicker from "expo-image-picker";
 
 import { commonStyles } from "@/styles/Common";
