@@ -12,35 +12,15 @@ import { SettingsIcon } from "../assets/SettingsIcon";
 
 import { useUserStore } from "@/store/userStore";
 import { useRouter } from "expo-router";
-import { useEffect } from "react";
-import { getUserProfile } from "../api/profile.api";
+import LoadingScreen from "@/app/loading";
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { user, setUser, setAvatar } = useUserStore();
+  const { user, setAvatar, isLoading } = useUserStore();
 
-  useEffect(() => {
-
-    const fetchProfile = async () => {
-      try {
-        const response = await getUserProfile();
-        if (response) {
-          const mappedUserProfile = {
-          firstName: response.first_name,
-          lastName: response.last_name,
-          bio: response.bio,
-          avatarUrl: response.avatar_url || null,
-        };
-          setUser(mappedUserProfile)
-        }
-      } catch (err: unknown) {
-        return err;
-      }
-    };
-
-    fetchProfile();
-  }, [setUser]);
-
+  if (isLoading){
+    return <LoadingScreen textLoad="Загружаем профиль"/>
+  }
   // Функция отвечает за выбор аватара из галереи устройства
   const handlePickAvatar = async () => {
     // Запрашиваем разрешение на доступ к галерее

@@ -1,7 +1,6 @@
 import { login } from "@/feature/auth/login/api/login.api";
 import { refresh } from "../refresh";
 import { useAuthStore } from "@/store/auth.store";
-import { useUserStore } from "@/store/userStore";
 import { LoginPayload } from "@/feature/auth/types/api.types";
 
 
@@ -25,6 +24,5 @@ export async function refreshToken() {
 
   // Сохраняем новый токен в стор
   useAuthStore.getState().setAccessToken(access_token);
-  useUserStore.getState().setUser(user);
 
   return { access_token, user };}

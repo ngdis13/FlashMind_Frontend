@@ -1,6 +1,6 @@
 import apiClient from "@/api/client";
 import { getMainServiceApiUrl } from "@/api/getMainServiceApiUrl";
-import { ApiRespose, ProfileResponse } from "../types/api.types";
+import { ProfileResponse } from "../types/api.types";
 import { AxiosError } from "axios";
 import { ApiErrorResponse, FastApiValidationError } from "@/feature/auth/types/api.types";
 
@@ -36,6 +36,7 @@ export async function getUserProfile(): Promise<ProfileResponse> {
   try {
     const resp = await apiClient.get(
       getMainServiceApiUrl("/api/v1/users/profile"),
+      {withCredentials: true}
     );
     return resp.data;
   } catch (err) {
