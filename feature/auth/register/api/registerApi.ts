@@ -7,6 +7,7 @@ import {
 import { AxiosError } from "axios";
 import { RegisterPayload, VerifyCodePayload, ResendCodePayload } from "@/feature-auth/register/types/api.types";
 import { ApiError } from "@/feature-auth/types/api.types";
+import { useAuthStore } from "@/store/auth.store";
 
 /**
  * Начало регистрации пользователя
@@ -56,6 +57,9 @@ export async function verifyCode(
       getAuthApiUrl("/api/v1/auth/register/verify-code"),
       payload
     );
+    const setAccessToken = useAuthStore.getState().setAccessToken; // получаем функцию стора
+    console.log('Получили токен доступа и обновили при регистрации')
+    setAccessToken(resp.data.access_token);
     return resp.data;
   } catch (err: unknown) {
     if (err instanceof AxiosError) {

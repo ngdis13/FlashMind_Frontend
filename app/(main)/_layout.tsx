@@ -1,26 +1,40 @@
+// app/(tabs)/_layout.js
 import { Tabs } from "expo-router";
 import React from "react";
 import { ProfileIcon } from "@/assets/icons/IconsTabBar/ProfileIcon";
-// импортируйте другие иконки аналогично
 
-export default function TabLayout() {
+export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerShown: false, // скрыть заголовок на всех экранах
-        tabBarActiveTintColor: "tomato", // цвет активной иконки
-        tabBarInactiveTintColor: "gray", // цвет неактивной иконки
+        headerShown: false,
+        tabBarActiveTintColor: "tomato",
+        tabBarInactiveTintColor: "gray",
         tabBarStyle: {
-          height: 60, // высота таб-бара
-          backgroundColor: "#ffffff", // цвет фона
-          borderTopWidth: 1, // тонкая линия сверху
+          height: 60,
+          backgroundColor: "#ffffff",
+          borderTopWidth: 1,
           borderTopColor: "#e0e0e0",
         },
-        tabBarShowLabel: true, // показывать подписи
+        tabBarShowLabel: true,
       }}
     >
       <Tabs.Screen
-        name="index" 
+        name="decks" 
+        options={{
+          title: "Колоды",
+          tabBarIcon: ({ color, focused }) => (
+            <ProfileIcon 
+              color={color}
+              width={focused ? 26 : 22}
+              height={focused ? 26 : 22}
+            />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="profile" 
         options={{
           title: "Колоды",
           tabBarIcon: ({ color, focused }) => (
@@ -33,24 +47,11 @@ export default function TabLayout() {
         }}
       />
       
+
       <Tabs.Screen
-        name="search" 
+        name="statistics" 
         options={{
           title: "Статистика",
-          tabBarIcon: ({ color, focused }) => (
-            <ProfileIcon
-              color={color}
-              width={focused ? 26 : 22}
-              height={focused ? 26 : 22}
-            />
-          ),
-        }}
-      />
-      
-      <Tabs.Screen
-        name="profile" 
-        options={{
-          title: "Профиль",
           tabBarIcon: ({ color, focused }) => (
             <ProfileIcon 
               color={color}

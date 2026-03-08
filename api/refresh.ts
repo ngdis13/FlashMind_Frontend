@@ -1,6 +1,7 @@
 import { getAuthApiUrl } from "@/feature/auth/api/getAuthApiUrl";
 import apiClient from "./client";
 import { LoginResponse } from "@/feature/auth/types/api.types";
+import { useAuthStore } from "@/store/auth.store";
 
 
 
@@ -14,15 +15,22 @@ export async function refresh(): Promise<LoginResponse> {
        }, // Обязательно отправляем cookies с refresh token
     );
 
+    const access_token = resp.data.access_token
+
+    const setAccessToken = useAuthStore.getState().setAccessToken; // получаем функцию стора
+    setAccessToken(access_token);
+
     // Обновляем токен в apiClient
     apiClient.defaults.headers["Authorization"] =
       `Bearer ${resp.data.access_token}`;
+    
     console.info('Обновлен токен доступа')
+    console.log(useAuthStore.getState().accessToken)
 
     // Получаем новые токены
     return resp.data;
   } catch (_: unknown) {
-    console.error('Отсутствует рефрет токен')
+    console.error('Отсутствует рефреш токен')
     throw Error;
   }
 }

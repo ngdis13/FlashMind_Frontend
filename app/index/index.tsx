@@ -28,7 +28,7 @@ export default function WelcomeScreen() {
   }, [router]);
 
   const handleSkip = async () => {
-
+    router.replace("/login");
   };
 
   return (

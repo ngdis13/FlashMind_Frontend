@@ -4,6 +4,7 @@ import { FastApiValidationError, ApiErrorResponse } from "@/feature-auth/types/a
 import { LoginResponse, LoginPayload } from "../types/api.types";
 import { AxiosError } from "axios";
 import { getMainServiceApiUrl } from "@/api/getMainServiceApiUrl";
+import { useAuthStore } from "@/store/auth.store";
 
 /**
  * Выполняет авторизацию пользователя с помощью API.
@@ -16,13 +17,16 @@ import { getMainServiceApiUrl } from "@/api/getMainServiceApiUrl";
  */
 export async function login(payload: LoginPayload): Promise<LoginResponse> {
   try {
+    
+
     // Отправляем запрос на сервер для авторизации
     const resp = await apiClient.post<LoginResponse>(
       getAuthApiUrl("/api/v1/auth/login"),
       payload, 
       {withCredentials: true}
     );
-
+    const setAccessToken = useAuthStore.getState().setAccessToken; // получаем функцию стора
+    setAccessToken(resp.data.access_token);
     // Возвращаем ответ с токеном доступа, если все прошло успешно
     return resp.data;
   } catch (err: unknown) {

@@ -19,6 +19,7 @@ import { Input } from "@/components/Input";
 
 //Дополнительные функции
 import { validateNameField } from "../../auth/validators/user-name.validator";
+import { useUserStore } from "@/store/userStore";
 
 /**
  * Третий шаг онбординга.
@@ -28,6 +29,8 @@ import { validateNameField } from "../../auth/validators/user-name.validator";
  */
 export default function ThirdStepScreen() {
   const router = useRouter();
+
+  const {user, updateProfile} = useUserStore()
 
   const [name, setName] = useState("");
   const [lastname, setLastName] = useState("");
@@ -60,6 +63,7 @@ export default function ThirdStepScreen() {
       return;
     }
 
+    updateProfile({firstName: name, lastName: lastname})
     router.push("/onboarding/fourth-step");
   };
 
