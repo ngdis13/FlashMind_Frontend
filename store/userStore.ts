@@ -134,7 +134,7 @@ export const useUserStore = create<UserState>((set, get) => ({
       const mappedUserProfile = {
         firstName: response.first_name,
         lastName: response.last_name,
-        bio: response.bio,
+        bio: response.bio ? response.bio : 'О себе',
         avatarUrl: response.avatar_url || null,
       };
       set({

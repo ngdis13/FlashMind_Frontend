@@ -33,4 +33,10 @@ export const commonStyles = StyleSheet.create({
     borderWidth: 2,
     padding: 12,
   },
+
+  greyButton: {
+    /**для кнопок как в настройках */
+    flexDirection: "row",
+    gap: 8,
+  },
 });

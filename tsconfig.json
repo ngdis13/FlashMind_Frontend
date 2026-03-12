@@ -24,6 +24,7 @@
       "@/shared/*": ["./shared/*"],
       "@/feature-auth/*": ["./feature/auth/*"],
       "@/feature-profile/*": ["./feature/profile/*"],
+      "@/feature-settings/*": ["./feature/settings/*"],
     }
   },
   "include": ["**/*.ts", "**/*.tsx", "declarations.d.ts"

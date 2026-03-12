@@ -53,7 +53,7 @@ export default function ProfileScreen() {
   };
 
   const handleSettings = () => {
-    router.push("/not-found");
+    router.push("/settings");
   };
 
   return (
