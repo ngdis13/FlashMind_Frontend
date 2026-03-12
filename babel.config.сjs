@@ -4,7 +4,9 @@ module.exports = function (api) {
     presets: ['babel-preset-expo'],
     plugins: [
       [
-        'module-resolver',
+      'babel-plugin-transform-import-meta', // Добавьте это первой строкой в плагины
+      'expo-router/babel',
+      'babel-plugin-module-resolver',
         {
           alias: {
             '@components': './src/components',
