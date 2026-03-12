@@ -1,4 +1,8 @@
 import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
+import * as SecureStore from "expo-secure-store";
+import { Platform } from "react-native";
+
 
 /**
  * Тип состояния аутентификации пользователя.
@@ -38,25 +42,23 @@ type AuthState = {
  *
  * @returns {AuthState} Состояние аутентификации и методы управления
  */
-export const useAuthStore = create<AuthState>((set) => ({
-  // ---------------------------
-  // Начальное состояние
-  accessToken: null,
-  isAuthenticated: false,
-
-  // ---------------------------
-  // Устанавливает токен доступа и помечает пользователя как авторизованного
-  setAccessToken: (token) =>
-    set({
-      accessToken: token,
-      isAuthenticated: true,
-    }),
-
-  // ---------------------------
-  // Выход пользователя: очищает токен и статус аутентификации
-  logout: () =>
-    set({
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
       accessToken: null,
       isAuthenticated: false,
+
+      setAccessToken: (token) =>
+        set({
+          accessToken: token,
+          isAuthenticated: true,
+        }),
+
+      logout: () =>
+        set({
+          accessToken: null,
+          isAuthenticated: false,
+        }),
     }),
-}));
+  )
+);

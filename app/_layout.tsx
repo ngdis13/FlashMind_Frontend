@@ -8,11 +8,13 @@ import MontserratMedium from "@/assets/fonts/Montserrat-Medium.ttf";
 import MontserratSemiBold from "@/assets/fonts/Montserrat-SemiBold.ttf";
 import MontserratBold from "@/assets/fonts/Montserrat-Bold.ttf";
 import { useUserStore } from "@/store/userStore";
+import { useAuthStore } from "@/store/auth.store";
 
 SplashScreen.preventAutoHideAsync();
 
 export default function Layout() {
   const { user, fetchUser } = useUserStore();
+  const access_token = useAuthStore.getState().accessToken
 
   const [fontsLoaded] = useFonts({
     MontserratRegular: MontserratRegular,
@@ -25,7 +27,7 @@ export default function Layout() {
   useEffect(() => {
     if (fontsLoaded) SplashScreen.hideAsync();
 
-    if (fontsLoaded && !fetchedRef.current && !user) {
+    if (fontsLoaded && !fetchedRef.current && !access_token) {
       fetchedRef.current = true;
       fetchUser();
     }

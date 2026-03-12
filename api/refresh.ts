@@ -25,8 +25,6 @@ export async function refresh(): Promise<LoginResponse> {
       `Bearer ${resp.data.access_token}`;
     
     console.info('Обновлен токен доступа')
-    console.log(useAuthStore.getState().accessToken)
-
     // Получаем новые токены
     return resp.data;
   } catch (_: unknown) {
