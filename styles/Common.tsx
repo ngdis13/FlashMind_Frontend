@@ -39,4 +39,15 @@ export const commonStyles = StyleSheet.create({
     flexDirection: "row",
     gap: 8,
   },
+
+  /**Квадратики для таб бара */
+  tabIconBox: {
+    alignItems: "center",
+    justifyContent: "center",
+    width: 45,
+    height: 45,
+    backgroundColor: "#F1F1F1",
+    borderRadius: 12,
+
+  }
 });

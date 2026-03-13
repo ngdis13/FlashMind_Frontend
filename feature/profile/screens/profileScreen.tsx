@@ -1,4 +1,4 @@
-import { View, Pressable, Image } from "react-native";
+import { View, Pressable, Image, ScrollView } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 
 import { commonStyles } from "@/styles/Common";
@@ -57,9 +57,10 @@ export default function ProfileScreen() {
   };
 
   return (
-    <View style={commonStyles.container}>
+    <View style={[commonStyles.container, { flex: 1, paddingBottom: 100 }]}>
+      <ScrollView>
       <View style={commonStyles.mainContent}>
-        
+
         <Typography variant="h1" style={{ marginBottom: 16 }}>
           Профиль
         </Typography>
@@ -144,8 +145,8 @@ export default function ProfileScreen() {
           <Typography variant="h2">Настройки</Typography>
         </Pressable>
 
-
       </View>
+      </ScrollView>
 
     </View>
   );
