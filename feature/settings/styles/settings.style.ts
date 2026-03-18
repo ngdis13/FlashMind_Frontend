@@ -2,7 +2,7 @@ import { colors } from "@/styles/Colors";
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
-    bottonBox: {
+    buttonBox: {
         gap: 16,
     },
     exitButton: {

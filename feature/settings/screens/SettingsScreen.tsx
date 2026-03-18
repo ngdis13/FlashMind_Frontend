@@ -17,6 +17,14 @@ export default function SettingsScreens() {
   const handleSettings = () => {
     router.push("/not-found");
   };
+
+  const handleEditProfile = () => {
+    router.push("/settings/edit-profile");
+  };
+
+  const handleLanguage = () => {
+    router.push('/settings/edit-language')
+  }
   return (
     <View style={commonStyles.container}>
       <View style={commonStyles.mainContent}>
@@ -24,10 +32,10 @@ export default function SettingsScreens() {
           Настройки
         </Typography>
 
-        <View style={styles.bottonBox}>
+        <View style={styles.buttonBox}>
           <Pressable
             style={[commonStyles.mainBox, commonStyles.greyButton]}
-            onPress={handleSettings}
+            onPress={handleEditProfile}
           >
             <Image
               source={profileIcon}
@@ -39,7 +47,7 @@ export default function SettingsScreens() {
 
           <Pressable
             style={[commonStyles.mainBox, commonStyles.greyButton]}
-            onPress={handleSettings}
+            onPress={handleLanguage}
           >
             <Image
               source={languageIcon}
@@ -51,7 +59,6 @@ export default function SettingsScreens() {
 
           <Pressable
             style={[commonStyles.mainBox, commonStyles.greyButton]}
-            onPress={handleSettings}
           >
             <Image
               source={appearanceIcon}

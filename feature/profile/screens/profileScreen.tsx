@@ -82,7 +82,7 @@ export default function ProfileScreen() {
 
               <Typography variant="h2">{user?.lastName}</Typography>
             </View>
-            <Typography variant="h3" color={colors.darkGray}>
+            <Typography variant="h3" color={colors.darkGray} >
               {user?.bio}
             </Typography>
           </View>
