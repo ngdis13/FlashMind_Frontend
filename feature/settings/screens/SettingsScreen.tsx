@@ -11,6 +11,7 @@ import { Pressable, View } from "react-native";
 import { Image } from "react-native";
 import { styles } from "../styles/settings.style";
 import { colors } from "@/styles/Colors";
+import ThemeSwitch from "../components/themeSwitch";
 
 export default function SettingsScreens() {
   const router = useRouter();
@@ -23,8 +24,8 @@ export default function SettingsScreens() {
   };
 
   const handleLanguage = () => {
-    router.push('/settings/edit-language')
-  }
+    router.push("/settings/edit-language");
+  };
   return (
     <View style={commonStyles.container}>
       <View style={commonStyles.mainContent}>
@@ -58,14 +59,22 @@ export default function SettingsScreens() {
           </Pressable>
 
           <Pressable
-            style={[commonStyles.mainBox, commonStyles.greyButton]}
+            style={[
+              commonStyles.mainBox,
+              commonStyles.greyButton,
+              styles.themeButton,
+            ]}
           >
-            <Image
-              source={appearanceIcon}
-              style={[{ width: 20, height: 20 }]}
-              resizeMode="contain"
-            />
-            <Typography variant="h2">Внешний вид</Typography>
+            <View style={[commonStyles.greyButton]}> 
+              <Image
+                source={appearanceIcon}
+                style={[{ width: 20, height: 20 }]}
+                resizeMode="contain"
+              />
+              <Typography variant="h2">Внешний вид</Typography>
+            </View>
+
+            <ThemeSwitch />
           </Pressable>
           <Pressable
             style={[commonStyles.mainBox, commonStyles.greyButton]}

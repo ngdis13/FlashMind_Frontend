@@ -7,5 +7,8 @@ export const styles = StyleSheet.create({
     },
     exitButton: {
         borderColor: colors.errorColor
+    },
+    themeButton: {
+        justifyContent: "space-between"
     }
 })
