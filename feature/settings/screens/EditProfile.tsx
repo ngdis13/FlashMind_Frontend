@@ -1,7 +1,7 @@
 import { Input } from "@/components/Input";
 import { commonStyles } from "@/styles/Common";
 import { Typography } from "@/styles/Typography";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { styles } from "../styles/editProfile.style";
 import { MainButton } from "@/components/MainButton";
@@ -10,18 +10,29 @@ import { useRouter } from "expo-router";
 
 export default function EditProfile() {
   const { user, updateProfile, submitOnbordingData } = useUserStore();
-
-  const [name, setName] = useState("");
-  const [lastname, setLastname] = useState("");
-  const [bio, setBio] = useState("");
-
   const router = useRouter();
+
+  // 1. Сразу подставляем значения из стора в начальный стейт
+  const [name, setName] = useState(user?.firstName || "");
+  const [lastname, setLastname] = useState(user?.lastName || "");
+  const [bio, setBio] = useState(user?.bio || "");
+
+  // 2. Если данные в сторе появятся чуть позже (после загрузки), 
+  // этот эффект обновит поля ввода
+  useEffect(() => {
+    if (user) {
+      setName(user.firstName || "");
+      setLastname(user.lastName || "");
+      setBio(user.bio || "");
+    }
+  }, [user]);
 
   const handleSaveEdit = () => {
     updateProfile({ firstName: name, lastName: lastname, bio: bio });
     submitOnbordingData();
     router.replace("/settings");
   };
+
   return (
     <View style={commonStyles.container}>
       <View style={commonStyles.mainContent}>
@@ -31,25 +42,21 @@ export default function EditProfile() {
         <View style={styles.containerInput}>
           <Input
             style={[styles.input]}
-            placeholder={user?.firstName || "Имя"}
-            value={name}
+            placeholder="Имя" // Здесь теперь просто статичный плейсхолдер
+            value={name}      // Реальное значение, которое можно редактировать
             autoCapitalize="none"
-            onChangeText={(text) => {
-              setName(text);
-            }}
+            onChangeText={setName}
           />
           <Input
             style={[styles.input]}
-            placeholder={user?.lastName || "Фамилия"}
+            placeholder="Фамилия"
             value={lastname}
             autoCapitalize="none"
-            onChangeText={(text) => {
-              setLastname(text);
-            }}
+            onChangeText={setLastname}
           />
           <Input
             style={[styles.input, styles.bioInput]}
-            placeholder={user?.bio || "О себе"}
+            placeholder="О себе"
             value={bio}
             autoCapitalize="none"
             multiline={true}
