@@ -73,6 +73,7 @@ type UserState = {
    * @throws {Error} Если нет данных пользователя или ошибка отправки
    */
   submitOnbordingData: () => Promise<ProfileResponse>;
+  updateAvatar: (uri: string) => Promise<ProfileResponse>
 };
 
 /**
@@ -134,7 +135,7 @@ export const useUserStore = create<UserState>((set, get) => ({
       const mappedUserProfile = {
         firstName: response.first_name ? response.first_name : "Star",
         lastName: response.last_name ? response.last_name : "1234",
-        bio: response.bio ? response.bio : 'О себе',
+        bio: response.bio ? response.bio : "О себе",
         avatarUrl: response.avatar_url || null,
       };
       set({
@@ -237,18 +238,18 @@ export const useUserStore = create<UserState>((set, get) => ({
       formData.append("bio", user.bio || "");
 
       // Добавляем файл аватара, если он есть в сторе
-    if (user.avatarFile) {
-      const uri = user.avatarFile.uri;
+      if (user.avatarFile) {
+        const uri = user.avatarFile.uri;
 
-      // Загружаем файл с локального URI
-      const response = await fetch(uri);
-      const blob = await response.blob(); // получаем Blob
+        // Загружаем файл с локального URI
+        const response = await fetch(uri);
+        const blob = await response.blob(); // получаем Blob
 
-      // Добавляем файл в FormData с именем
-      formData.append("avatar_file", blob, user.avatarFile.name);
+        // Добавляем файл в FormData с именем
+        formData.append("avatar_file", blob, user.avatarFile.name);
 
-      console.log("📸 Добавляем файл из стора:", user.avatarFile);
-    }
+        console.log("📸 Добавляем файл из стора:", user.avatarFile);
+      }
 
       // Отправляем запрос с FormData
       const resp = await updateUserProfile(formData);
@@ -283,6 +284,40 @@ export const useUserStore = create<UserState>((set, get) => ({
 
       set({
         error: errorMessage,
+        isLoading: false,
+      });
+      throw err;
+    }
+  },
+
+  updateAvatar: async (uri: string) => {
+    set({ isLoading: true, error: null });
+
+    try {
+      const formData = new FormData();
+
+      // Загружаем файл
+      const response = await fetch(uri);
+      const blob = await response.blob();
+
+      const filename = uri.split("/").pop() || "avatar.jpg";
+
+      // Добавляем ТОЛЬКО аватар
+      formData.append("avatar_file", blob, filename);
+
+      // Отправляем PATCH запрос только с аватаром
+      const resp = await updateUserProfile(formData);
+
+      // Обновляем стор
+      set((state) => ({
+        user: state.user ? { ...state.user, avatarUrl: resp.avatar_url } : null,
+        isLoading: false,
+      }));
+
+      return resp;
+    } catch (err) {
+      set({
+        error: err instanceof Error ? err.message : "Ошибка",
         isLoading: false,
       });
       throw err;

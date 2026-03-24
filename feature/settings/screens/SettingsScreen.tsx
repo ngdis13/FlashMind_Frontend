@@ -12,9 +12,12 @@ import { Image } from "react-native";
 import { styles } from "../styles/settings.style";
 import { colors } from "@/styles/Colors";
 import ThemeSwitch from "../components/themeSwitch";
+import { logoutUser } from "../api/settings.api";
+import { useAuthStore } from "@/store/auth.store";
 
 export default function SettingsScreens() {
   const router = useRouter();
+  const accessToken = useAuthStore.getState().accessToken;
   const handleSettings = () => {
     router.push("/not-found");
   };
@@ -25,6 +28,10 @@ export default function SettingsScreens() {
 
   const handleLanguage = () => {
     router.push("/settings/edit-language");
+  };
+
+  const getLogout = () => {
+    logoutUser(accessToken);
   };
   return (
     <View style={commonStyles.container}>
@@ -65,10 +72,10 @@ export default function SettingsScreens() {
               styles.themeButton,
             ]}
           >
-            <View style={[commonStyles.greyButton]}> 
+            <View style={[commonStyles.greyButton, {alignItems: "center" }]}>
               <Image
                 source={appearanceIcon}
-                style={[{ width: 20, height: 20 }]}
+                style={[{ width: 20, height: 20}]}
                 resizeMode="contain"
               />
               <Typography variant="h2">Внешний вид</Typography>
@@ -93,7 +100,7 @@ export default function SettingsScreens() {
               commonStyles.greyButton,
               styles.exitButton,
             ]}
-            onPress={handleSettings}
+            onPress={getLogout}
           >
             <Image
               source={exitIcon}

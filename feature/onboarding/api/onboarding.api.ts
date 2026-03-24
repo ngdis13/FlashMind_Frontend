@@ -10,9 +10,6 @@ export async function updateUserProfile(userData: ProfilePayload): Promise<Profi
   if (!accessToken) throw new Error("Нет токена для авторизации");
 
   try {
-    console.log('User дата:', userData)
-
-
     const resp = await apiClient.patch(getMainServiceApiUrl("/api/v1/users/profile"), userData, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -23,7 +20,6 @@ export async function updateUserProfile(userData: ProfilePayload): Promise<Profi
     return resp.data;
   } catch (err) {
     handleApiError(err, "Не удалось отправить данные профиля");
-    throw err;
   }
 }
 

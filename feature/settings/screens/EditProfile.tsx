@@ -5,13 +5,23 @@ import { useState } from "react";
 import { View } from "react-native";
 import { styles } from "../styles/editProfile.style";
 import { MainButton } from "@/components/MainButton";
+import { useUserStore } from "@/store/userStore";
+import { useRouter } from "expo-router";
 
 export default function EditProfile() {
+  const { user, updateProfile, submitOnbordingData } = useUserStore();
+
   const [name, setName] = useState("");
-  const [surname, setSurname] = useState("");
+  const [lastname, setLastname] = useState("");
   const [bio, setBio] = useState("");
 
-  const handleSaveEdit = () => {};
+  const router = useRouter();
+
+  const handleSaveEdit = () => {
+    updateProfile({ firstName: name, lastName: lastname, bio: bio });
+    submitOnbordingData();
+    router.replace("/settings");
+  };
   return (
     <View style={commonStyles.container}>
       <View style={commonStyles.mainContent}>
@@ -21,7 +31,7 @@ export default function EditProfile() {
         <View style={styles.containerInput}>
           <Input
             style={[styles.input]}
-            placeholder="Имя"
+            placeholder={user?.firstName || "Имя"}
             value={name}
             autoCapitalize="none"
             onChangeText={(text) => {
@@ -30,16 +40,16 @@ export default function EditProfile() {
           />
           <Input
             style={[styles.input]}
-            placeholder="Фамилия"
-            value={surname}
+            placeholder={user?.lastName || "Фамилия"}
+            value={lastname}
             autoCapitalize="none"
             onChangeText={(text) => {
-              setSurname(text);
+              setLastname(text);
             }}
           />
           <Input
             style={[styles.input, styles.bioInput]}
-            placeholder="О себе"
+            placeholder={user?.bio || "О себе"}
             value={bio}
             autoCapitalize="none"
             multiline={true}
