@@ -12,4 +12,6 @@ export const colors = {
 
   errorColor: "#FB8B93",
   white: "#FFFFFF",
+
+  /** цвета для разноцветных колод*/ 
 };

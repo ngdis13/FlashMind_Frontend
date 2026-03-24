@@ -14,18 +14,13 @@ import { useUserStore } from "@/store/userStore";
 import { useRouter } from "expo-router";
 import LoadingScreen from "@/app/loading";
 
-import TabLayout from "@/components/TabBar";
-import { handleApiError } from "@/api/interceptors/error.interceptor";
 
 export default function ProfileScreen() {
   const router = useRouter();
   const {
     user,
-    setAvatar,
-    setAvatarUri,
     setAvatarFile,
     isLoading,
-    submitOnbordingData,
     updateAvatar,
   } = useUserStore();
 
