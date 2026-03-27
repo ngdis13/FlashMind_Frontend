@@ -13,5 +13,13 @@ export const colors = {
   errorColor: "#FB8B93",
   white: "#FFFFFF",
 
-  /** цвета для разноцветных колод*/ 
+  /** цвета для разноцветных колод*/
+  red: "#FF7B7B",
+  orange: "#FF9E7B",
+  yellow: "#FFC87B",
+  green: "#7EE083",
+  blue: "#7BE2FF",
+  deepBlue: "#6AB3C8",
+  purple: "#A999EF",
+  pink: "#DE7BFF"
 };

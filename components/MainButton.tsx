@@ -37,6 +37,7 @@ interface ButtonProps {
    * @default colors.mainColor
    */
   activeColor?: string; // Новый пропс для активного цвета
+  textColor?: string;
 }
 
 /**
@@ -73,6 +74,7 @@ export const MainButton = ({
   style,
   disabled = false,
   activeColor = colors.mainColor, // Установим значение по умолчанию для основного цвета
+  textColor = colors.white
 }: ButtonProps) => {
   const buttonColor = disabled ? colors.lightMainColor : activeColor; // Если кнопка неактивна, цвет будет lightMainColor, иначе - activeColor
 
@@ -83,7 +85,7 @@ export const MainButton = ({
       disabled={disabled}
       activeOpacity={disabled ? 1 : 0.7}
     >
-      <Text style={styles.text}>{title}</Text>
+      <Text style={[styles.text, {color: textColor}]}>{title}</Text>
     </TouchableOpacity>
   );
 };
@@ -99,7 +101,6 @@ const styles = StyleSheet.create({
     maxWidth: 400,
   },
   text: {
-    color: '#fff',
     fontSize: 16,
     fontFamily: 'MontserratSemibold',
     fontWeight: '400',

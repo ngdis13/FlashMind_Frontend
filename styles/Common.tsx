@@ -14,7 +14,6 @@ export const commonStyles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   content: {
-
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
