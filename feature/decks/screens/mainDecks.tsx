@@ -18,39 +18,42 @@ import searchButton from "../assets/searchButton.png";
 import { getUserDecks } from "../api/decks.api";
 import { colors } from "@/styles/Colors";
 import { useRouter } from "expo-router";
+import { useDecks } from "@/storage/hooks/useDecks";
 
 export default function MainDecksScreen() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [search, setSearch] = useState("");
-  const [decks, setDecks] = useState([]); // Стейт для колод
-  const [loading, setLoading] = useState(true); // Состояние загрузки
-  const router = useRouter()
+  const router = useRouter();
   // Загружаем колоды при монтировании компонента
-  useEffect(() => {
-    const fetchDecks = async () => {
-      try {
-        const data = await getUserDecks();
-        if (data?.decks) {
-          setDecks(data.decks);
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchDecks();
-  }, []);
+  const {
+    decks, // колоды (уже с кэшем и фоновым обновлением)
+    loading, // статус загрузки
+    error, // ошибка если есть
+    refreshDecks, // функция для принудительного обновления
+  } = useDecks();
+
+  // Фильтрация колод по поиску
+  const filteredDecks = search.trim()
+    ? decks.filter((deck) =>
+        deck.name.toLowerCase().includes(search.toLowerCase()),
+      )
+    : decks;
 
   const startSearch = () => {
     /* поиск */
   };
   const handleEditDecks = (id: string) => {
-    /* редактирование по id */
+    router.push(`/deck/${id}`);
   };
   const handleAddDecks = () => {
     setIsModalVisible(true);
   };
   const closeItems = () => {
     setIsModalVisible(false);
+  };
+   const handleDeckPress = (id: string) => {
+    // Переход на экран обучения
+    router.push(`/deck/${id}`);
   };
 
   const ListHeader = () => (
@@ -100,7 +103,8 @@ export default function MainDecksScreen() {
             <DecksView
               title={item.name}
               cardCount={item.total_cards}
-              cardCountNow={0} // Подставь прогресс, если он есть
+              onPress={() => handleDeckPress(item.id)}  
+              cardCountNow={0} 
               onEditPress={() => handleEditDecks(item.id)}
               index={index}
             />
@@ -122,8 +126,8 @@ export default function MainDecksScreen() {
                 <MainButton
                   title="Создать новую колоду"
                   onPress={() => {
-                    router.push('/create-decks');
-                     closeItems();
+                    router.push("/create-decks");
+                    closeItems();
                   }}
                   style={{ backgroundColor: "#fff", marginBottom: 12 }}
                   textColor={colors.darkMainColor}
