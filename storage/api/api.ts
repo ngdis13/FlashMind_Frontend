@@ -25,18 +25,18 @@ export const fetchUserDecks = async (): Promise<Deck[]> => {
     const accessToken = useAuthStore.getState().accessToken;
     
     if (!accessToken) {
-      console.log("⚠️ Токен доступа отсутствует");
+      console.log(" Токен доступа отсутствует");
       throw new Error("Нет токена авторизации");
     }
     
-    console.log("🌐 Загружаем колоды с сервера...");
+    console.log(" Загружаем колоды с сервера...");
     
     const resp = await apiClient.get<DecksResponse>(
       getMainServiceApiUrl("/api/v1/decks"),
       { headers: { Authorization: `Bearer ${accessToken}` } }
     );
     
-    console.log(`✅ Загружено ${resp.data.decks.length} колод`);
+    console.log(`Загружено ${resp.data.decks.length} колод`);
     
     // Добавляем extraCount для UI и поле cards
     const decksWithExtra = resp.data.decks.map(deck => ({
@@ -67,7 +67,7 @@ export const fetchCards = async (
     const accessToken = useAuthStore.getState().accessToken;
     
     if (!accessToken) {
-      console.log("⚠️ Токен доступа отсутствует");
+      console.log("Токен доступа отсутствует");
       throw new Error("Нет токена авторизации");
     }
     
@@ -81,19 +81,18 @@ export const fetchCards = async (
       ? '?' + new URLSearchParams(params as any).toString()
       : '';
     
-    console.log(`🌐 Загружаем карточки${deckId ? ` для колоды ${deckId}` : ' (все карточки)'}...`);
+    console.log(`Загружаем карточки${deckId ? ` для колоды ${deckId}` : ' (все карточки)'}...`);
     
     const resp = await apiClient.get<CardsResponse>(
       getMainServiceApiUrl(`/api/v1/cards${queryString}`),
       { headers: { Authorization: `Bearer ${accessToken}` } }
     );
     
-    console.log(`✅ Загружено ${resp.data.cards.length} карточек${resp.data.total ? ` (всего: ${resp.data.total})` : ''}`);
+    console.log(`Загружено ${resp.data.cards.length} карточек${resp.data.total ? ` (всего: ${resp.data.total})` : ''}`);
     
     return resp.data;
   } catch (err) {
     handleApiError(err, "Не удалось получить карточки");
-    throw err;
   }
 };
 
@@ -109,3 +108,33 @@ export const fetchDeckCards = async (deckId: string): Promise<Card[]> => {
     throw err;
   }
 };
+
+
+/**
+ * Удалить карточку по ID
+ * @param cardId - ID карточки
+ */
+export const deleteCard = async(cardId: string): Promise<void> => {
+  try {
+    const accessToken = useAuthStore.getState().accessToken
+
+    if (!accessToken){
+      console.log("Токен доступа отсутствует")
+      throw new Error("Нет токена авторизации");
+    }
+
+    console.log('Удаление карточки...')
+
+    await apiClient.delete(
+      getMainServiceApiUrl(`/api/v1/cards${cardId}`),
+      { headers: { Authorization: `Bearer ${accessToken}` } }
+      
+    )
+
+    console.log(`Карточка ${cardId} удалена`)
+  } catch(err){
+    handleApiError(err, 'Не удалось удалить карточку')
+  }
+}
+
+

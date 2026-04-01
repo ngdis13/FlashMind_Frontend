@@ -1,5 +1,5 @@
 import { Typography } from "@/styles/Typography";
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -9,8 +9,10 @@ import {
   ViewStyle,
   Image,
   Pressable,
+  Alert,
 } from "react-native";
 import DeleteIcon from "@/assets/icons/DeleteIcon.png";
+import { CustomAlert } from "./CustomAlert";
 
 interface CardItemProps {
   id: string;
@@ -20,6 +22,7 @@ interface CardItemProps {
   index?: number;
   viewMode?: "compact" | "expanded" | "preview";
   onPress?: (id: string, deckId?: string) => void;
+  onDelete: (id: string, deckId?: string) => void;
   style?: StyleProp<ViewStyle>;
 }
 
@@ -31,34 +34,62 @@ export const CardItem = ({
   index,
   viewMode = "compact",
   onPress,
+  onDelete,
   style,
 }: CardItemProps) => {
+  const [alertVisible, setAlertVisible] = useState(false);
   const handlePress = () => {
     onPress?.(id, deckId);
   };
+  const handleDeletePress = () => {
+    setAlertVisible(true);
+  };
+
+  const handleConfirmDelete = () => {
+    setAlertVisible(false);
+    onDelete?.(id, deckId);
+  };
+
+  const handleCancelDelete = () => {
+    setAlertVisible(false);
+  };
 
   return (
-    <TouchableOpacity
-      style={[styles.card, style]}
-      onPress={handlePress}
-      activeOpacity={0.7}
-    >
-      <View style={styles.cardContent}>
-        <Typography variant="h2" numberOfLines={2}>
-          {front}
-        </Typography>
+    <View style={[styles.card, style]}>
+      <TouchableOpacity onPress={handlePress} activeOpacity={0.7}>
+        <View style={styles.cardContent}>
+          <View style={styles.textContainer}>
+            <Typography variant="h2" numberOfLines={2}>
+              {front}
+            </Typography>
 
-        {back && (
-          <Typography variant="h2" numberOfLines={2}>
-            {back}
-          </Typography>
-        )}
+            {back && (
+              <Typography variant="h2" numberOfLines={2}>
+                {back}
+              </Typography>
+            )}
+          </View>
+        </View>
+      </TouchableOpacity>
 
-        <Pressable>
-          <Image source={DeleteIcon} style={{ width: 18, height: 18 }} />
-        </Pressable>
-      </View>
-    </TouchableOpacity>
+      {/* Кнопка удаления вынесена отдельно, вне TouchableOpacity */}
+      <Pressable
+        onPress={handleDeletePress}
+        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+      >
+        <Image source={DeleteIcon} style={styles.deleteIcon} />
+      </Pressable>
+
+      <CustomAlert
+        visible={alertVisible}
+        message={`Ты действительно хочешь удалить карточку?`}
+        confirmText="Удалить"
+        cancelText="Вернуться к карточкам"
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+        type="danger"
+      />
+    </View>
   );
 };
 
@@ -74,17 +105,22 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     width: "100%",
 
-    // тень под карточкой (как у инпута)
     shadowColor: "#000",
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 4,
+    justifyContent: "space-between",
   },
   cardContent: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center", // выравниваем по центру по вертикали
-    flex: 1, // занимает всё доступное пространство
+
+    alignItems: "center",
+    flex: 1,
+  },
+
+  deleteIcon: {
+    width: 20,
+    height: 20,
   },
 });

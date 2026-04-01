@@ -19,7 +19,7 @@ export default function DeckViewById() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
 
-  const { decks, loading, getDeckCards } = useDecks();
+  const { decks, loading, getDeckCards, removeCard } = useDecks();
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -58,6 +58,16 @@ export default function DeckViewById() {
     //нажатие на карточку
   };
 
+  const handleDeleteCard = async (cardId: string, deckId?:string) => {
+    try {
+      await removeCard(deckId || id as string, cardId)
+      setCards(prevCards => prevCards.filter(card => card.id !== cardId))
+      console.log('Карточка удалена')
+    } catch(err){
+      console.error("Ошибка при удалении карточки:", err)
+    }
+  }
+
   // Рендер отдельной карточки
   const renderCard = ({ item, index }: { item: any; index: number }) => (
     <CardItem
@@ -68,6 +78,7 @@ export default function DeckViewById() {
       index={index}
       viewMode="compact"
       onPress={handleCardPress}
+      onDelete={handleDeleteCard}
     />
   );
 
@@ -106,18 +117,12 @@ export default function DeckViewById() {
           </View>
 
           <View style={styles.mainInfo}>
-            <Input
-              style={{ textAlign: "left" }}
-              placeholder={"Название"}
-              value={name}
-              onChangeText={setName}
-            />
-            <Input
-              style={{ textAlign: "left" }}
-              placeholder={"Описание"}
-              value={description}
-              onChangeText={setDescription}
-            />
+            <View style={[commonStyles.mainBox, { maxWidth: "100%" }]}>
+              <Typography variant="h2">{name}</Typography>
+            </View>
+            <View style={[commonStyles.mainBox, { maxWidth: "100%" }]}>
+              <Typography variant="h2">{description}</Typography>
+            </View>
             <Pressable
               style={[commonStyles.mainBox, styles.settingsButton]}
               onPress={handleSettings}

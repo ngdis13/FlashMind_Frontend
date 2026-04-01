@@ -1,4 +1,4 @@
-// hooks/useDecks.ts (обновленная версия)
+// hooks/useDecks.ts (исправленная версия)
 
 import { useState, useEffect, useCallback } from "react";
 import { Deck, Card } from "../types/types";
@@ -8,36 +8,37 @@ import {
   loadDeckCards,
   saveDeckCards,
 } from "../service/decksStorage";
-import { fetchUserDecks, fetchDeckCards } from "../api/api";
+import { fetchUserDecks, fetchDeckCards, deleteCard } from "../api/api";
 
 export const useDecks = () => {
   const [decks, setDecks] = useState<Deck[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [loadingCards, setLoadingCards] = useState<Record<string, boolean>>({});
+  const [cards, setCards] = useState<Card[]>([]);
 
   const loadDecksData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
-      console.log("🔍 Шаг 1: Проверяем AsyncStorage...");
+      console.log("Шаг 1: Проверяем AsyncStorage...");
       const storedDecks = await loadDecks();
 
       if (storedDecks && storedDecks.length > 0) {
-        console.log("📱 Используем данные из хранилища");
+        console.log("Используем данные из хранилища");
         setDecks(storedDecks);
         setLoading(false);
         refreshDecksInBackground();
       } else {
-        console.log("🌐 Загружаем данные с сервера...");
+        console.log("Загружаем данные с сервера...");
         const serverDecks = await fetchUserDecks();
         await saveDecks(serverDecks);
         setDecks(serverDecks);
-        console.log("💾 Данные сохранены в хранилище");
+        console.log(" Данные сохранены в хранилище");
       }
     } catch (err) {
-      console.error("❌ Ошибка при загрузке данных:", err);
+      console.error("Ошибка при загрузке данных:", err);
       setError("Не удалось загрузить колоды");
     } finally {
       setLoading(false);
@@ -46,22 +47,21 @@ export const useDecks = () => {
 
   const refreshDecksInBackground = async () => {
     try {
-      console.log("🔄 Фоновая синхронизация с сервером...");
+      console.log("Фоновая синхронизация с сервером...");
       const serverDecks = await fetchUserDecks();
       const storedDecks = await loadDecks();
       if (JSON.stringify(serverDecks) !== JSON.stringify(storedDecks)) {
         await saveDecks(serverDecks);
         setDecks(serverDecks);
-        console.log("📦 Данные обновлены из сервера");
+        console.log("Данные обновлены из сервера");
       }
     } catch (err) {
-      console.log("⚠️ Фоновая синхронизация не удалась, используем кэш");
+      console.log("Фоновая синхронизация не удалась, используем кэш");
     }
   };
 
   /**
    * Получить карточки колоды
-   * 👇 Адаптируем под структуру с front
    */
   const getDeckCards = useCallback(async (deckId: string): Promise<Card[]> => {
     try {
@@ -71,28 +71,26 @@ export const useDecks = () => {
       let cards = await loadDeckCards(deckId);
 
       if (cards && cards.length > 0) {
-        console.log(`📱 Карточки колоды ${deckId} загружены из хранилища`);
+        console.log(`Карточки колоды ${deckId} загружены из хранилища`);
+        setCards(cards);
         return cards;
       }
 
       // Нет в хранилище - грузим с сервера
-      console.log(`🌐 Загружаем карточки колоды ${deckId} с сервера...`);
+      console.log(`Загружаем карточки колоды ${deckId} с сервера...`);
       cards = await fetchDeckCards(deckId);
 
-      // 👇 Трансформируем карточки, если нужно добавить поля
-      const transformedCards = cards.map(card => ({
+      const transformedCards = cards.map((card) => ({
         ...card,
-        // Если нужно преобразовать front в question
-        // question: card.front,
-        // answer: card.back,
       }));
 
       // Сохраняем в хранилище
       await saveDeckCards(deckId, transformedCards);
+      setCards(transformedCards);
 
       return transformedCards;
     } catch (err) {
-      console.error(`❌ Ошибка при загрузке карточек колоды ${deckId}:`, err);
+      console.error(`Ошибка при загрузке карточек колоды ${deckId}:`, err);
       return [];
     } finally {
       setLoadingCards((prev) => ({ ...prev, [deckId]: false }));
@@ -114,9 +112,11 @@ export const useDecks = () => {
         );
         setDecks(updatedDecks);
         await saveDecks(updatedDecks);
-        console.log(`✅ extraCount для колоды ${deckId} обновлен на ${extraCount}`);
+        console.log(
+          `extraCount для колоды ${deckId} обновлен на ${extraCount}`,
+        );
       } catch (err) {
-        console.error("❌ Ошибка при обновлении extraCount:", err);
+        console.error("Ошибка при обновлении extraCount:", err);
       }
     },
     [decks],
@@ -128,15 +128,43 @@ export const useDecks = () => {
       const serverDecks = await fetchUserDecks();
       await saveDecks(serverDecks);
       setDecks(serverDecks);
-      console.log("🔄 Колоды обновлены");
+      console.log("Колоды обновлены");
     } catch (err) {
-      console.error("❌ Ошибка при обновлении колод:", err);
+      console.error("Ошибка при обновлении колод:", err);
       setError("Не удалось обновить колоды");
     } finally {
       setLoading(false);
     }
   }, []);
 
+  /**
+   * Удалить карточку
+   * @param deckId - ID колоды
+   * @param cardId - ID карточки
+   */
+  const removeCard = useCallback(async (deckId: string, cardId: string) => {
+    try {
+      // Удаляем на сервере
+      await deleteCard(cardId);
+
+      // Обновляем локальное состояние карточек
+      setCards((prevCards) => prevCards.filter((card) => card.id !== cardId));
+
+      // Обновляем кэш в AsyncStorage
+      const currentCards = await loadDeckCards(deckId);
+      if (currentCards) {
+        const updatedCards = currentCards.filter((card) => card.id !== cardId);
+        await saveDeckCards(deckId, updatedCards);
+      }
+
+      console.log(`Карточка ${cardId} удалена локально`);
+    } catch (error) {
+      console.error("Ошибка при удалении карточки:", error);
+      throw error;
+    }
+  }, []);
+
+  // Загружаем данные при монтировании
   useEffect(() => {
     loadDecksData();
   }, [loadDecksData]);
@@ -146,9 +174,11 @@ export const useDecks = () => {
     loading,
     error,
     loadingCards,
+    cards,
     getDeckById,
     getDeckCards,
     updateDeckExtraCount,
     refreshDecks,
+    removeCard,
   };
 };

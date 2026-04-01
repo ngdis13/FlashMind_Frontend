@@ -14,6 +14,7 @@ export const styles = StyleSheet.create({
   settingsButton: {
     flexDirection: "row",
     gap: 8,
+    maxWidth: "100%"
   },
   cards: {},
   cardsHeader: {
