@@ -8,7 +8,7 @@ import {
   loadDeckCards,
   saveDeckCards,
 } from "../service/decksStorage";
-import { fetchUserDecks, fetchDeckCards, deleteCard } from "../api/api";
+import { fetchUserDecks, fetchDeckCards, deleteCard, createCard } from "../api/api";
 
 export const useDecks = () => {
   const [decks, setDecks] = useState<Deck[]>([]);
@@ -164,6 +164,40 @@ export const useDecks = () => {
     }
   }, []);
 
+  const addCard = useCallback(
+    async (deckId: string, front: string, back: string) => {
+      try {
+        // Создаем карточку на сервере
+        const newCard = await createCard(deckId, { front, back });
+
+        // Обновляем локальное состояние карточек
+        setCards((prevCards) => [...prevCards, newCard]);
+
+        // Обновляем кэш в AsyncStorage
+        const currentCards = await loadDeckCards(deckId);
+        if (currentCards) {
+          await saveDeckCards(deckId, [...currentCards, newCard]);
+        }
+
+        // Обновляем счетчик карточек в колоде
+        const updatedDecks = decks.map((deck) =>
+          deck.id === deckId
+            ? { ...deck, total_cards: deck.total_cards + 1 }
+            : deck
+        );
+        setDecks(updatedDecks);
+        await saveDecks(updatedDecks);
+
+        console.log(`Карточка "${front}" создана в колоде ${deckId}`);
+        return newCard;
+      } catch (error) {
+        console.error("Ошибка при создании карточки:", error);
+        throw error;
+      }
+    },
+    [decks]
+  );
+
   // Загружаем данные при монтировании
   useEffect(() => {
     loadDecksData();
@@ -180,5 +214,6 @@ export const useDecks = () => {
     updateDeckExtraCount,
     refreshDecks,
     removeCard,
+    addCard
   };
 };

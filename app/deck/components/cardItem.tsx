@@ -62,12 +62,6 @@ export const CardItem = ({
             <Typography variant="h2" numberOfLines={2}>
               {front}
             </Typography>
-
-            {back && (
-              <Typography variant="h2" numberOfLines={2}>
-                {back}
-              </Typography>
-            )}
           </View>
         </View>
       </TouchableOpacity>

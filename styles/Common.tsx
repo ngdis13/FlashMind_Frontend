@@ -48,5 +48,24 @@ export const commonStyles = StyleSheet.create({
     backgroundColor: "#F1F1F1",
     borderRadius: 12,
 
+  },
+  //Стили для информационных окон (например в создании карточки, в отображении карточек)
+  infoBox: {
+            flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "#DBDBDB",
+    borderRadius: 15,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    backgroundColor: "#FFFFFF",
+    width: "100%",
+
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 4,
+    justifyContent: "space-between",
   }
 });

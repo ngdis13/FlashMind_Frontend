@@ -1,11 +1,11 @@
 import { commonStyles } from "@/styles/Common";
 import { Typography } from "@/styles/Typography";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { ScrollView, View, Image, Pressable, FlatList } from "react-native";
 import ReturnIcon from "@/assets/icons/ReturnIcon.png";
 import { styles } from "../styles/deckViewById.style";
 import { Input } from "@/components/Input";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { SettingsIcon } from "@/feature/profile/assets/SettingsIcon";
 import PlusIcon from "@/assets/icons/PlusIcon.png";
 import searchButton from "@/feature/decks/assets/searchButton.png";
@@ -37,14 +37,11 @@ export default function DeckViewById() {
   };
   const handleAddCard = () => {
     //Создание новой карточки в колоде
+    router.push(`/deck/${id}/create-card`);
   };
   const startSearch = () => {
     //поиск по карточкам
   };
-  const handleUpdateDeck = () => {
-    //для подтвердджения обновления колоды
-  };
-
   const loadCards = async () => {
     try {
       const fetchedCards = await getDeckCards(id as string);
@@ -58,15 +55,15 @@ export default function DeckViewById() {
     //нажатие на карточку
   };
 
-  const handleDeleteCard = async (cardId: string, deckId?:string) => {
+  const handleDeleteCard = async (cardId: string, deckId?: string) => {
     try {
-      await removeCard(deckId || id as string, cardId)
-      setCards(prevCards => prevCards.filter(card => card.id !== cardId))
-      console.log('Карточка удалена')
-    } catch(err){
-      console.error("Ошибка при удалении карточки:", err)
+      await removeCard(deckId || (id as string), cardId);
+      setCards((prevCards) => prevCards.filter((card) => card.id !== cardId));
+      console.log("Карточка удалена");
+    } catch (err) {
+      console.error("Ошибка при удалении карточки:", err);
     }
-  }
+  };
 
   // Рендер отдельной карточки
   const renderCard = ({ item, index }: { item: any; index: number }) => (
@@ -96,6 +93,15 @@ export default function DeckViewById() {
       setDescription(deck.description || "");
     }
   }, [deck]);
+
+  useFocusEffect(
+    useCallback(() => {
+      // Обновляем карточки когда возвращаемся на экран
+      if (id) {
+        loadCards();
+      }
+    }, [id]),
+  );
 
   const hasCards = cards.length > 0;
 
@@ -173,20 +179,16 @@ export default function DeckViewById() {
                 data={cards}
                 keyExtractor={(item) => item.id}
                 renderItem={renderCard}
-                showsVerticalScrollIndicator={false}
-                scrollEnabled={false} // отключаем скролл внутри ScrollView
+                showsVerticalScrollIndicator={true}
+                scrollEnabled={true} // отключаем скролл внутри ScrollView
                 contentContainerStyle={{ paddingVertical: 8, gap: 16 }}
+                style={styles.cardList}
+                
               />
             )}
           </View>
         </View>
       </ScrollView>
-
-      <MainButton
-        style={styles.addDecksButton}
-        title="Обновить колоду"
-        onPress={handleUpdateDeck}
-      />
     </View>
   );
 }

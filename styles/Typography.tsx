@@ -14,7 +14,7 @@ const baseStyle: TextStyle = {
   color: '#282B54',
 };
 
-const variants: Record<TypographyVariant, TextStyle> = {
+export const variants: Record<TypographyVariant, TextStyle> = {
   h1: {
     fontSize: 24,
     fontFamily: 'MontserratSemiBold',

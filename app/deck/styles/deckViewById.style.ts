@@ -16,7 +16,6 @@ export const styles = StyleSheet.create({
     gap: 8,
     maxWidth: "100%"
   },
-  cards: {},
   cardsHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -41,5 +40,8 @@ export const styles = StyleSheet.create({
   },
   cardBox: {
 
+  },
+  cardList: {
+    flex: 1
   }
 });

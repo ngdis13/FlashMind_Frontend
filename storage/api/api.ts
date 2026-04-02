@@ -4,6 +4,7 @@ import { getMainServiceApiUrl } from "@/api/getMainServiceApiUrl";
 import { handleApiError } from "@/api/interceptors/error.interceptor";
 import { useAuthStore } from "@/store/auth.store";
 import { Deck, Card } from "../types/types";
+import { AxiosError } from "axios";
 
 // 👇 Обновляем интерфейсы под реальный API
 interface DecksResponse {
@@ -23,28 +24,28 @@ interface CardsResponse {
 export const fetchUserDecks = async (): Promise<Deck[]> => {
   try {
     const accessToken = useAuthStore.getState().accessToken;
-    
+
     if (!accessToken) {
       console.log(" Токен доступа отсутствует");
       throw new Error("Нет токена авторизации");
     }
-    
+
     console.log(" Загружаем колоды с сервера...");
-    
+
     const resp = await apiClient.get<DecksResponse>(
       getMainServiceApiUrl("/api/v1/decks"),
-      { headers: { Authorization: `Bearer ${accessToken}` } }
+      { headers: { Authorization: `Bearer ${accessToken}` } },
     );
-    
+
     console.log(`Загружено ${resp.data.decks.length} колод`);
-    
+
     // Добавляем extraCount для UI и поле cards
-    const decksWithExtra = resp.data.decks.map(deck => ({
+    const decksWithExtra = resp.data.decks.map((deck) => ({
       ...deck,
       extraCount: 0,
       cards: [],
     }));
-    
+
     return decksWithExtra;
   } catch (err) {
     handleApiError(err, "Не удалось получить колоды пользователя");
@@ -59,37 +60,42 @@ export const fetchUserDecks = async (): Promise<Deck[]> => {
  * @param perPage - количество на странице (опционально)
  */
 export const fetchCards = async (
-  deckId?: string, 
-  page?: number, 
-  perPage?: number
+  deckId?: string,
+  page?: number,
+  perPage?: number,
 ): Promise<CardsResponse> => {
   try {
     const accessToken = useAuthStore.getState().accessToken;
-    
+
     if (!accessToken) {
       console.log("Токен доступа отсутствует");
       throw new Error("Нет токена авторизации");
     }
-    
+
     // Формируем query параметры
     const params: Record<string, string | number> = {};
     if (deckId) params.deck_id = deckId;
     if (page) params.page = page;
     if (perPage) params.per_page = perPage;
-    
-    const queryString = Object.keys(params).length > 0 
-      ? '?' + new URLSearchParams(params as any).toString()
-      : '';
-    
-    console.log(`Загружаем карточки${deckId ? ` для колоды ${deckId}` : ' (все карточки)'}...`);
-    
+
+    const queryString =
+      Object.keys(params).length > 0
+        ? "?" + new URLSearchParams(params as any).toString()
+        : "";
+
+    console.log(
+      `Загружаем карточки${deckId ? ` для колоды ${deckId}` : " (все карточки)"}...`,
+    );
+
     const resp = await apiClient.get<CardsResponse>(
       getMainServiceApiUrl(`/api/v1/cards${queryString}`),
-      { headers: { Authorization: `Bearer ${accessToken}` } }
+      { headers: { Authorization: `Bearer ${accessToken}` } },
     );
-    
-    console.log(`Загружено ${resp.data.cards.length} карточек${resp.data.total ? ` (всего: ${resp.data.total})` : ''}`);
-    
+
+    console.log(
+      `Загружено ${resp.data.cards.length} карточек${resp.data.total ? ` (всего: ${resp.data.total})` : ""}`,
+    );
+
     return resp.data;
   } catch (err) {
     handleApiError(err, "Не удалось получить карточки");
@@ -109,32 +115,74 @@ export const fetchDeckCards = async (deckId: string): Promise<Card[]> => {
   }
 };
 
-
 /**
  * Удалить карточку по ID
  * @param cardId - ID карточки
  */
-export const deleteCard = async(cardId: string): Promise<void> => {
+export const deleteCard = async (cardId: string): Promise<void> => {
   try {
-    const accessToken = useAuthStore.getState().accessToken
+    const accessToken = useAuthStore.getState().accessToken;
 
-    if (!accessToken){
-      console.log("Токен доступа отсутствует")
+    if (!accessToken) {
+      console.log("Токен доступа отсутствует");
       throw new Error("Нет токена авторизации");
     }
 
-    console.log('Удаление карточки...')
+    console.log("Удаление карточки...");
 
-    await apiClient.delete(
-      getMainServiceApiUrl(`/api/v1/cards${cardId}`),
-      { headers: { Authorization: `Bearer ${accessToken}` } }
-      
-    )
+    await apiClient.delete(getMainServiceApiUrl(`/api/v1/cards${cardId}`), {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
 
-    console.log(`Карточка ${cardId} удалена`)
-  } catch(err){
-    handleApiError(err, 'Не удалось удалить карточку')
+    console.log(`Карточка ${cardId} удалена`);
+  } catch (err) {
+    handleApiError(err, "Не удалось удалить карточку");
   }
-}
+};
 
+export const createCard = async (
+  deckId: string,
+  data: { front: string; back: string },
+): Promise<Card> => {
+  try {
+    const accessToken = useAuthStore.getState().accessToken;
 
+    if (!accessToken) {
+      console.log("Токен доступа отсутствует");
+      throw new Error("Нет токена авторизации");
+    }
+
+    console.log("Создание карточки");
+
+    const resp = await apiClient.post(
+      getMainServiceApiUrl(`/api/v1/cards`),
+      {
+        deck_id: deckId,
+        front: data.front,
+        back: data.back,
+      },
+      { headers: { Authorization: `Bearer ${accessToken}` } },
+    );
+
+    console.log("Карточка создана:", resp.data);
+    return resp.data;
+  } catch (err) {
+    if (err instanceof AxiosError) {
+      const status = err.response?.status;
+      const errorData = err.response?.data;
+
+      if (status === 404) {
+        handleApiError(err, "Колода не найдена");
+      } else if (status === 409) {
+        handleApiError(
+          err,
+          errorData?.message || "Карточка с таким вопросом уже существует",
+        );
+      } else {
+        handleApiError(err, "Не удалось создать карточку");
+      }
+    } else {
+      handleApiError(err, "Не удалось создать карточку");
+    }
+  }
+};
