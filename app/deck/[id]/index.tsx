@@ -9,11 +9,11 @@ import { useCallback, useEffect, useState } from "react";
 import { SettingsIcon } from "@/feature/profile/assets/SettingsIcon";
 import PlusIcon from "@/assets/icons/PlusIcon.png";
 import searchButton from "@/feature/decks/assets/searchButton.png";
-import { MainButton } from "@/components/MainButton";
 import { colors } from "@/styles/Colors";
 import { Logo } from "@/components/Logo";
 import { useDecks } from "@/storage/hooks/useDecks";
 import { CardItem } from "../components/cardItem";
+import { Card } from "@/storage/types/types";
 
 export default function DeckViewById() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -24,7 +24,7 @@ export default function DeckViewById() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [search, setSearch] = useState("");
-  const [cards, setCards] = useState<any[]>([]);
+  const [cards, setCards] = useState<Card[]>([]);
   const [isUpdating, setIsUpdating] = useState(false);
 
   const deck = decks.find((d) => d.id === id);
@@ -51,8 +51,8 @@ export default function DeckViewById() {
       console.error("Ошибка загрузки карточек:", error);
     }
   };
-  const handleCardPress = () => {
-    //нажатие на карточку
+  const handleCardPress = (cardId: string) => {
+    router.push(`/card/${cardId}?deckId=${id}`);
   };
 
   const handleDeleteCard = async (cardId: string, deckId?: string) => {
@@ -66,11 +66,11 @@ export default function DeckViewById() {
   };
 
   // Рендер отдельной карточки
-  const renderCard = ({ item, index }: { item: any; index: number }) => (
+  const renderCard = ({ item, index }: { item: Card; index: number }) => (
     <CardItem
       id={item.id}
-      front={item.front || item.question} // адаптируем под вашу структуру
-      back={item.back || item.answer} // адаптируем под вашу структуру
+      front={item.front }
+      back={item.back }
       deckId={id}
       index={index}
       viewMode="compact"

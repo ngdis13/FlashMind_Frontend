@@ -8,7 +8,13 @@ import {
   loadDeckCards,
   saveDeckCards,
 } from "../service/decksStorage";
-import { fetchUserDecks, fetchDeckCards, deleteCard, createCard } from "../api/api";
+import {
+  fetchUserDecks,
+  fetchDeckCards,
+  deleteCard,
+  createCard,
+  fetchCardById,
+} from "../api/api";
 
 export const useDecks = () => {
   const [decks, setDecks] = useState<Deck[]>([]);
@@ -183,7 +189,7 @@ export const useDecks = () => {
         const updatedDecks = decks.map((deck) =>
           deck.id === deckId
             ? { ...deck, total_cards: deck.total_cards + 1 }
-            : deck
+            : deck,
         );
         setDecks(updatedDecks);
         await saveDecks(updatedDecks);
@@ -195,7 +201,40 @@ export const useDecks = () => {
         throw error;
       }
     },
-    [decks]
+    [decks],
+  );
+
+  const getCardById = useCallback(
+    async (cardId: string): Promise<Card | null> => {
+      try {
+        console.log(`Ищем карточку ${cardId} на сервере...`);
+
+        // Проверяем в кэше сначала
+        const foundCard = cards.find((c) => c.id === cardId);
+        if (foundCard) {
+          console.log("Карточка найдена в кэше");
+          return foundCard;
+        }
+
+        // Если нет в кэше - загружаем с сервера
+        const cardFromServer = await fetchCardById(cardId);
+
+        // Сохраняем в кэш
+        setCards((prevCards) => {
+          if (prevCards.some((c) => c.id === cardFromServer.id)) {
+            return prevCards;
+          }
+          return [...prevCards, cardFromServer];
+        });
+
+        console.log("Карточка загружена с сервера");
+        return cardFromServer;
+      } catch (error) {
+        console.error("Ошибка получения карточки:", error);
+        return null;
+      }
+    },
+    [cards],
   );
 
   // Загружаем данные при монтировании
@@ -214,6 +253,7 @@ export const useDecks = () => {
     updateDeckExtraCount,
     refreshDecks,
     removeCard,
-    addCard
+    addCard,
+    getCardById,
   };
 };

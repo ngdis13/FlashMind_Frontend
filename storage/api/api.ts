@@ -6,7 +6,6 @@ import { useAuthStore } from "@/store/auth.store";
 import { Deck, Card } from "../types/types";
 import { AxiosError } from "axios";
 
-// 👇 Обновляем интерфейсы под реальный API
 interface DecksResponse {
   decks: Deck[];
 }
@@ -80,7 +79,7 @@ export const fetchCards = async (
 
     const queryString =
       Object.keys(params).length > 0
-        ? "?" + new URLSearchParams(params as any).toString()
+        ? "?" + new URLSearchParams(params as Record<string, string>).toString()
         : "";
 
     console.log(
@@ -184,5 +183,33 @@ export const createCard = async (
     } else {
       handleApiError(err, "Не удалось создать карточку");
     }
+  }
+};
+
+
+/**
+ * Получить карточку по ID
+ * @param cardId - ID карточки
+ */
+export const fetchCardById = async (cardId: string): Promise<Card> => {
+  try {
+    const accessToken = useAuthStore.getState().accessToken;
+
+    if (!accessToken) {
+      console.log("Токен доступа отсутствует");
+    }
+
+    console.log(`Загружаем карточку ${cardId}...`);
+
+    const resp = await apiClient.get(
+      getMainServiceApiUrl(`/api/v1/cards${cardId}`),
+      { headers: { Authorization: `Bearer ${accessToken}` } }
+    );
+
+    console.log("Карточка загружена:", resp.data);
+    return resp.data;
+  } catch (err) {
+    handleApiError(err, "Не удалось получить карточку");
+    throw err;
   }
 };

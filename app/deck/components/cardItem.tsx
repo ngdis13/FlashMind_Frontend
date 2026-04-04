@@ -20,7 +20,7 @@ interface CardItemProps {
   back?: string;
   deckId?: string;
   index?: number;
-  viewMode?: "compact" | "expanded" | "preview";
+  viewMode?: "compact" | "expanded";
   onPress?: (id: string, deckId?: string) => void;
   onDelete: (id: string, deckId?: string) => void;
   style?: StyleProp<ViewStyle>;
