@@ -25,7 +25,6 @@ export default function DeckViewById() {
   const [description, setDescription] = useState("");
   const [search, setSearch] = useState("");
   const [cards, setCards] = useState<Card[]>([]);
-  const [isUpdating, setIsUpdating] = useState(false);
 
   const deck = decks.find((d) => d.id === id);
 

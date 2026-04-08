@@ -14,6 +14,7 @@ import {
   deleteCard,
   createCard,
   fetchCardById,
+  updateCardOnServer,
 } from "../api/api";
 
 export const useDecks = () => {
@@ -237,6 +238,50 @@ export const useDecks = () => {
     [cards],
   );
 
+  const updateCard = useCallback(
+    async (
+      cardId: string,
+      front: string,
+      back: string,
+    ): Promise<Card | null> => {
+      try {
+        console.log(`Обновляем карточку ${cardId}...`);
+
+        // Обновляем на сервере
+        const updatedCard = await updateCardOnServer(cardId, { front, back });
+
+        // Обновляем глобальное состояние карточек
+        setCards((prevCards) =>
+          prevCards.map((card) =>
+            card.id === cardId
+              ? { ...card, front: updatedCard.front, back: updatedCard.back }
+              : card,
+          ),
+        );
+
+        // Обновляем кэш в AsyncStorage для всех колод
+        // Находим в какой колоде лежит карточка
+        for (const deck of decks) {
+          const deckCards = await loadDeckCards(deck.id);
+          if (deckCards?.some((card) => card.id === cardId)) {
+            const updatedDeckCards = deckCards.map((card) =>
+              card.id === cardId ? { ...card, front, back } : card,
+            );
+            await saveDeckCards(deck.id, updatedDeckCards);
+            break;
+          }
+        }
+
+        console.log(`Карточка ${cardId} обновлена`);
+        return updatedCard;
+      } catch (error) {
+        console.error("Ошибка при обновлении карточки:", error);
+        throw error;
+      }
+    },
+    [decks],
+  );
+
   // Загружаем данные при монтировании
   useEffect(() => {
     loadDecksData();
@@ -255,5 +300,6 @@ export const useDecks = () => {
     removeCard,
     addCard,
     getCardById,
+    updateCard
   };
 };

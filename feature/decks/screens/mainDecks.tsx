@@ -43,6 +43,7 @@ export default function MainDecksScreen() {
     /* поиск */
   };
   const handleEditDecks = (id: string) => {
+    console.log('Переход к режиму редактирования колоды')
     router.push(`/deck/${id}`);
   };
   const handleAddDecks = () => {
@@ -53,7 +54,8 @@ export default function MainDecksScreen() {
   };
    const handleDeckPress = (id: string) => {
     // Переход на экран обучения
-    router.push(`/deck/${id}`);
+    console.log('Переход к режиму обучения')
+    router.push(`/deck/${id}/study`);
   };
 
   const ListHeader = () => (
@@ -103,9 +105,9 @@ export default function MainDecksScreen() {
             <DecksView
               title={item.name}
               cardCount={item.total_cards}
-              onPress={() => handleDeckPress(item.id)}  
+              onCardPress={() => handleDeckPress(item.id)}  
+              onEditPress = {() => handleEditDecks(item.id)}
               cardCountNow={0} 
-              onEditPress={() => handleEditDecks(item.id)}
               index={index}
             />
           )}

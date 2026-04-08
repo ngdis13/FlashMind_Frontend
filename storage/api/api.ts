@@ -186,7 +186,6 @@ export const createCard = async (
   }
 };
 
-
 /**
  * Получить карточку по ID
  * @param cardId - ID карточки
@@ -203,7 +202,7 @@ export const fetchCardById = async (cardId: string): Promise<Card> => {
 
     const resp = await apiClient.get(
       getMainServiceApiUrl(`/api/v1/cards${cardId}`),
-      { headers: { Authorization: `Bearer ${accessToken}` } }
+      { headers: { Authorization: `Bearer ${accessToken}` } },
     );
 
     console.log("Карточка загружена:", resp.data);
@@ -211,5 +210,39 @@ export const fetchCardById = async (cardId: string): Promise<Card> => {
   } catch (err) {
     handleApiError(err, "Не удалось получить карточку");
     throw err;
+  }
+};
+
+/**
+ * Обновить карточку
+ * @param cardId - ID карточки
+ * @param data - данные для обновления (front и back)
+ */
+export const updateCardOnServer = async (
+  cardId: string,
+  data: { front: string; back: string }
+): Promise<Card> => {
+  try {
+    const accessToken = useAuthStore.getState().accessToken;
+
+    if (!accessToken) {
+      console.log("Токен доступа отсутствует");
+    }
+
+    console.log(`📝 Обновляем карточку ${cardId}...`);
+
+    const resp = await apiClient.put(
+      getMainServiceApiUrl(`/api/v1/cards${cardId}`),
+      {
+        front: data.front,
+        back: data.back,
+      },
+      { headers: { Authorization: `Bearer ${accessToken}` } }
+    );
+
+    console.log("Карточка обновлена:", resp.data);
+    return resp.data;
+  } catch (err) {
+    handleApiError(err, "Не удалось обновить карточку");
   }
 };
