@@ -1,7 +1,7 @@
 <div align="center">
-  <img src="assets/icon.png" width="120" height="120" alt="FlashMind Logo">
+  <img src="assets/FlashMind.png" width="120" height="120" alt="FlashMind Logo">
   
-  # 🧠 FlashMind
+  #Приложение FlashMind для быстрой учебы по карточкам
 
 </div>
 
