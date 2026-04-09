@@ -4,8 +4,8 @@
   # 🌟 FlashMind 🌟
   **Интервальное повторение карточек и быстрая учеба**
 </div>
-<div>
-#### 🚀 Быстрый старт
+
+## 🚀 Быстрый старт
 
 Всего 4 команды — и приложение запустится на твоём телефоне или в браузере.
 
@@ -19,7 +19,7 @@
 
 ```bash
 # 1. Клонируй репозиторий
-git clone https://github.com/ТВОЙ_USERNAME/FlashMind.git
+git clone https://github.com/ngdis13/FlashMind_Frontend.git
 
 # 2. Перейди в папку проекта
 cd FlashMind
@@ -31,7 +31,7 @@ npm install
 
 # 4. Запусти Expo
 npx expo start
-</div>
+
 
 
 ---
