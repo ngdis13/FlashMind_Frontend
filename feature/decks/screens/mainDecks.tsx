@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import {useState } from "react";
 import {
   View,
   Pressable,
@@ -15,7 +15,6 @@ import { MainButton } from "@/components/MainButton";
 import DecksView from "../components/DecksView";
 import { styles } from "../styles/mainDecks.styles";
 import searchButton from "../assets/searchButton.png";
-import { getUserDecks } from "../api/decks.api";
 import { colors } from "@/styles/Colors";
 import { useRouter } from "expo-router";
 import { useDecks } from "@/storage/hooks/useDecks";
@@ -28,8 +27,6 @@ export default function MainDecksScreen() {
   const {
     decks, // колоды (уже с кэшем и фоновым обновлением)
     loading, // статус загрузки
-    error, // ошибка если есть
-    refreshDecks, // функция для принудительного обновления
   } = useDecks();
 
   // Фильтрация колод по поиску

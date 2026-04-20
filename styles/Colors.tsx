@@ -21,5 +21,11 @@ export const colors = {
   blue: "#7BE2FF",
   deepBlue: "#6AB3C8",
   purple: "#A999EF",
-  pink: "#DE7BFF"
+  pink: "#DE7BFF",
+
+  /**  цвета для кнопок оценивания карточки*/
+  ratingRed: "#FB8B93",
+  ratingYellow: "#F7F580",
+  ratingLightGreen: "#A9FFAD",
+  ratingDarkGreen: "#7EE083",
 };
