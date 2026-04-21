@@ -1,9 +1,7 @@
-import { View } from "react-native";
+import NotFoundPage from "@/app/not-found";
 
-export default function MainDecksScreen(){
+export default function StatisticsScreen(){
     return (
-        <View>
-            страница татистики
-        </View>
+        <NotFoundPage/>
     )
 }

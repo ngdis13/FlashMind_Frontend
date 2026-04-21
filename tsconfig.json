@@ -22,8 +22,10 @@
       "@/onbording/*": ["feature/onboarding/*"],
       "@/constants/*": ["./constants/*"],
       "@/shared/*": ["./shared/*"],
+      "@/feature/*": ["./feature/*"],
       "@/feature-auth/*": ["./feature/auth/*"],
       "@/feature-profile/*": ["./feature/profile/*"],
+      "@/feature-settings/*": ["./feature/settings/*"],
     }
   },
   "include": ["**/*.ts", "**/*.tsx", "declarations.d.ts"

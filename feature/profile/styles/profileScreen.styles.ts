@@ -11,6 +11,7 @@ export const styles = StyleSheet.create({
   aboutBox: {
     gap: 4,
     marginTop: 6,
+    width: 230,
   },
   bioBox: {
     flexDirection: "row",
