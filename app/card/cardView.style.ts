@@ -25,6 +25,10 @@ export const styles = StyleSheet.create({
     paddingVertical: 8,        // Отступы внутри инпута
   },
   updateCardButton: {
-    margin: 10
+    marginLeft: 10,
+    marginRight: 10,
+    alignSelf: "center",
+    maxWidth: 375
+
   }
 });

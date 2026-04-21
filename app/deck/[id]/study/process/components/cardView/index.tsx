@@ -16,7 +16,7 @@ export const StudyCardView = ({ card }: Props) => {
   }, [card?.id]);
 
   return (
-    <View style={[commonStyles.mainBox, styles.cardContainer]}>
+    <View style={[commonStyles.mainBox, styles.cardContainer, !isFlipped && styles.cardFront ]}>
       <ScrollView
         // Центрируем контент, когда его мало
         contentContainerStyle={styles.scrollContent}
@@ -55,6 +55,9 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1, // Важно для центрирования
     justifyContent: "center",
+  },
+  cardFront: {
+    backgroundColor: "#EDEEFF"
   },
   pressableArea: {
     flex: 1,

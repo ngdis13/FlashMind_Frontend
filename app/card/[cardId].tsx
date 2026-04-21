@@ -46,6 +46,8 @@ export default function CardView() {
         Alert.alert("Успех!", "Карточка успешно обновлена", [
           { text: "OK", onPress: () => router.back() },
         ]);
+
+        router.back()
       }
     } catch (error) {
       Alert.alert("Ошибка", "Не удалось обновить карточку");
