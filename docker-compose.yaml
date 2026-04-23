@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  nginx-frontend:
+    build: .
+    container_name: expo_nginx
+    ports:
+      - "80:80"
+    networks:
+      - app-network # Внутреннее имя для этого файла
+
+networks:
+  app-network:
+    external: true
+    driver: bridge

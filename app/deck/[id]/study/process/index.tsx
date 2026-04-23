@@ -5,7 +5,6 @@ import ReturnIcon from "@/assets/icons/ReturnIcon.png";
 import { useDecks } from "@/storage/hooks/useDecks";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { styles } from "./style/styles";
-import { MainButton } from "@/components/MainButton";
 import { useEffect, useState, useMemo } from "react";
 import { colors } from "@/styles/Colors";
 import { StudyCardView } from "./components/cardView";
@@ -93,7 +92,7 @@ export default function StudyDecksScreen() {
 
   return (
     <View style={[commonStyles.container, { flex: 1, paddingBottom: 30 }]}>
-      <View style={[commonStyles.mainContent, styles.mainContent, { flex: 1 }]}>
+      <View style={[commonStyles.mainContent,  { flex: 1 }]}>
         <View style={styles.header}>
           <Pressable onPress={handleBack}>
             <Image source={ReturnIcon} style={{ width: 12, height: 22 }} />
@@ -110,7 +109,6 @@ export default function StudyDecksScreen() {
         {loading ? (
           <ActivityIndicator
             size="large"
-            color={colors.primary}
             style={{ flex: 1 }}
           />
         ) : cards.length > 0 ? (
