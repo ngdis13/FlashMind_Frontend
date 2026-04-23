@@ -47,11 +47,10 @@ export const commonStyles = StyleSheet.create({
     height: 45,
     backgroundColor: "#F1F1F1",
     borderRadius: 12,
-
   },
   //Стили для информационных окон (например в создании карточки, в отображении карточек)
   infoBox: {
-            flexDirection: "row",
+    flexDirection: "row",
     alignItems: "center",
     borderWidth: 2,
     borderColor: "#DBDBDB",
@@ -67,5 +66,11 @@ export const commonStyles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 4,
     justifyContent: "space-between",
-  }
+  },
+  mainHeader: {
+    flexDirection: "row",
+    gap: 12,
+    alignItems: "center",
+    marginBottom: 16,
+  },
 });

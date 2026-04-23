@@ -1,16 +1,20 @@
-# 1. Build stage
 FROM node:20-alpine AS builder
-
 WORKDIR /app
+
+# Устанавливаем зависимости
 COPY package*.json ./
-RUN npm install -g expo-cli
 RUN npm install
+
+# Копируем всё остальное
 COPY . .
 
-RUN npm run web:build || npx expo export --platform web
+# Сборка веба (добавляем CI=true для стабильности)
+ENV CI=true
+RUN npx expo export --platform web
 
-# 2. Production stage
+# Раздача через Nginx
 FROM nginx:alpine
 COPY --from=builder /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]

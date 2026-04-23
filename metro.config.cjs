@@ -7,7 +7,7 @@ module.exports = (async () => {
   config.transformer.babelTransformerPath = require.resolve('react-native-svg-transformer/expo');
   config.resolver.assetExts = config.resolver.assetExts.filter((ext) => ext !== 'svg');
   
-  // Добавляем mjs и cjs в начало списка расширений
+  // Добавляем mjs, cjs и svg в список расширений
   config.resolver.sourceExts = ['mjs', 'cjs', ...config.resolver.sourceExts, 'svg'];
 
   return config;

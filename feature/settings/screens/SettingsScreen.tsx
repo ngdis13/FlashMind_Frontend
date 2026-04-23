@@ -14,6 +14,7 @@ import { colors } from "@/styles/Colors";
 import ThemeSwitch from "../components/themeSwitch";
 import { logoutUser } from "../api/settings.api";
 import { useAuthStore } from "@/store/auth.store";
+import ReturnIcon from "@/assets/icons/ReturnIcon.png";
 
 export default function SettingsScreens() {
   const router = useRouter();
@@ -33,12 +34,19 @@ export default function SettingsScreens() {
   const getLogout = () => {
     logoutUser(accessToken);
   };
+
+  const handleBack = () => router.back();
   return (
     <View style={commonStyles.container}>
       <View style={commonStyles.mainContent}>
-        <Typography variant="h1" style={{ marginBottom: 16 }}>
-          Настройки
-        </Typography>
+        <View style={styles.header}>
+          <Pressable onPress={handleBack}>
+            <Image source={ReturnIcon} style={{ width: 12, height: 22, top: -7 }} />
+          </Pressable>
+          <Typography variant="h1" style={{ marginBottom: 16 }}>
+            Настройки
+          </Typography>
+        </View>
 
         <View style={styles.buttonBox}>
           <Pressable
@@ -72,10 +80,10 @@ export default function SettingsScreens() {
               styles.themeButton,
             ]}
           >
-            <View style={[commonStyles.greyButton, {alignItems: "center" }]}>
+            <View style={[commonStyles.greyButton, { alignItems: "center" }]}>
               <Image
                 source={appearanceIcon}
-                style={[{ width: 20, height: 20}]}
+                style={[{ width: 20, height: 20 }]}
                 resizeMode="contain"
               />
               <Typography variant="h2">Внешний вид</Typography>
