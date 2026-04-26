@@ -49,6 +49,7 @@ export const commonStyles = StyleSheet.create({
     borderRadius: 12,
   },
   //Стили для информационных окон (например в создании карточки, в отображении карточек)
+  //.
   infoBox: {
     flexDirection: "row",
     alignItems: "center",
