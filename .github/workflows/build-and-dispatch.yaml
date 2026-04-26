@@ -1,0 +1,56 @@
+on:
+  push:
+    branches:
+      - prod
+
+jobs:
+
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Скачиваем код
+        uses: actions/checkout@v4
+
+      - name: Создаем .env файл для продакшена
+        run: |
+          echo "EXPO_PUBLIC_AUTH_API_URL=${{ secrets.PROD_AUTH_URL }}" > .env
+          echo "EXPO_PUBLIC_MAIN_SERVICE_API_URL=${{ secrets.PROD_MAIN_URL }}" >> .env
+
+      - name: Устанавливаем QEMU и Buildx
+        uses: docker/setup-qemu-action@v3
+
+      - name: Устанавливаем Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Логинимся в Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Собираем и пушим Docker-образ
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/flashmind-${{ secrets.SERVICE_NAME }}:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/flashmind-${{ secrets.SERVICE_NAME }}:${{ github.sha }}
+    
+
+      - name: Отправляем сигнал на деплой
+        run: |
+          curl -L -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.DEPLOY_PAT }}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/repos/${{ secrets.DEPLOY_REPO_OWNER }}/${{ secrets.DEPLOY_REPO_NAME }}/dispatches \
+            -d '{
+              "event_type": "deploy-${{ secrets.SERVICE_NAME }}",
+              "client_payload": {
+                "service": "${{ secrets.SERVICE_NAME }}",
+                "sha": "${{ github.sha }}"
+              }
+            }'
