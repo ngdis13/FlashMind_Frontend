@@ -34,7 +34,9 @@ export const commonStyles = StyleSheet.create({
   },
 
   greyButton: {
-    /**для кнопок как в настройках */
+    /**для кнопок как в настройках 
+     * 
+    */
     flexDirection: "row",
     gap: 8,
   },
