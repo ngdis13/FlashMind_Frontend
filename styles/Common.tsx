@@ -39,7 +39,9 @@ export const commonStyles = StyleSheet.create({
     gap: 8,
   },
 
-  /**Квадратики для таб бара */
+  /**Квадратики для таб бара 
+   * 
+  */
   tabIconBox: {
     alignItems: "center",
     justifyContent: "center",
