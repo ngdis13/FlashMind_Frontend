@@ -3,7 +3,7 @@ version: '3.8'
 services:
   nginx-frontend:
     build: .
-    container_name: expo_nginx
+    container_name: flashmind_frontend
     ports:
       - "80:80"
     networks:
