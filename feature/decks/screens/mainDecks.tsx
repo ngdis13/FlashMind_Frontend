@@ -38,7 +38,7 @@ const ListHeader = ({ search, setSearch, startSearch }: any) => (
         onChangeText={setSearch}
       />
       <Pressable onPress={startSearch} style={styles.searchButton}>
-        {/* <Image source={searchButton} style={{ width: 18, height: 18 }} /> */}
+        <Image source={searchButton} style={{ width: 18, height: 18 }} />
       </Pressable>
     </View>
   </View>
@@ -66,12 +66,7 @@ export default function MainDecksScreen() {
   };
 
   const handleEditDecks = (id: string) => {
-    console.log('переход н астттраницу реадкттирования', id)
-      if (!id) {
-    console.error("Ошибка: ID колоды не определен!");
-    return;
-  }
-    router.push(`/decks/${id}`);
+    router.push(`/deck/${id}`);
   };
 
   const handleAddDecks = () => {
@@ -83,7 +78,7 @@ export default function MainDecksScreen() {
   };
 
   const handleDeckPress = (id: string) => {
-    router.push(`/decks/${id}/study`);
+    router.push(`/deck/${id}/study`);
   };
 
   return (
