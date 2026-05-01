@@ -66,18 +66,18 @@ export default function DeckViewById() {
   };
 
   // Рендер отдельной карточки
-  const renderCard = ({ item, index }: { item: Card; index: number }) => (
-    <CardItem
-      id={item.id}
-      front={item.front }
-      back={item.back }
-      deckId={id}
-      index={index}
-      viewMode="compact"
-      onPress={handleCardPress}
-      onDelete={handleDeleteCard}
-    />
-  );
+  // const renderCard = ({ item, index }: { item: Card; index: number }) => (
+  //   <CardItem
+  //     id={item.id}
+  //     front={item.front }
+  //     back={item.back }
+  //     deckId={id}
+  //     index={index}
+  //     viewMode="compact"
+  //     onPress={handleCardPress}
+  //     onDelete={handleDeleteCard}
+  //   />
+  // );
 
   // Загружаем карточки колоды
   useEffect(() => {
@@ -107,10 +107,10 @@ export default function DeckViewById() {
 
 return (
   <View style={[commonStyles.container, { flex: 1 }]}>
-    <FlatList
+    {/* <FlatList
       data={cards}
       keyExtractor={(item) => item.id}
-      renderItem={renderCard}
+      // renderItem={renderCard}
       // Переносим всё, что было в ScrollView, в заголовок списка
       ListHeaderComponent={
         <View style={[commonStyles.mainContent]}>
@@ -163,7 +163,7 @@ return (
         ) : null
       }
       contentContainerStyle={{ paddingHorizontal: 10, paddingBottom: 30 }}
-    />
+    /> */}
   </View>
 );
 }
