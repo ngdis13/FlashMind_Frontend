@@ -2,14 +2,14 @@ import { Typography } from "@/styles/Typography";
 import React, { useState } from "react";
 import {
   View,
-  Text,
+
   TouchableOpacity,
   StyleSheet,
   StyleProp,
   ViewStyle,
   Image,
   Pressable,
-  Alert,
+
 } from "react-native";
 import DeleteIcon from "@/assets/icons/DeleteIcon.png";
 import { CustomAlert } from "./CustomAlert";

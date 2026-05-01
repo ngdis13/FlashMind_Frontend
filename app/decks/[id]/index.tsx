@@ -36,7 +36,7 @@ export default function DeckViewById() {
   };
   const handleAddCard = () => {
     //Создание новой карточки в колоде
-    router.push(`/deck/${id}/create-card`);
+    router.push(`/decks/${id}/create-card`);
   };
   const startSearch = () => {
     //поиск по карточкам
