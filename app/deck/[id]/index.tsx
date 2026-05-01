@@ -105,18 +105,19 @@ export default function DeckViewById() {
 
   const hasCards = cards.length > 0;
 
-  return (
-    <View style={[commonStyles.container, { flex: 1, paddingBottom: 30 }]}>
-      <ScrollView>
+return (
+  <View style={[commonStyles.container, { flex: 1 }]}>
+    <FlatList
+      data={cards}
+      keyExtractor={(item) => item.id}
+      renderItem={renderCard}
+      // Переносим всё, что было в ScrollView, в заголовок списка
+      ListHeaderComponent={
         <View style={[commonStyles.mainContent]}>
           <View style={styles.header}>
             <Pressable onPress={handleBack}>
-              <Image
-                source={ReturnIcon}
-                style={{ width: 12, height: 22, top: -7 }}
-              />
+              <Image source={ReturnIcon} style={{ width: 12, height: 22, top: -7 }} />
             </Pressable>
-
             <Typography variant="h1" style={{ marginBottom: 16 }}>
               Вернуться к колодам
             </Typography>
@@ -129,66 +130,40 @@ export default function DeckViewById() {
             <View style={[commonStyles.mainBox, { maxWidth: "100%" }]}>
               <Typography variant="h2">{description}</Typography>
             </View>
-            <Pressable
-              style={[commonStyles.mainBox, styles.settingsButton]}
-              onPress={handleSettings}
-            >
+            <Pressable style={[commonStyles.mainBox, styles.settingsButton]} onPress={handleSettings}>
               <SettingsIcon />
               <Typography variant="h2">Настройки</Typography>
             </Pressable>
           </View>
 
-          <View style={styles.cards}>
-            <View style={styles.cardsHeader}>
-              <Typography variant="h2">Карточки</Typography>
-              <Pressable
-                onPress={handleAddCard}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              >
-                <Image source={PlusIcon} style={{ width: 16, height: 16 }} />
-              </Pressable>
-            </View>
+          <View style={styles.cardsHeader}>
+            <Typography variant="h2">Карточки</Typography>
+            <Pressable onPress={handleAddCard} hitSlop={10}>
+              <Image source={PlusIcon} style={{ width: 16, height: 16 }} />
+            </Pressable>
+          </View>
 
-            <View style={styles.searchBox}>
-              <Input
-                style={{ textAlign: "left" }}
-                placeholder={"Поиск"}
-                value={search}
-                onChangeText={setSearch}
-              />
-              <Pressable onPress={startSearch} style={styles.searchButton}>
-                <Image
-                  source={searchButton}
-                  style={{ width: 18, height: 18 }}
-                />
-              </Pressable>
-            </View>
-            {!hasCards ? (
-              <View style={styles.emptyDeck}>
-                <Logo size={144} style={{ marginBottom: 16 }} />
-                <Typography
-                  color={colors.darkGray}
-                  style={{ textAlign: "center" }}
-                >
-                  Пока что колода пуста, но ты можешь добавить в нее карточку,
-                  нажав на “+”
-                </Typography>
-              </View>
-            ) : (
-              <FlatList
-                data={cards}
-                keyExtractor={(item) => item.id}
-                renderItem={renderCard}
-                showsVerticalScrollIndicator={true}
-                scrollEnabled={true} // отключаем скролл внутри ScrollView
-                contentContainerStyle={{ paddingVertical: 8, gap: 16 }}
-                style={styles.cardList}
-                
-              />
-            )}
+          <View style={styles.searchBox}>
+            <Input style={{ textAlign: "left" }} placeholder={"Поиск"} value={search} onChangeText={setSearch} />
+            <Pressable onPress={startSearch} style={styles.searchButton}>
+              <Image source={searchButton} style={{ width: 18, height: 18 }} />
+            </Pressable>
           </View>
         </View>
-      </ScrollView>
-    </View>
-  );
+      }
+      // Компонент для пустой колоды
+      ListEmptyComponent={
+        !loading ? (
+          <View style={styles.emptyDeck}>
+            <Logo size={144} style={{ marginBottom: 16 }} />
+            <Typography color={colors.darkGray} style={{ textAlign: "center" }}>
+              Пока что колода пуста...
+            </Typography>
+          </View>
+        ) : null
+      }
+      contentContainerStyle={{ paddingHorizontal: 10, paddingBottom: 30 }}
+    />
+  </View>
+);
 }
