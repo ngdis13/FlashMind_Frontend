@@ -106,8 +106,7 @@ export default function DeckViewById() {
   // const hasCards = cards.length > 0;
 
   return (
-    <View style={[{ flex: 1 }]}>
-      приветт
+    <View>
       {/* <View style={[commonStyles.container, { flex: 1 }]}></View> */}
       {/* <FlatList
         data={cards}
@@ -183,6 +182,6 @@ export default function DeckViewById() {
         }
         contentContainerStyle={{ paddingHorizontal: 10, paddingBottom: 30 }}
       /> */}
-    </View>
+     </View>
   );
 }
