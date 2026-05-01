@@ -34,7 +34,9 @@ export default function DecksView({
   return (
     <TouchableOpacity
       style={styles.card}
-      onPress={onCardPress}
+      onPress={() => {
+    onEditPress(); // Вызываем напрямую без аргументов
+  }}
       activeOpacity={0.7}
     >
       <View style={[styles.up, { backgroundColor: stripeColor }]} />
