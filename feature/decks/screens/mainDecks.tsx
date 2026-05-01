@@ -66,6 +66,10 @@ export default function MainDecksScreen() {
   };
 
   const handleEditDecks = (id: string) => {
+      if (!id) {
+    console.error("Ошибка: ID колоды не определен!");
+    return;
+  }
     router.push(`/deck/${id}`);
   };
 
