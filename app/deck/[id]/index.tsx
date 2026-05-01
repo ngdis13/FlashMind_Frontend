@@ -6,7 +6,7 @@ import ReturnIcon from "@/assets/icons/ReturnIcon.png";
 import { styles } from "../styles/deckViewById.style";
 import { Input } from "@/components/Input";
 import { useCallback, useEffect, useState } from "react";
-import { SettingsIcon } from "@/feature/profile/assets/SettingsIcon";
+//import { SettingsIcon } from "@/feature/profile/assets/SettingsIcon";
 import PlusIcon from "@/assets/icons/PlusIcon.png";
 import searchButton from "@/feature/decks/assets/searchButton.png";
 import { colors } from "@/styles/Colors";
