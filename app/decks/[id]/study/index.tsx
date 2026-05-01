@@ -24,7 +24,7 @@ export default function StudyDecksScreen() {
   const handleBack = () => router.back();
   const handleStartStudy = () => {
       router.push({
-    pathname: `/deck/${id}/study/process`,
+    pathname: `/decks/${id}/study/process`,
     params: { addCount: addCount } 
   });
   };
