@@ -2,7 +2,6 @@ import { commonStyles } from "@/styles/Common";
 import { Typography } from "@/styles/Typography";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { ScrollView, View, Image, Pressable, FlatList } from "react-native";
-import { View } from "react-native";
 import ReturnIcon from "@/assets/icons/ReturnIcon.png";
 import { styles } from "../styles/deckViewById.style";
 import { Input } from "@/components/Input";
