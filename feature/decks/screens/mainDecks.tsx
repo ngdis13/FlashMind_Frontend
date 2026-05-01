@@ -66,6 +66,7 @@ export default function MainDecksScreen() {
   };
 
   const handleEditDecks = (id: string) => {
+    console.log('переход н астттраницу реадкттирования', id)
       if (!id) {
     console.error("Ошибка: ID колоды не определен!");
     return;
