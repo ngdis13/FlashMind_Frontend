@@ -6,13 +6,13 @@ import ReturnIcon from "@/assets/icons/ReturnIcon.png";
 import { styles } from "../styles/deckViewById.style";
 import { Input } from "@/components/Input";
 import { useCallback, useEffect, useState } from "react";
-//import { SettingsIcon } from "@/feature/profile/assets/SettingsIcon";
+import { SettingsIcon } from "@/feature/profile/assets/SettingsIcon";
 import PlusIcon from "@/assets/icons/PlusIcon.png";
 import searchButton from "@/feature/decks/assets/searchButton.png";
 import { colors } from "@/styles/Colors";
 import { Logo } from "@/components/Logo";
 import { useDecks } from "@/storage/hooks/useDecks";
-import { CardItem } from "../components/cardItem";
+import { CardItem } from "../components/CardItem";
 import { Card } from "@/storage/types/types";
 
 export default function DeckViewById() {
