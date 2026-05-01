@@ -38,7 +38,7 @@ const ListHeader = ({ search, setSearch, startSearch }: any) => (
         onChangeText={setSearch}
       />
       <Pressable onPress={startSearch} style={styles.searchButton}>
-        <Image source={searchButton} style={{ width: 18, height: 18 }} />
+        {/* <Image source={searchButton} style={{ width: 18, height: 18 }} /> */}
       </Pressable>
     </View>
   </View>
