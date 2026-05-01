@@ -44,7 +44,7 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen
-        name="decks/index"
+        name="decks"
         options={{
           title: "Колоды",
           tabBarIcon: ({ focused }) => (

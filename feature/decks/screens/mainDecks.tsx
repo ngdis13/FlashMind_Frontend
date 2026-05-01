@@ -71,7 +71,7 @@ export default function MainDecksScreen() {
     console.error("Ошибка: ID колоды не определен!");
     return;
   }
-    router.push(`/deck/${id}`);
+    router.push(`/decks/${id}`);
   };
 
   const handleAddDecks = () => {
@@ -83,7 +83,7 @@ export default function MainDecksScreen() {
   };
 
   const handleDeckPress = (id: string) => {
-    router.push(`/deck/${id}/study`);
+    router.push(`/decks/${id}/study`);
   };
 
   return (
