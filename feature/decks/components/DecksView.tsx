@@ -34,10 +34,7 @@ export default function DecksView({
   return (
     <TouchableOpacity
       style={styles.card}
-      onPress={(e) => {
-        e.stopPropagation(); 
-        onEditPress();
-      }}
+      onPress={onCardPress}
       activeOpacity={0.7}
     >
       <View style={[styles.up, { backgroundColor: stripeColor }]} />
@@ -114,7 +111,7 @@ const styles = StyleSheet.create({
   countsContainer: {
     flexDirection: "column",
     alignSelf: "stretch",
-    paddingHorizontal: 8,
+    paddingHorizontal: 8, 
     paddingBottom: 8,
   },
   content: {
