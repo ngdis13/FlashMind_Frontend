@@ -1,7 +1,7 @@
 import { commonStyles } from "@/styles/Common";
 import { Typography } from "@/styles/Typography";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
-import { View, Image, Pressable, FlatList } from "react-native";
+import { ScrollView, View, Image, Pressable, FlatList } from "react-native";
 import ReturnIcon from "@/assets/icons/ReturnIcon.png";
 import { styles } from "../styles/deckViewById.style";
 import { Input } from "@/components/Input";
@@ -28,44 +28,49 @@ export default function DeckViewById() {
 
   const deck = decks.find((d) => d.id === id);
 
-  const handleBack = () => router.back();
-  const handleSettings = () => { /* Переход в настройки */ };
-  const handleAddCard = () => router.push(`/decks/${id}/create-card`);
-  
+  const handleBack = () => {
+    router.back();
+  };
+  const handleSettings = () => {
+    //Переход в настройки колоды
+  };
+  const handleAddCard = () => {
+    //Создание новой карточки в колоде
+    router.push(`/deck/${id}/create-card`);
+  };
+  const startSearch = () => {
+    //поиск по карточкам
+  };
   const loadCards = async () => {
     try {
       const fetchedCards = await getDeckCards(id as string);
       setCards(fetchedCards);
+      console.log("карточки колоды: ", fetchedCards);
     } catch (error) {
       console.error("Ошибка загрузки карточек:", error);
     }
   };
-
   const handleCardPress = (cardId: string) => {
     router.push(`/card/${cardId}?deckId=${id}`);
   };
 
-const handleDeleteCard = async (cardId: string, deckId?: string) => {
-  const targetDeckId = deckId || (id as string);
-  
-  try {
-    // Вызываем функцию из хука
-    await removeCard(targetDeckId, cardId);
-    
-    // ВАЖНО: Обновляем локальный стейт карточек именно этого экрана
-    setCards((prevCards) => prevCards.filter((card) => card.id !== cardId));
-    
-    console.log("Карточка успешно удалена из интерфейса");
-  } catch (err) {
-    // Если сервер выдал 405 (ошибка со слэшем), мы попадем сюда
-    console.error("Ошибка при удалении карточки:", err);
-  }
-};
+  const handleDeleteCard = async (cardId: string, deckId?: string) => {
+    try {
+      await removeCard(deckId || (id as string), cardId);
+      setCards((prevCards) => prevCards.filter((card) => card.id !== cardId));
+      console.log("Карточка удалена");
+    } catch (err) {
+      console.error("Ошибка при удалении карточки:", err);
+    }
+  };
 
+  // Рендер отдельной карточки
   const renderCard = ({ item, index }: { item: Card; index: number }) => (
     <CardItem
-      card_id={item.id}
-      front={item.front}
+      id={item.id}
+      front={item.front }
+      back={item.back }
+      deckId={id}
       index={index}
       viewMode="compact"
       onPress={handleCardPress}
@@ -73,10 +78,14 @@ const handleDeleteCard = async (cardId: string, deckId?: string) => {
     />
   );
 
+  // Загружаем карточки колоды
   useEffect(() => {
-    if (id) loadCards();
+    if (id) {
+      loadCards();
+    }
   }, [id]);
 
+  // Заполняем форму данными из колоды
   useEffect(() => {
     if (deck) {
       setName(deck.name);
@@ -86,45 +95,55 @@ const handleDeleteCard = async (cardId: string, deckId?: string) => {
 
   useFocusEffect(
     useCallback(() => {
-      if (id) loadCards();
+      // Обновляем карточки когда возвращаемся на экран
+      if (id) {
+        loadCards();
+      }
     }, [id]),
   );
 
+  const hasCards = cards.length > 0;
+
   return (
-    <View style={[commonStyles.container, { flex: 1 }]}>
-      <FlatList
-        data={cards}
-        keyExtractor={(item) => item.id}
-        renderItem={renderCard}
-        // Отступ 16px между карточками
-        ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
-        ListHeaderComponent={
-          <View style={[commonStyles.mainContent]}>
-            <View style={styles.header}>
-              <Pressable onPress={handleBack}>
-                <Image source={ReturnIcon} style={{ width: 12, height: 22, top: -7 }} />
-              </Pressable>
-              <Typography variant="h1" style={{ marginBottom: 16 }}>
-                Вернуться к колодам
-              </Typography>
-            </View>
+    <View style={[commonStyles.container, { flex: 1, paddingBottom: 30 }]}>
+      <ScrollView>
+        <View style={[commonStyles.mainContent]}>
+          <View style={styles.header}>
+            <Pressable onPress={handleBack}>
+              <Image
+                source={ReturnIcon}
+                style={{ width: 12, height: 22, top: -7 }}
+              />
+            </Pressable>
 
-            <View style={styles.mainInfo}>
-              <View style={[commonStyles.mainBox, { maxWidth: "100%" }]}>
-                <Typography variant="h2">{name}</Typography>
-              </View>
-              <View style={[commonStyles.mainBox, { maxWidth: "100%" }]}>
-                <Typography variant="h2">{description}</Typography>
-              </View>
-              <Pressable style={[commonStyles.mainBox, styles.settingsButton]} onPress={handleSettings}>
-                <SettingsIcon />
-                <Typography variant="h2">Настройки</Typography>
-              </Pressable>
-            </View>
+            <Typography variant="h1" style={{ marginBottom: 16 }}>
+              Вернуться к колодам
+            </Typography>
+          </View>
 
+          <View style={styles.mainInfo}>
+            <View style={[commonStyles.mainBox, { maxWidth: "100%" }]}>
+              <Typography variant="h2">{name}</Typography>
+            </View>
+            <View style={[commonStyles.mainBox, { maxWidth: "100%" }]}>
+              <Typography variant="h2">{description}</Typography>
+            </View>
+            <Pressable
+              style={[commonStyles.mainBox, styles.settingsButton]}
+              onPress={handleSettings}
+            >
+              <SettingsIcon />
+              <Typography variant="h2">Настройки</Typography>
+            </Pressable>
+          </View>
+
+          <View style={styles.cards}>
             <View style={styles.cardsHeader}>
               <Typography variant="h2">Карточки</Typography>
-              <Pressable onPress={handleAddCard} hitSlop={10}>
+              <Pressable
+                onPress={handleAddCard}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
                 <Image source={PlusIcon} style={{ width: 16, height: 16 }} />
               </Pressable>
             </View>
@@ -136,26 +155,39 @@ const handleDeleteCard = async (cardId: string, deckId?: string) => {
                 value={search}
                 onChangeText={setSearch}
               />
-              <Pressable style={styles.searchButton}>
-                <Image source={searchButton} style={{ width: 18, height: 18 }} />
+              <Pressable onPress={startSearch} style={styles.searchButton}>
+                <Image
+                  source={searchButton}
+                  style={{ width: 18, height: 18 }}
+                />
               </Pressable>
             </View>
-            {/* Дополнительный отступ перед списком */}
-            <View style={{ height: 8 }} />
+            {!hasCards ? (
+              <View style={styles.emptyDeck}>
+                <Logo size={144} style={{ marginBottom: 16 }} />
+                <Typography
+                  color={colors.darkGray}
+                  style={{ textAlign: "center" }}
+                >
+                  Пока что колода пуста, но ты можешь добавить в нее карточку,
+                  нажав на “+”
+                </Typography>
+              </View>
+            ) : (
+              <FlatList
+                data={cards}
+                keyExtractor={(item) => item.id}
+                renderItem={renderCard}
+                showsVerticalScrollIndicator={true}
+                scrollEnabled={true} // отключаем скролл внутри ScrollView
+                contentContainerStyle={{ paddingVertical: 8, gap: 16 }}
+                style={styles.cardList}
+                
+              />
+            )}
           </View>
-        }
-        ListEmptyComponent={
-          !loading ? (
-            <View style={styles.emptyDeck}>
-              <Logo size={144} style={{ marginBottom: 16 }} />
-              <Typography color={colors.darkGray} style={{ textAlign: "center" }}>
-                Пока что колода пуста...
-              </Typography>
-            </View>
-          ) : null
-        }
-        contentContainerStyle={{ paddingHorizontal: 10, paddingBottom: 30 }}
-      />
+        </View>
+      </ScrollView>
     </View>
   );
 }
