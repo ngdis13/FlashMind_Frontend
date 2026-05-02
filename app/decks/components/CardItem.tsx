@@ -5,20 +5,20 @@ import DeleteIcon from "@/assets/icons/DeleteIcon.png";
 import { CustomAlert } from "./CustomAlert";
 
 interface CardItemProps {
-  id: string;
+  card_id: string;
   front: string;
   onPress: (id: string) => void;
   onDelete: (id: string) => void;
 }
 
-export const CardItem = ({ id, front, onPress, onDelete }: CardItemProps) => {
+export const CardItem = ({ card_id, front, onPress, onDelete }: CardItemProps) => {
   const [alertVisible, setAlertVisible] = useState(false);
 
   return (
     <View style={styles.cardContainer}>
       <TouchableOpacity 
         style={styles.clickableArea} 
-        onPress={() => onPress(id)}
+        onPress={() => onPress(card_id)}
         activeOpacity={0.7}
       >
         <Typography variant="h2" numberOfLines={2} style={styles.text}>
@@ -41,7 +41,7 @@ export const CardItem = ({ id, front, onPress, onDelete }: CardItemProps) => {
         cancelText="Отмена"
         onConfirm={() => {
           setAlertVisible(false);
-          onDelete(id);
+          onDelete(card_id);
         }}
         onCancel={() => setAlertVisible(false)}
         type="danger"
