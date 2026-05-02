@@ -129,7 +129,7 @@ export const deleteCard = async (cardId: string): Promise<void> => {
 
     console.log("Удаление карточки...");
 
-    await apiClient.delete(getMainServiceApiUrl(`/api/v1/cards${cardId}`), {
+    await apiClient.delete(getMainServiceApiUrl(`/api/v1/${cardId}`), {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
 
