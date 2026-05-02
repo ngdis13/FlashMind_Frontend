@@ -140,7 +140,6 @@ export const useDecks = () => {
       console.error("Ошибка при обновлении колод:", err);
       setError("Не удалось обновить колоды");
     } finally {
-      
       setLoading(false);
     }
   }, []);
@@ -152,23 +151,20 @@ export const useDecks = () => {
    */
   const removeCard = useCallback(async (deckId: string, cardId: string) => {
     try {
-      // Удаляем на сервере
+      // 1. Удаляем на сервере (убедитесь, что в deleteCard исправлен слэш!)
       await deleteCard(cardId);
 
-      // Обновляем локальное состояние карточек
-      setCards((prevCards) => prevCards.filter((card) => card.id !== cardId));
-
-      // Обновляем кэш в AsyncStorage
+      // 2. Обновляем кэш в AsyncStorage (чтобы при перезаходе карточки не было)
       const currentCards = await loadDeckCards(deckId);
       if (currentCards) {
         const updatedCards = currentCards.filter((card) => card.id !== cardId);
         await saveDeckCards(deckId, updatedCards);
       }
 
-      console.log(`Карточка ${cardId} удалена локально`);
+      console.log(`Карточка ${cardId} удалена из кэша и сервера`);
     } catch (error) {
       console.error("Ошибка при удалении карточки:", error);
-      throw error;
+      throw error; // Пробрасываем ошибку, чтобы экран мог на неё среагировать
     }
   }, []);
 
@@ -301,6 +297,6 @@ export const useDecks = () => {
     removeCard,
     addCard,
     getCardById,
-    updateCard
+    updateCard,
   };
 };
