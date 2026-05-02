@@ -140,6 +140,7 @@ export const useDecks = () => {
       console.error("Ошибка при обновлении колод:", err);
       setError("Не удалось обновить колоды");
     } finally {
+      
       setLoading(false);
     }
   }, []);
