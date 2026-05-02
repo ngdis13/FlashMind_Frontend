@@ -29,7 +29,7 @@ export default function DeckViewById() {
   const deck = decks.find((d) => d.id === id);
 
   const handleBack = () => {
-    router.back();
+    router.push('/decks');
   };
   const handleSettings = () => {
     //Переход в настройки колоды
