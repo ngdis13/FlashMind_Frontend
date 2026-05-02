@@ -1,71 +1,34 @@
 import { Typography } from "@/styles/Typography";
 import React, { useState } from "react";
-import {
-  View,
-  TouchableOpacity,
-  StyleSheet,
-  StyleProp,
-  ViewStyle,
-  Image,
-  Pressable,
-} from "react-native";
+import { View, TouchableOpacity, StyleSheet, Image, Pressable } from "react-native";
 import DeleteIcon from "@/assets/icons/DeleteIcon.png";
 import { CustomAlert } from "./CustomAlert";
 
 interface CardItemProps {
   id: string;
   front: string;
-  back?: string;
-  deckId?: string;
-  index?: number;
-  viewMode?: "compact" | "expanded";
-  onPress?: (id: string, deckId?: string) => void;
-  onDelete: (id: string, deckId?: string) => void;
-  style?: StyleProp<ViewStyle>;
+  onPress: (id: string) => void;
+  onDelete: (id: string) => void;
 }
 
-export const CardItem = ({
-  id,
-  front,
-  deckId,
-  onPress,
-  onDelete,
-  style,
-}: CardItemProps) => {
+export const CardItem = ({ id, front, onPress, onDelete }: CardItemProps) => {
   const [alertVisible, setAlertVisible] = useState(false);
 
-  const handlePress = () => {
-    onPress?.(id, deckId);
-  };
-
-  const handleDeletePress = () => {
-    setAlertVisible(true);
-  };
-
-  const handleConfirmDelete = () => {
-    setAlertVisible(false);
-    onDelete?.(id, deckId);
-  };
-
   return (
-    <View style={[styles.wrapper, style]}>
-      {/* Теперь TouchableOpacity занимает ВСЁ место */}
+    <View style={styles.cardContainer}>
       <TouchableOpacity 
-        onPress={handlePress} 
-        activeOpacity={0.7} 
-        style={styles.card}
+        style={styles.clickableArea} 
+        onPress={() => onPress(id)}
+        activeOpacity={0.7}
       >
-        <View style={styles.textContainer}>
-          <Typography variant="h2" numberOfLines={2}>
-            {front}
-          </Typography>
-        </View>
+        <Typography variant="h2" numberOfLines={2} style={styles.text}>
+          {front}
+        </Typography>
       </TouchableOpacity>
 
-      {/* Кнопка удаления поверх карточки справа */}
-      <Pressable
-        onPress={handleDeletePress}
-        style={styles.deleteButton}
+      <Pressable 
+        style={styles.deleteBtn} 
+        onPress={() => setAlertVisible(true)}
         hitSlop={15}
       >
         <Image source={DeleteIcon} style={styles.deleteIcon} />
@@ -73,10 +36,13 @@ export const CardItem = ({
 
       <CustomAlert
         visible={alertVisible}
-        message={`Ты действительно хочешь удалить карточку?`}
+        message="Ты действительно хочешь удалить карточку?"
         confirmText="Удалить"
-        cancelText="Вернуться"
-        onConfirm={handleConfirmDelete}
+        cancelText="Отмена"
+        onConfirm={() => {
+          setAlertVisible(false);
+          onDelete(id);
+        }}
         onCancel={() => setAlertVisible(false)}
         type="danger"
       />
@@ -85,37 +51,34 @@ export const CardItem = ({
 };
 
 const styles = StyleSheet.create({
-  wrapper: {
-    width: "100%",
-    position: "relative",
-  },
-  card: {
-    flexDirection: "row",
-    alignItems: "center",
+  cardContainer: {
+    width: '100%',
+    backgroundColor: "#FFFFFF",
+    borderRadius: 15,
     borderWidth: 2,
     borderColor: "#DBDBDB",
-    borderRadius: 15,
-    paddingVertical: 16, // Увеличил padding для удобства нажатия
-    paddingHorizontal: 14,
-    backgroundColor: "#FFFFFF",
-    minHeight: 60,
-    // Тени
+    flexDirection: 'row',
+    alignItems: 'center',
+    // Тень
+    elevation: 3,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 3,
   },
-  textContainer: {
+  clickableArea: {
     flex: 1,
-    paddingRight: 40, // Отступ, чтобы текст не налезал на корзину
+    paddingVertical: 16,
+    paddingLeft: 14,
+    paddingRight: 50, // Место для кнопки удаления
   },
-  deleteButton: {
-    position: "absolute",
+  text: {
+    fontSize: 18,
+  },
+  deleteBtn: {
+    position: 'absolute',
     right: 14,
-    top: "50%",
-    marginTop: -10, // Центрирование иконки (половина высоты иконки)
-    zIndex: 10,
+    padding: 5,
   },
   deleteIcon: {
     width: 20,

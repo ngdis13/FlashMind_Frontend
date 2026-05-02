@@ -15,10 +15,11 @@ import { useDecks } from "@/storage/hooks/useDecks";
 import { CardItem } from "../components/CardItem";
 import { Card } from "@/storage/types/types";
 
+// ... (ваши импорты остаются теми же)
+
 export default function DeckViewById() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-
   const { decks, loading, getDeckCards, removeCard } = useDecks();
 
   const [name, setName] = useState("");
@@ -28,16 +29,27 @@ export default function DeckViewById() {
 
   const deck = decks.find((d) => d.id === id);
 
-  const handleBack = () => router.back();
-  const handleSettings = () => { /* Переход в настройки */ };
-  const handleAddCard = () => router.push(`/decks/${id}/create-card`);
-  
   const loadCards = async () => {
+    if (!id) return;
     try {
-      const fetchedCards = await getDeckCards(id as string);
-      setCards(fetchedCards);
+      const fetchedCards = await getDeckCards(id);
+      setCards(fetchedCards || []);
     } catch (error) {
       console.error("Ошибка загрузки карточек:", error);
+    }
+  };
+
+  // ИСПРАВЛЕННОЕ УДАЛЕНИЕ
+  const handleDeleteCard = async (cardId: string) => {
+    if (!id || !cardId) return;
+    try {
+      console.log("Удаляем карточку:", cardId, "из колоды:", id);
+      await removeCard(id, cardId); // Проверьте в хуке useDecks, что порядок (deckId, cardId)
+      
+      // Срочное обновление локального состояния, чтобы карточка исчезла сразу
+      setCards((prev) => prev.filter((card) => card.id !== cardId));
+    } catch (err) {
+      console.error("Ошибка при удалении карточки:", err);
     }
   };
 
@@ -45,32 +57,8 @@ export default function DeckViewById() {
     router.push(`/card/${cardId}?deckId=${id}`);
   };
 
-  const handleDeleteCard = async (cardId: string, deckId?: string) => {
-    try {
-      await removeCard(deckId || (id as string), cardId);
-      setCards((prevCards) => prevCards.filter((card) => card.id !== cardId));
-    } catch (err) {
-      console.error("Ошибка при удалении карточки:", err);
-    }
-  };
-
-  const renderCard = ({ item, index }: { item: Card; index: number }) => (
-    <CardItem
-      id={item.id}
-      front={item.front}
-      back={item.back}
-      deckId={id}
-      index={index}
-      viewMode="compact"
-      onPress={handleCardPress}
-      onDelete={handleDeleteCard}
-    />
-  );
-
-  useEffect(() => {
-    if (id) loadCards();
-  }, [id]);
-
+  useEffect(() => { loadCards(); }, [id]);
+  
   useEffect(() => {
     if (deck) {
       setName(deck.name);
@@ -78,24 +66,33 @@ export default function DeckViewById() {
     }
   }, [deck]);
 
-  useFocusEffect(
-    useCallback(() => {
-      if (id) loadCards();
-    }, [id]),
-  );
+  useFocusEffect(useCallback(() => { loadCards(); }, [id]));
 
   return (
     <View style={[commonStyles.container, { flex: 1 }]}>
       <FlatList
         data={cards}
         keyExtractor={(item) => item.id}
-        renderItem={renderCard}
-        // Отступ 16px между карточками
+        // Убираем padding отсюда, чтобы ListHeaderComponent сам решал свои отступы
+        contentContainerStyle={{ paddingBottom: 30 }} 
+        renderItem={({ item, index }) => (
+          <View style={{ paddingHorizontal: 16 }}> 
+            <CardItem
+              id={item.id}
+              front={item.front}
+              back={item.back}
+              deckId={id}
+              index={index}
+              onPress={handleCardPress}
+              onDelete={() => handleDeleteCard(item.id)} // Передаем функцию без лишних аргументов
+            />
+          </View>
+        )}
         ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
         ListHeaderComponent={
-          <View style={[commonStyles.mainContent]}>
+          <View style={commonStyles.mainContent}>
             <View style={styles.header}>
-              <Pressable onPress={handleBack}>
+              <Pressable onPress={() => router.back()}>
                 <Image source={ReturnIcon} style={{ width: 12, height: 22, top: -7 }} />
               </Pressable>
               <Typography variant="h1" style={{ marginBottom: 16 }}>
@@ -110,7 +107,7 @@ export default function DeckViewById() {
               <View style={[commonStyles.mainBox, { maxWidth: "100%" }]}>
                 <Typography variant="h2">{description}</Typography>
               </View>
-              <Pressable style={[commonStyles.mainBox, styles.settingsButton]} onPress={handleSettings}>
+              <Pressable style={[commonStyles.mainBox, styles.settingsButton]}>
                 <SettingsIcon />
                 <Typography variant="h2">Настройки</Typography>
               </Pressable>
@@ -118,12 +115,12 @@ export default function DeckViewById() {
 
             <View style={styles.cardsHeader}>
               <Typography variant="h2">Карточки</Typography>
-              <Pressable onPress={handleAddCard} hitSlop={10}>
+              <Pressable onPress={() => router.push(`/decks/${id}/create-card`)} hitSlop={10}>
                 <Image source={PlusIcon} style={{ width: 16, height: 16 }} />
               </Pressable>
             </View>
 
-            <View style={styles.searchBox}>
+            <View style={[styles.searchBox, { marginBottom: 24 }]}>
               <Input
                 style={{ textAlign: "left" }}
                 placeholder={"Поиск"}
@@ -134,21 +131,8 @@ export default function DeckViewById() {
                 <Image source={searchButton} style={{ width: 18, height: 18 }} />
               </Pressable>
             </View>
-            {/* Дополнительный отступ перед списком */}
-            <View style={{ height: 8 }} />
           </View>
         }
-        ListEmptyComponent={
-          !loading ? (
-            <View style={styles.emptyDeck}>
-              <Logo size={144} style={{ marginBottom: 16 }} />
-              <Typography color={colors.darkGray} style={{ textAlign: "center" }}>
-                Пока что колода пуста...
-              </Typography>
-            </View>
-          ) : null
-        }
-        contentContainerStyle={{ paddingHorizontal: 10, paddingBottom: 30 }}
       />
     </View>
   );
