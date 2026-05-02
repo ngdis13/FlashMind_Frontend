@@ -1,7 +1,7 @@
 import { commonStyles } from "@/styles/Common";
 import { Typography } from "@/styles/Typography";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
-import { ScrollView, View, Image, Pressable, FlatList } from "react-native";
+import { View, Image, Pressable, FlatList } from "react-native";
 import ReturnIcon from "@/assets/icons/ReturnIcon.png";
 import { styles } from "../styles/deckViewById.style";
 import { Input } from "@/components/Input";
@@ -28,28 +28,19 @@ export default function DeckViewById() {
 
   const deck = decks.find((d) => d.id === id);
 
-  const handleBack = () => {
-    router.back();
-  };
-  const handleSettings = () => {
-    //Переход в настройки колоды
-  };
-  const handleAddCard = () => {
-    //Создание новой карточки в колоде
-    router.push(`/decks/${id}/create-card`);
-  };
-  const startSearch = () => {
-    //поиск по карточкам
-  };
+  const handleBack = () => router.back();
+  const handleSettings = () => { /* Переход в настройки */ };
+  const handleAddCard = () => router.push(`/decks/${id}/create-card`);
+  
   const loadCards = async () => {
     try {
       const fetchedCards = await getDeckCards(id as string);
       setCards(fetchedCards);
-      console.log("карточки колоды: ", fetchedCards);
     } catch (error) {
       console.error("Ошибка загрузки карточек:", error);
     }
   };
+
   const handleCardPress = (cardId: string) => {
     router.push(`/card/${cardId}?deckId=${id}`);
   };
@@ -58,13 +49,11 @@ export default function DeckViewById() {
     try {
       await removeCard(deckId || (id as string), cardId);
       setCards((prevCards) => prevCards.filter((card) => card.id !== cardId));
-      console.log("Карточка удалена");
     } catch (err) {
       console.error("Ошибка при удалении карточки:", err);
     }
   };
 
-  // Рендер отдельной карточки
   const renderCard = ({ item, index }: { item: Card; index: number }) => (
     <CardItem
       id={item.id}
@@ -78,14 +67,10 @@ export default function DeckViewById() {
     />
   );
 
-  // Загружаем карточки колоды
   useEffect(() => {
-    if (id) {
-      loadCards();
-    }
+    if (id) loadCards();
   }, [id]);
 
-  // Заполняем форму данными из колоды
   useEffect(() => {
     if (deck) {
       setName(deck.name);
@@ -95,14 +80,9 @@ export default function DeckViewById() {
 
   useFocusEffect(
     useCallback(() => {
-      // Обновляем карточки когда возвращаемся на экран
-      if (id) {
-        loadCards();
-      }
+      if (id) loadCards();
     }, [id]),
   );
-
-  const hasCards = cards.length > 0;
 
   return (
     <View style={[commonStyles.container, { flex: 1 }]}>
@@ -110,15 +90,13 @@ export default function DeckViewById() {
         data={cards}
         keyExtractor={(item) => item.id}
         renderItem={renderCard}
-        // Переносим всё, что было в ScrollView, в заголовок списка
+        // Отступ 16px между карточками
+        ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
         ListHeaderComponent={
           <View style={[commonStyles.mainContent]}>
             <View style={styles.header}>
               <Pressable onPress={handleBack}>
-                <Image
-                  source={ReturnIcon}
-                  style={{ width: 12, height: 22, top: -7 }}
-                />
+                <Image source={ReturnIcon} style={{ width: 12, height: 22, top: -7 }} />
               </Pressable>
               <Typography variant="h1" style={{ marginBottom: 16 }}>
                 Вернуться к колодам
@@ -132,10 +110,7 @@ export default function DeckViewById() {
               <View style={[commonStyles.mainBox, { maxWidth: "100%" }]}>
                 <Typography variant="h2">{description}</Typography>
               </View>
-              <Pressable
-                style={[commonStyles.mainBox, styles.settingsButton]}
-                onPress={handleSettings}
-              >
+              <Pressable style={[commonStyles.mainBox, styles.settingsButton]} onPress={handleSettings}>
                 <SettingsIcon />
                 <Typography variant="h2">Настройки</Typography>
               </Pressable>
@@ -155,24 +130,19 @@ export default function DeckViewById() {
                 value={search}
                 onChangeText={setSearch}
               />
-              <Pressable onPress={startSearch} style={styles.searchButton}>
-                <Image
-                  source={searchButton}
-                  style={{ width: 18, height: 18 }}
-                />
+              <Pressable style={styles.searchButton}>
+                <Image source={searchButton} style={{ width: 18, height: 18 }} />
               </Pressable>
             </View>
+            {/* Дополнительный отступ перед списком */}
+            <View style={{ height: 8 }} />
           </View>
         }
-        // Компонент для пустой колоды
         ListEmptyComponent={
           !loading ? (
             <View style={styles.emptyDeck}>
               <Logo size={144} style={{ marginBottom: 16 }} />
-              <Typography
-                color={colors.darkGray}
-                style={{ textAlign: "center" }}
-              >
+              <Typography color={colors.darkGray} style={{ textAlign: "center" }}>
                 Пока что колода пуста...
               </Typography>
             </View>
