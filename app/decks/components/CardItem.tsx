@@ -8,7 +8,7 @@ interface CardItemProps {
   card_id: string;
   front: string;
   onPress: (id: string) => void;
-  onDelete: (id: string) => void;
+  onDelete: (id: string) => void; // Принимаем простую функцию
 }
 
 export const CardItem = ({ card_id, front, onPress, onDelete }: CardItemProps) => {
@@ -41,7 +41,7 @@ export const CardItem = ({ card_id, front, onPress, onDelete }: CardItemProps) =
         cancelText="Отмена"
         onConfirm={() => {
           setAlertVisible(false);
-          onDelete(card_id);
+          onDelete(card_id); // Вызываем удаление
         }}
         onCancel={() => setAlertVisible(false)}
         type="danger"
@@ -59,7 +59,6 @@ const styles = StyleSheet.create({
     borderColor: "#DBDBDB",
     flexDirection: 'row',
     alignItems: 'center',
-    // Тень
     elevation: 3,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
@@ -70,7 +69,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 16,
     paddingLeft: 14,
-    paddingRight: 50, // Место для кнопки удаления
+    paddingRight: 50, 
   },
   text: {
     fontSize: 18,
