@@ -12,7 +12,7 @@ import searchButton from "@/feature/decks/assets/searchButton.png";
 import { colors } from "@/styles/Colors";
 import { Logo } from "@/components/Logo";
 import { useDecks } from "@/storage/hooks/useDecks";
-import { CardItem } from "../components/cardItem";
+import { CardItem } from "../components/CardItem";
 import { Card } from "@/storage/types/types";
 
 export default function DeckViewById() {
@@ -26,18 +26,17 @@ export default function DeckViewById() {
   const [search, setSearch] = useState("");
   const [cards, setCards] = useState<Card[]>([]);
 
-
   const deck = decks.find((d) => d.id === id);
 
   const handleBack = () => {
-    router.back();
+    router.push('/decks');
   };
   const handleSettings = () => {
     //Переход в настройки колоды
   };
   const handleAddCard = () => {
     //Создание новой карточки в колоде
-    router.push(`/deck/${id}/create-card`);
+    router.push(`/decks/${id}/create-card`);
   };
   const startSearch = () => {
     //поиск по карточкам

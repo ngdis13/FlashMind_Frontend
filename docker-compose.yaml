@@ -3,7 +3,7 @@ version: '3.8'
 services:
   nginx-frontend:
     build: .
-    container_name: expo_nginx
+    container_name: frontend
     ports:
       - "80:80"
     networks:
@@ -11,5 +11,4 @@ services:
 
 networks:
   app-network:
-    external: true
     driver: bridge

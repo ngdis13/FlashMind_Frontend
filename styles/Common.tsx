@@ -34,12 +34,17 @@ export const commonStyles = StyleSheet.create({
   },
 
   greyButton: {
-    /**для кнопок как в настройках */
+    /**для кнопок как в настройках 
+     * 
+     * 
+    */
     flexDirection: "row",
     gap: 8,
   },
 
-  /**Квадратики для таб бара */
+  /**Квадратики для таб бара 
+   * 
+  */
   tabIconBox: {
     alignItems: "center",
     justifyContent: "center",
@@ -49,6 +54,7 @@ export const commonStyles = StyleSheet.create({
     borderRadius: 12,
   },
   //Стили для информационных окон (например в создании карточки, в отображении карточек)
+  //.
   infoBox: {
     flexDirection: "row",
     alignItems: "center",
