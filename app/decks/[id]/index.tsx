@@ -5,7 +5,7 @@ import { ScrollView, View, Image, Pressable, FlatList } from "react-native";
 import ReturnIcon from "@/assets/icons/ReturnIcon.png";
 import { styles } from "../styles/deckViewById.style";
 import { Input } from "@/components/Input";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import { SettingsIcon } from "@/feature/profile/assets/SettingsIcon";
 import PlusIcon from "@/assets/icons/PlusIcon.png";
 import searchButton from "@/feature/decks/assets/searchButton.png";
@@ -35,21 +35,18 @@ export default function DeckViewById() {
     //Переход в настройки колоды
   };
   const handleAddCard = () => {
-    //Создание новой карточки в колоде
     router.push(`/decks/${id}/create-card`);
   };
-  const startSearch = () => {
-    //поиск по карточкам
-  };
+
   const loadCards = async () => {
     try {
       const fetchedCards = await getDeckCards(id as string);
       setCards(fetchedCards);
-      console.log("карточки колоды: ", fetchedCards);
     } catch (error) {
       console.error("Ошибка загрузки карточек:", error);
     }
   };
+
   const handleCardPress = (cardId: string) => {
     router.push(`/card/${cardId}?deckId=${id}`);
   };
@@ -58,34 +55,24 @@ export default function DeckViewById() {
     try {
       await removeCard(deckId || (id as string), cardId);
       setCards((prevCards) => prevCards.filter((card) => card.id !== cardId));
-      console.log("Карточка удалена");
     } catch (err) {
       console.error("Ошибка при удалении карточки:", err);
     }
   };
 
-  // Рендер отдельной карточки
-  const renderCard = ({ item, index }: { item: Card; index: number }) => (
-    <CardItem
-      id={item.id}
-      front={item.front }
-      back={item.back }
-      deckId={id}
-      index={index}
-      viewMode="compact"
-      onPress={handleCardPress}
-      onDelete={handleDeleteCard}
-    />
-  );
+  // ФИЛЬТРАЦИЯ (Логика поиска)
+  const filteredCards = useMemo(() => {
+    return cards.filter((card) =>
+      card.front.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [search, cards]);
 
-  // Загружаем карточки колоды
   useEffect(() => {
     if (id) {
       loadCards();
     }
   }, [id]);
 
-  // Заполняем форму данными из колоды
   useEffect(() => {
     if (deck) {
       setName(deck.name);
@@ -95,7 +82,6 @@ export default function DeckViewById() {
 
   useFocusEffect(
     useCallback(() => {
-      // Обновляем карточки когда возвращаемся на экран
       if (id) {
         loadCards();
       }
@@ -106,7 +92,7 @@ export default function DeckViewById() {
 
   return (
     <View style={[commonStyles.container, { flex: 1, paddingBottom: 30 }]}>
-      <ScrollView>
+      <ScrollView keyboardShouldPersistTaps="handled">
         <View style={[commonStyles.mainContent]}>
           <View style={styles.header}>
             <Pressable onPress={handleBack}>
@@ -140,10 +126,7 @@ export default function DeckViewById() {
           <View style={styles.cards}>
             <View style={styles.cardsHeader}>
               <Typography variant="h2">Карточки</Typography>
-              <Pressable
-                onPress={handleAddCard}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              >
+              <Pressable onPress={handleAddCard}>
                 <Image source={PlusIcon} style={{ width: 16, height: 16 }} />
               </Pressable>
             </View>
@@ -153,37 +136,45 @@ export default function DeckViewById() {
                 style={{ textAlign: "left" }}
                 placeholder={"Поиск"}
                 value={search}
-                onChangeText={setSearch}
+                onChangeText={setSearch} // Теперь фокус не будет слетать
               />
-              <Pressable onPress={startSearch} style={styles.searchButton}>
+              <View style={styles.searchButton}>
                 <Image
                   source={searchButton}
                   style={{ width: 18, height: 18 }}
                 />
-              </Pressable>
+              </View>
             </View>
+
             {!hasCards ? (
               <View style={styles.emptyDeck}>
                 <Logo size={144} style={{ marginBottom: 16 }} />
-                <Typography
-                  color={colors.darkGray}
-                  style={{ textAlign: "center" }}
-                >
-                  Пока что колода пуста, но ты можешь добавить в нее карточку,
-                  нажав на “+”
+                <Typography color={colors.darkGray} style={{ textAlign: "center" }}>
+                  Пока что колода пуста...
                 </Typography>
               </View>
             ) : (
-              <FlatList
-                data={cards}
-                keyExtractor={(item) => item.id}
-                renderItem={renderCard}
-                showsVerticalScrollIndicator={true}
-                scrollEnabled={true} // отключаем скролл внутри ScrollView
-                contentContainerStyle={{ paddingVertical: 8, gap: 16 }}
-                style={styles.cardList}
-                
-              />
+              <View style={{ gap: 16, paddingVertical: 8 }}>
+                {filteredCards.length > 0 ? (
+                  filteredCards.map((item, index) => (
+                    <CardItem
+                      key={item.id}
+                      id={item.id}
+                      front={item.front}
+                      back={item.back}
+                      deckId={id}
+                      index={index}
+                      viewMode="compact"
+                      onPress={handleCardPress}
+                      onDelete={handleDeleteCard}
+                    />
+                  ))
+                ) : (
+                  <Typography style={{ textAlign: 'center', marginTop: 12 }}>
+                    Ничего не найдено :(
+                  </Typography>
+                )}
+              </View>
             )}
           </View>
         </View>
