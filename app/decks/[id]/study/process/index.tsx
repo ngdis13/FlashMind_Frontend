@@ -1,16 +1,23 @@
 import { commonStyles } from "@/styles/Common";
 import { Typography } from "@/styles/Typography";
-import { Pressable, View, Image, ActivityIndicator, Animated } from "react-native";
+import {
+  Pressable,
+  View,
+  Image,
+  ActivityIndicator,
+  Animated,
+} from "react-native";
 import ReturnIcon from "@/assets/icons/ReturnIcon.png";
 import { useDecks } from "@/storage/hooks/useDecks";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { styles } from "./style/styles";
-import { useEffect, useState, useMemo, useRef } from "react";
+import { useEffect, useState, useMemo, useRef, useCallback } from "react"; // Добавили useCallback
 import { colors } from "@/styles/Colors";
 import { StudyCardView } from "./components/cardView";
 import { getStudyCard, postCardRating, StudyCard } from "./api/api";
-import { Logo } from '@/components/Logo'
+import { Logo } from "@/components/Logo";
 import React from "react";
+import { RatingButton } from "./components/RatingButton";
 
 export default function StudyDecksScreen() {
   const router = useRouter();
@@ -26,14 +33,13 @@ export default function StudyDecksScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [finishedCount, setFinishedCount] = useState(0);
 
-  // --- АНИМАЦИИ ---
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const slideAnim = useRef(new Animated.Value(0)).current;
 
   const { decks } = useDecks();
   const deck = decks.find((d) => d.id === id);
 
-  const handleBack = () => router.back();
+  const handleBack = () => router.push(`/decks/${id}/study`);
 
   useEffect(() => {
     const startStudy = async () => {
@@ -53,48 +59,63 @@ export default function StudyDecksScreen() {
     startStudy();
   }, [id, count]);
 
-  const handleRate = async (rating: number) => {
-    if (cards.length === 0 || isSubmitting) return;
+  // Оборачиваем в useCallback, чтобы кнопки не "мигали" при обновлении стейта
+  const handleRate = useCallback(
+    async (rating: number) => {
+      if (cards.length === 0 || isSubmitting) return;
 
-    const currentCard = cards[0];
-    setIsSubmitting(true);
+      const currentCard = cards[0];
+      setIsSubmitting(true);
 
-    // Анимация ухода карточки вверх
-    Animated.parallel([
-      Animated.timing(fadeAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
-      Animated.timing(slideAnim, { toValue: -100, duration: 250, useNativeDriver: true }),
-    ]).start(async () => {
-      try {
-        const response = await postCardRating(currentCard.id, rating);
-
-        if (response?.status === 200) {
-          const updatedCard = response.data;
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: -100,
+          duration: 250,
+          useNativeDriver: true,
+        }),
+      ]).start(async () => {
+        try {
+          const response = await postCardRating(currentCard.id, rating);
+          if (response?.status === 200) {
+            const updatedCard = response.data;
+            setCards((prev) => [...prev.slice(1), updatedCard]);
+          } else {
+            setCards((prev) => prev.slice(1));
+            setFinishedCount((prev) => prev + 1);
+          }
+        } catch (error) {
           setCards((prev) => {
-            const remaining = prev.slice(1);
-            return [...remaining, updatedCard];
+            const updated = [...prev];
+            const failed = updated.shift();
+            if (failed) updated.push(failed);
+            return updated;
           });
-        } else {
-          setCards((prev) => prev.slice(1));
-          setFinishedCount((prev) => prev + 1);
+        } finally {
+          setIsSubmitting(false);
+          slideAnim.setValue(100);
+          Animated.parallel([
+            Animated.spring(slideAnim, {
+              toValue: 0,
+              friction: 8,
+              tension: 40,
+              useNativeDriver: true,
+            }),
+            Animated.timing(fadeAnim, {
+              toValue: 1,
+              duration: 200,
+              useNativeDriver: true,
+            }),
+          ]).start();
         }
-      } catch (error) {
-        setCards((prev) => {
-          const updated = [...prev];
-          const failed = updated.shift();
-          if (failed) updated.push(failed);
-          return updated;
-        });
-      } finally {
-        setIsSubmitting(false);
-        // Сброс позиции для новой карточки (появляется снизу)
-        slideAnim.setValue(100);
-        Animated.parallel([
-          Animated.spring(slideAnim, { toValue: 0, friction: 8, tension: 40, useNativeDriver: true }),
-          Animated.timing(fadeAnim, { toValue: 1, duration: 200, useNativeDriver: true }),
-        ]).start();
-      }
-    });
-  };
+      });
+    },
+    [cards, isSubmitting, fadeAnim, slideAnim],
+  ); // Зависимости функции
 
   const currentIndex = useMemo(() => {
     return Math.min(finishedCount + 1, totalToStudy);
@@ -117,50 +138,74 @@ export default function StudyDecksScreen() {
         </View>
 
         {loading ? (
-          <ActivityIndicator size="large" style={{ flex: 1 }} color={colors.primary} />
+          <ActivityIndicator
+            size="large"
+            style={{ flex: 1 }}
+            color={colors.primary}
+          />
         ) : cards.length > 0 ? (
-          <Animated.View 
-            style={{ 
-              flex: 1, 
-              opacity: fadeAnim, 
-              transform: [{ translateY: slideAnim }] 
+          <Animated.View
+            style={{
+              flex: 1,
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }],
             }}
           >
-            <StudyCardView card={cards[0]} isFirstCard={finishedCount === 0}/>
+            <StudyCardView card={cards[0]} isFirstCard={finishedCount === 0} />
           </Animated.View>
         ) : (
-          <View style={{ flex: 1, justifyContent: "center", alignItems: "center", gap: 8 }}>
-            <Logo size={174}/>
+          <Pressable
+            style={{
+              flex: 1,
+              justifyContent: "center",
+              alignItems: "center",
+              gap: 8,
+            }}
+            onPress={handleBack} // Используем функцию возврата, которая у тебя уже есть
+          >
+            <Logo size={174} />
             <Typography variant="h1" style={{ textAlign: "center" }}>
               Молодец! На сегодня всё!
             </Typography>
-            <Typography variant="h3" color={colors.darkGray} style={{ textAlign: "center" }}>
+            <Typography
+              variant="h3"
+              color={colors.darkGray}
+              style={{ textAlign: "center" }}
+            >
               Ты изучил все карточки в этой колоде
             </Typography>
-          </View>
+          </Pressable>
         )}
       </View>
 
-      <View style={[styles.buttonBox, { opacity: isSubmitting ? 0.5 : 1 }]}>
-        {[
-          { label: "Забыл", val: 1, color: styles.redButton },
-          { label: "Сложно", val: 2, color: styles.yellowButton },
-          { label: "Хорошо", val: 3, color: styles.lightGreenButton },
-          { label: "Легко", val: 4, color: styles.darkGreenButton },
-        ].map((btn) => (
-          <Pressable
-            key={btn.val}
-            onPress={() => handleRate(btn.val)}
-            disabled={isSubmitting || cards.length === 0}
-          >
-            <View style={[btn.color, styles.ratingButton]}>
-              <Typography variant="h3" color={colors.darkColor}>
-                {btn.label}
-              </Typography>
-            </View>
-          </Pressable>
-        ))}
-      </View>
+      {cards.length > 0 && (
+        <View style={styles.buttonBox}>
+          <RatingButton
+            label="Забыл"
+            colorStyle={styles.redButton}
+            onPress={() => handleRate(1)}
+            disabled={isSubmitting}
+          />
+          <RatingButton
+            label="Сложно"
+            colorStyle={styles.yellowButton}
+            onPress={() => handleRate(2)}
+            disabled={isSubmitting}
+          />
+          <RatingButton
+            label="Хорошо"
+            colorStyle={styles.lightGreenButton}
+            onPress={() => handleRate(3)}
+            disabled={isSubmitting}
+          />
+          <RatingButton
+            label="Легко"
+            colorStyle={styles.darkGreenButton}
+            onPress={() => handleRate(4)}
+            disabled={isSubmitting}
+          />
+        </View>
+      )}
     </View>
   );
 }

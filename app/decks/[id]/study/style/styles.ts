@@ -26,8 +26,6 @@ export const styles = StyleSheet.create({
   },
   startButton: {
     maxWidth: 373,
-    marginLeft: 10,
-    
   },
   tooltip: {
     flexDirection: "row",
