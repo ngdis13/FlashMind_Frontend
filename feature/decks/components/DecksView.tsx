@@ -6,7 +6,7 @@ import editButton from "../assets/editButton.png";
 
 interface DecksViewProps {
   title: string;
-  cardCount: number;
+  cardCount: string;
   cardCountNow: number;
   onEditPress: () => void;
   onCardPress: () => void;
@@ -49,7 +49,7 @@ export default function DecksView({
           color={colors.darkGray}
           style={{ marginBottom: 8 }}
         >
-          {cardCount} карточек
+          {cardCount}
         </Typography>
 
         <View style={styles.bottom}>

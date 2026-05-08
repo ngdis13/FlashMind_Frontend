@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   View,
   Pressable,
@@ -15,98 +15,96 @@ import { MainButton } from "@/components/MainButton";
 import DecksView from "../components/DecksView";
 import { styles } from "../styles/mainDecks.styles";
 import searchButton from "../assets/searchButton.png";
-import { getUserDecks } from "../api/decks.api";
 import { colors } from "@/styles/Colors";
 import { useRouter } from "expo-router";
 import { useDecks } from "@/storage/hooks/useDecks";
+import { getPluralCards } from "@/utils/helpers/getPluralCards";
 
 export default function MainDecksScreen() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [search, setSearch] = useState("");
   const router = useRouter();
-  // Загружаем колоды при монтировании компонента
+  
   const {
-    decks, // колоды (уже с кэшем и фоновым обновлением)
-    loading, // статус загрузки
-    error, // ошибка если есть
-    refreshDecks, // функция для принудительного обновления
+    decks,
+    loading,
+    refreshDecks,
   } = useDecks();
 
-  // Фильтрация колод по поиску
+  // Логика фильтрации
   const filteredDecks = search.trim()
     ? decks.filter((deck) =>
         deck.name.toLowerCase().includes(search.toLowerCase()),
       )
     : decks;
 
-  const startSearch = () => {
-    /* поиск */
-  };
   const handleEditDecks = (id: string) => {
-    console.log('Переход к режиму редактирования колоды')
     router.push(`/decks/${id}`);
   };
+
   const handleAddDecks = () => {
     setIsModalVisible(true);
   };
+
   const closeItems = () => {
     setIsModalVisible(false);
   };
-   const handleDeckPress = (id: string) => {
-    // Переход на экран обучения
-    console.log('Переход к режиму обучения')
+
+  const handleDeckPress = (id: string) => {
     router.push(`/decks/${id}/study`);
   };
 
-  const ListHeader = () => (
-    <View
-      style={[
-        commonStyles.mainContent,
-        { paddingHorizontal: 0, marginHorizontal: 0, marginTop: 0 },
-      ]}
-    >
-      <Typography variant="h1" style={{ marginBottom: 16 }}>
-        Мои колоды
-      </Typography>
-      <View style={styles.searchBox}>
-        <Input
-          style={{ textAlign: "left" }}
-          placeholder={"Поиск"}
-          value={search}
-          onChangeText={setSearch}
-        />
-        <Pressable onPress={startSearch} style={styles.searchButton}>
-          <Image source={searchButton} style={{ width: 18, height: 18 }} />
-        </Pressable>
-      </View>
-    </View>
-  );
-
   return (
-    <View style={[commonStyles.container]}>
+    <View style={[commonStyles.container, { flex: 1 }]}>
       {loading ? (
         <ActivityIndicator size="large" color="#000" style={{ flex: 1 }} />
       ) : (
         <FlatList
-          data={decks}
+          data={filteredDecks} // Используем отфильтрованный список
           keyExtractor={(item) => item.id}
-          numColumns={2} // Сетка в 2 колонки
-          // Отступ между ЛЕВОЙ и ПРАВОЙ колонкой (16 пикселей)
+          numColumns={2}
           columnWrapperStyle={{ gap: 16 }}
-          // Отступ между СТРОКАМИ (сверху и снизу)
           ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
-          ListHeaderComponent={ListHeader} // Заголовок
+          
+          // ВАЖНО: Передаем заголовок напрямую как JSX, чтобы не слетал фокус ввода
+          ListHeaderComponent={
+            <View style={[commonStyles.mainContent, { paddingHorizontal: 0, marginHorizontal: 0, marginTop: 0 }]}>
+              <Typography variant="h1" style={{ marginBottom: 16 }}>
+                Мои колоды
+              </Typography>
+              <View style={styles.searchBox}>
+                <Input
+                  style={{ textAlign: "left" }}
+                  placeholder={"Поиск"}
+                  value={search}
+                  onChangeText={setSearch}
+                />
+                <Pressable style={styles.searchButton}>
+                  <Image source={searchButton} style={{ width: 18, height: 18 }} />
+                </Pressable>
+              </View>
+            </View>
+          }
+          
+          ListEmptyComponent={() => (
+            <View style={{ marginTop: 40, alignItems: 'center' }}>
+              <Typography variant="h3" color={colors.darkGray}>
+                {search ? "Ничего не найдено" : "У вас пока нет колод"}
+              </Typography>
+            </View>
+          )}
+
           contentContainerStyle={{
             paddingHorizontal: 10,
-            paddingBottom: 120, // Чтобы кнопка внизу не перекрывала последнюю карточку
+            paddingBottom: 120,
             paddingTop: 20,
           }}
           renderItem={({ item, index }) => (
             <DecksView
               title={item.name}
-              cardCount={item.total_cards}
+              cardCount={getPluralCards(item.total_cards)} 
               onCardPress={() => handleDeckPress(item.id)}  
-              onEditPress = {() => handleEditDecks(item.id)}
+              onEditPress={() => handleEditDecks(item.id)}
               cardCountNow={0} 
               index={index}
             />
@@ -122,7 +120,6 @@ export default function MainDecksScreen() {
       >
         <TouchableWithoutFeedback onPress={closeItems}>
           <View style={styles.modalOverlay}>
-            {/* Контент модалки (фиолетовый фон с кнопками) */}
             <TouchableWithoutFeedback>
               <View style={styles.modalContent}>
                 <MainButton
@@ -137,7 +134,8 @@ export default function MainDecksScreen() {
                 <MainButton
                   title="Импортировать из облака"
                   onPress={() => {
-                    /* логика */ closeItems();
+                    /* логика */ 
+                    closeItems();
                   }}
                   style={{ backgroundColor: "#fff" }}
                   textColor={colors.darkMainColor}
