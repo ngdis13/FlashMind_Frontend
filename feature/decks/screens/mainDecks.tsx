@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import {
   View,
   Pressable,
@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   Modal,
   TouchableWithoutFeedback,
+  Animated,
 } from "react-native";
 import { commonStyles } from "@/styles/Common";
 import { Typography } from "@/styles/Typography";
@@ -25,34 +26,40 @@ export default function MainDecksScreen() {
   const [search, setSearch] = useState("");
   const router = useRouter();
   
-  const {
-    decks,
-    loading,
-    refreshDecks,
-  } = useDecks();
+  const { decks, loading } = useDecks();
 
-  // Логика фильтрации
+  // Анимация для модалки
+  const modalAnim = useRef(new Animated.Value(0)).current;
+
+  // Функция плавного открытия
+  const handleAddDecks = () => {
+    setIsModalVisible(true);
+    Animated.timing(modalAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  // Функция плавного закрытия
+  const closeItems = useCallback(() => {
+    Animated.timing(modalAnim, {
+      toValue: 0,
+      duration: 250,
+      useNativeDriver: true,
+    }).start(() => {
+      setIsModalVisible(false);
+    });
+  }, [modalAnim]);
+
   const filteredDecks = search.trim()
     ? decks.filter((deck) =>
         deck.name.toLowerCase().includes(search.toLowerCase()),
       )
     : decks;
 
-  const handleEditDecks = (id: string) => {
-    router.push(`/decks/${id}`);
-  };
-
-  const handleAddDecks = () => {
-    setIsModalVisible(true);
-  };
-
-  const closeItems = () => {
-    setIsModalVisible(false);
-  };
-
-  const handleDeckPress = (id: string) => {
-    router.push(`/decks/${id}/study`);
-  };
+  const handleEditDecks = (id: string) => router.push(`/decks/${id}`);
+  const handleDeckPress = (id: string) => router.push(`/decks/${id}/study`);
 
   return (
     <View style={[commonStyles.container, { flex: 1 }]}>
@@ -60,18 +67,14 @@ export default function MainDecksScreen() {
         <ActivityIndicator size="large" color="#000" style={{ flex: 1 }} />
       ) : (
         <FlatList
-          data={filteredDecks} // Используем отфильтрованный список
+          data={filteredDecks}
           keyExtractor={(item) => item.id}
           numColumns={2}
           columnWrapperStyle={{ gap: 16 }}
           ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
-          
-          // ВАЖНО: Передаем заголовок напрямую как JSX, чтобы не слетал фокус ввода
           ListHeaderComponent={
             <View style={[commonStyles.mainContent, { paddingHorizontal: 0, marginHorizontal: 0, marginTop: 0 }]}>
-              <Typography variant="h1" style={{ marginBottom: 16 }}>
-                Мои колоды
-              </Typography>
+              <Typography variant="h1" style={{ marginBottom: 16 }}>Мои колоды</Typography>
               <View style={styles.searchBox}>
                 <Input
                   style={{ textAlign: "left" }}
@@ -85,20 +88,14 @@ export default function MainDecksScreen() {
               </View>
             </View>
           }
-          
           ListEmptyComponent={() => (
-            <View style={{ marginTop: 40, alignItems: 'center' }}>
-              <Typography variant="h3" color={colors.darkGray}>
-                {search ? "Ничего не найдено" : "У вас пока нет колод"}
+            <View style={{ marginTop: 8, alignItems: 'center' }}>
+              <Typography variant="h2">
+                {search ? "Ничего не найдено :(" : "У вас пока нет колод"}
               </Typography>
             </View>
           )}
-
-          contentContainerStyle={{
-            paddingHorizontal: 10,
-            paddingBottom: 120,
-            paddingTop: 20,
-          }}
+          contentContainerStyle={{ paddingHorizontal: 10, paddingBottom: 120, paddingTop: 20 }}
           renderItem={({ item, index }) => (
             <DecksView
               title={item.name}
@@ -115,34 +112,53 @@ export default function MainDecksScreen() {
       <Modal
         visible={isModalVisible}
         transparent={true}
-        animationType="fade"
+        animationType="none" // Выключаем стандартную, чтобы работала наша плавная
         onRequestClose={closeItems}
       >
         <TouchableWithoutFeedback onPress={closeItems}>
-          <View style={styles.modalOverlay}>
+          <Animated.View 
+            style={[
+              styles.modalOverlay, 
+              { 
+                opacity: modalAnim // Плавное затемнение фона
+              }
+            ]}
+          >
             <TouchableWithoutFeedback>
-              <View style={styles.modalContent}>
+              <Animated.View 
+                style={[
+                  styles.modalContent,
+                  {
+                    opacity: modalAnim,
+                    transform: [
+                      {
+                        scale: modalAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [0.9, 1], 
+                        }),
+                      },
+                    ],
+                  },
+                ]}
+              >
                 <MainButton
                   title="Создать новую колоду"
                   onPress={() => {
-                    router.push("/create-decks");
                     closeItems();
+                    setTimeout(() => router.push("/create-decks"), 300);
                   }}
                   style={{ backgroundColor: "#fff", marginBottom: 12 }}
                   textColor={colors.darkMainColor}
                 />
                 <MainButton
                   title="Импортировать из облака"
-                  onPress={() => {
-                    /* логика */ 
-                    closeItems();
-                  }}
+                  onPress={closeItems}
                   style={{ backgroundColor: "#fff" }}
                   textColor={colors.darkMainColor}
                 />
-              </View>
+              </Animated.View>
             </TouchableWithoutFeedback>
-          </View>
+          </Animated.View>
         </TouchableWithoutFeedback>
       </Modal>
 
