@@ -53,7 +53,7 @@ export default function StudyDecksScreen() {
   }, [id]);
   return (
     <View style={[commonStyles.container, { flex: 1, paddingBottom: 30 }]}>
-      <View style={{ flex: 1 }}>
+      <View style={{ flex: 1}}>
         <View style={[commonStyles.mainContent, styles.mainContent]}>
           <View style={styles.header}>
             <Pressable onPress={handleBack}>
@@ -69,7 +69,7 @@ export default function StudyDecksScreen() {
               <Typography variant="h2">{studyData?.total}</Typography>
             </View>
             <View style={styles.infoLine}>
-              <Typography variant="h2">Новые</Typography>
+              <Typography variant="h2">Новые сегодня</Typography>
               <Typography variant="h2">{studyData?.learning_today}</Typography>
             </View>
             <View style={styles.infoLine}>
@@ -77,7 +77,7 @@ export default function StudyDecksScreen() {
               <Typography variant="h2">{studyData?.learned}</Typography>
             </View>
             <View style={styles.infoLine}>
-              <Typography variant="h2">Не изучено</Typography>
+              <Typography variant="h2">На изучении</Typography>
               <Typography variant="h2">{studyData?.in_learning}</Typography>
             </View>
             <View style={[styles.infoLine, { paddingEnd: 0 }]}>
@@ -143,12 +143,17 @@ export default function StudyDecksScreen() {
         </View>
       </View>
 
-      <MainButton
-        style={styles.startButton}
-        title="Старт"
-        onPress={handleStartStudy}
-        disabled={!studyData}
-      />
+      <View style={{gap: 12, alignItems: 'center' }}>
+
+        <Typography variant="h2">К повторению сегодня: число</Typography>
+
+        <MainButton
+          style={styles.startButton}
+          title="Старт"
+          onPress={handleStartStudy}
+          disabled={!studyData}
+        />
+      </View>
     </View>
   );
 }
