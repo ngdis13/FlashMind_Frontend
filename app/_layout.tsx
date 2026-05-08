@@ -14,7 +14,7 @@ SplashScreen.preventAutoHideAsync();
 
 export default function Layout() {
   const { user, fetchUser } = useUserStore();
-  const access_token = useAuthStore.getState().accessToken
+  const access_token = useAuthStore.getState().accessToken;
 
   const [fontsLoaded] = useFonts({
     MontserratRegular: MontserratRegular,
@@ -39,11 +39,31 @@ export default function Layout() {
     <Stack
       screenOptions={{
         headerShown: false,
-        animation: "fade",
-        animationTypeForReplace: "pop",
+        // 1. Меняем на слайд справа (как в iOS/современном Android)
+        animation: "slide_from_right",
+
+        // 2. Устанавливаем белый фон контента, чтобы при переходе не было серых пустот
+        contentStyle: { backgroundColor: "#fff" },
+
+        // 3. Улучшаем плавность жеста "назад" (свайп от левого края)
         gestureEnabled: true,
-        presentation: "card",
+        gestureDirection: "horizontal",
+
+        // 4. Тип анимации при замене экрана (например, после логина)
+        animationTypeForReplace: "push",
       }}
-    />
+    >
+      {/* 
+         Если хочешь, чтобы конкретные экраны открывались иначе 
+         (например, создание колоды снизу), можно добавить их сюда:
+      */}
+      <Stack.Screen
+        name="create-decks"
+        options={{
+          presentation: "modal",
+          animation: "slide_from_bottom",
+        }}
+      />
+    </Stack>
   );
 }
