@@ -5,31 +5,43 @@ import ReturnIcon from "@/assets/icons/ReturnIcon.png";
 import IconInfo from "./assets/icon/IconInfo.png";
 import IconPlus from "./assets/icon/IconPlus.png";
 import IconMinus from "./assets/icon/IconMinus.png";
+import SmallIcon from "@/assets/icons/SmallLogo.png";
 import { useDecks } from "@/storage/hooks/useDecks";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { styles } from "./style/styles";
 import { MainButton } from "@/components/MainButton";
 import { useEffect, useState } from "react";
 import { getStudyInfo, StudyResponse } from "./api/api";
+import { Animated } from "react-native";
 
 export default function StudyDecksScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { decks } = useDecks();
   const deck = decks.find((d) => d.id === id);
+  const [isTooltipVisible, setIsTooltipVisible] = useState(false);
+  const fadeAnim = useState(new Animated.Value(0))[0]; // Начальная прозрачность 0
 
   const [studyData, setStudyData] = useState<StudyResponse | null>(null);
   const [addCount, setAddCount] = useState(0);
 
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: isTooltipVisible ? 1 : 0, // 1 если виден, 0 если скрыт
+      duration: 300, // Длительность в мс
+      useNativeDriver: true, // Обязательно для производительности
+    }).start();
+  }, [isTooltipVisible]);
+
   const handleBack = () => {
     router.push(`/decks`);
-  }
+  };
 
   const handleStartStudy = () => {
-      router.push({
-    pathname: `/decks/${id}/study/process`,
-    params: { addCount: addCount } 
-  });
+    router.push({
+      pathname: `/decks/${id}/study/process`,
+      params: { addCount: addCount },
+    });
   };
 
   useEffect(() => {
@@ -71,11 +83,25 @@ export default function StudyDecksScreen() {
             <View style={[styles.infoLine, { paddingEnd: 0 }]}>
               <View style={styles.infoContent}>
                 <Typography variant="h2">Добавить к изучению</Typography>
-                <Image source={IconInfo} style={{ width: 20, height: 20 }} />
+
+                <View>
+                  <Pressable
+                    onPress={() => setIsTooltipVisible(!isTooltipVisible)} // Для мобилок (клик)
+                    onHoverIn={() => setIsTooltipVisible(true)} // Для веба (наведение)
+                    onHoverOut={() => setIsTooltipVisible(false)} // Для веба (увод мыши)
+                  >
+                    <Image
+                      source={IconInfo}
+                      style={{ width: 20, height: 20 }}
+                    />
+                  </Pressable>
+                </View>
               </View>
               <View style={styles.counter}>
                 <Pressable
-                  onPress={() => setAddCount(prev => Math.max(0, (prev ?? 0) - 1))}
+                  onPress={() =>
+                    setAddCount((prev) => Math.max(0, (prev ?? 0) - 1))
+                  }
                 >
                   <Image source={IconMinus} style={{ width: 21, height: 20 }} />
                 </Pressable>
@@ -87,6 +113,33 @@ export default function StudyDecksScreen() {
               </View>
             </View>
           </View>
+          {isTooltipVisible && (
+            <Animated.View
+              style={[
+                styles.tooltip,
+                {
+                  opacity: fadeAnim, // Привязываем прозрачность
+                  transform: [
+                    {
+                      translateY: fadeAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [10, 0], // Плавно "всплывает" на 10 пикселей вверх
+                      }),
+                    },
+                  ],
+                },
+              ]}
+            >
+              <Image source={SmallIcon} style={{ width: 20, height: 20 }} />
+              <View style={{ flex: 1 }}>
+                <Typography variant="h3">
+                  Не рекомендуем добавлять сразу все карточки к изучению,
+                  начните с 5-20 в день. Следите, чтобы "К повтору сегодня" не
+                  росло слишком сильно, берегите свое здоровье
+                </Typography>
+              </View>
+            </Animated.View>
+          )}
         </View>
       </View>
 
