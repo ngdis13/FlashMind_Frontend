@@ -19,16 +19,16 @@ export default function CreateCardView() {
   const [back, setBack] = useState("");
 
   const handleBack = () => {
-    router.back();
+    router.push(`/decks/${id}`);
   };
   const handleCreateCard = async () => {
     try {
       await addCard(id as string, front.trim(), back.trim());
-      router.back();
+      router.push(`/decks/${id}`);
     } catch (err) {
       console.error(err);
     } finally{
-      router.back();
+      router.push(`/decks/${id}`);
     }
   };
   return (

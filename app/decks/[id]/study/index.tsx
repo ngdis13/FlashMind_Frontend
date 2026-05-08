@@ -21,7 +21,10 @@ export default function StudyDecksScreen() {
   const [studyData, setStudyData] = useState<StudyResponse | null>(null);
   const [addCount, setAddCount] = useState(0);
 
-  const handleBack = () => router.back();
+  const handleBack = () => {
+    router.push(`/decks`);
+  }
+
   const handleStartStudy = () => {
       router.push({
     pathname: `/decks/${id}/study/process`,

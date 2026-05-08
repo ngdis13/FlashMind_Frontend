@@ -43,6 +43,7 @@ export async function getUserProfile(): Promise<ProfileResponse> {
     if (!accessToken) {
       console.log("Токен доступа отсутствует");
     }
+    console.log('Tokenn:', accessToken)
     const resp = await apiClient.get(
       getMainServiceApiUrl("/api/v1/users/profile"),
       { headers: { Authorization: `Bearer ${accessToken}` } },
