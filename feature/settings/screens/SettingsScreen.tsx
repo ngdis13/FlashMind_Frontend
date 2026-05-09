@@ -35,7 +35,9 @@ export default function SettingsScreens() {
     logoutUser(accessToken);
   };
 
-  const handleBack = () => router.back();
+  const handleBack = () => {
+    router.push('/profile')
+  };
   return (
     <View style={commonStyles.container}>
       <View style={commonStyles.mainContent}>

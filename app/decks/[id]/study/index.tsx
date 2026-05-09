@@ -24,7 +24,11 @@ export default function StudyDecksScreen() {
 
   const [studyData, setStudyData] = useState<StudyResponse | null>(null);
   const [addCount, setAddCount] = useState(0);
+  const newCard = studyData
+    ? studyData.total - studyData.learned - studyData.in_learning
+    : 0;
 
+  console.log(studyData);
   useEffect(() => {
     Animated.timing(fadeAnim, {
       toValue: isTooltipVisible ? 1 : 0, // 1 если виден, 0 если скрыт
@@ -48,12 +52,20 @@ export default function StudyDecksScreen() {
     if (id) {
       getStudyInfo(id as string).then((data) => {
         setStudyData(data);
+
+        // Вычисляем, сколько новых карточек доступно
+        const availableNew = data.total - data.learned - data.in_learning;
+
+        // Ставим по умолчанию 5 карточек, но если их всего 3, то поставим 3
+        const defaultToLearn = Math.min(availableNew, 5);
+
+        setAddCount(defaultToLearn);
       });
     }
   }, [id]);
   return (
     <View style={[commonStyles.container, { flex: 1, paddingBottom: 30 }]}>
-      <View style={{ flex: 1}}>
+      <View style={{ flex: 1 }}>
         <View style={[commonStyles.mainContent, styles.mainContent]}>
           <View style={styles.header}>
             <Pressable onPress={handleBack}>
@@ -69,8 +81,8 @@ export default function StudyDecksScreen() {
               <Typography variant="h2">{studyData?.total}</Typography>
             </View>
             <View style={styles.infoLine}>
-              <Typography variant="h2">Новые сегодня</Typography>
-              <Typography variant="h2">{studyData?.learning_today}</Typography>
+              <Typography variant="h2">Новые</Typography>
+              <Typography variant="h2">{newCard}</Typography>
             </View>
             <View style={styles.infoLine}>
               <Typography variant="h2">Изучено</Typography>
@@ -99,16 +111,25 @@ export default function StudyDecksScreen() {
               </View>
               <View style={styles.counter}>
                 <Pressable
-                  onPress={() =>
-                    setAddCount((prev) => Math.max(0, (prev ?? 0) - 1))
-                  }
+                  onPress={() => setAddCount((prev) => Math.max(0, prev - 1))}
                 >
                   <Image source={IconMinus} style={{ width: 21, height: 20 }} />
                 </Pressable>
 
                 <Typography variant="h2">{addCount}</Typography>
-                <Pressable onPress={() => setAddCount((prev) => prev + 1)}>
-                  <Image source={IconPlus} style={{ width: 21, height: 20 }} />
+                <Pressable
+                  onPress={() =>
+                    setAddCount((prev) => Math.min(newCard, prev + 1))
+                  }
+                >
+                  <Image
+                    source={IconPlus}
+                    style={{
+                      width: 21,
+                      height: 20,
+                      opacity: addCount >= newCard ? 0.3 : 1, // Затемняем, если лимит достигнут
+                    }}
+                  />
                 </Pressable>
               </View>
             </View>
@@ -143,9 +164,10 @@ export default function StudyDecksScreen() {
         </View>
       </View>
 
-      <View style={{gap: 12, alignItems: 'center' }}>
-
-        <Typography variant="h2">К повторению сегодня: число</Typography>
+      <View style={{ gap: 12, alignItems: "center" }}>
+        <Typography variant="h2">
+          К повторению сегодня: {(studyData?.learning_today ?? 0) + addCount}
+        </Typography>
 
         <MainButton
           style={styles.startButton}
