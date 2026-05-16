@@ -9,6 +9,12 @@ export const commonStyles = StyleSheet.create({
     paddingHorizontal: 10,
     alignItems: "center",
   },
+  header: {
+    flexDirection: "row",
+    gap: 12,
+    alignItems: "center",
+    marginBottom: 8,
+  },
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -46,7 +52,7 @@ export const commonStyles = StyleSheet.create({
     backgroundColor: "#F1F1F1",
     borderRadius: 12,
   },
-  
+
   infoBox: {
     flexDirection: "row",
     alignItems: "center",

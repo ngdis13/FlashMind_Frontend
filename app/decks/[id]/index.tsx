@@ -32,7 +32,7 @@ export default function DeckViewById() {
     router.push("/decks");
   };
   const handleSettings = () => {
-    //Переход в настройки колоды
+    router.push(`/decks/${id}/settings`);
   };
   const handleAddCard = () => {
     router.push(`/decks/${id}/create-card`);
@@ -94,7 +94,7 @@ export default function DeckViewById() {
     <View style={[commonStyles.container, { flex: 1, paddingBottom: 30 }]}>
       <ScrollView keyboardShouldPersistTaps="handled">
         <View style={[commonStyles.mainContent]}>
-          <View style={styles.header}>
+          <View style={commonStyles.header}>
             <Pressable onPress={handleBack}>
               <Image
                 source={ReturnIcon}
