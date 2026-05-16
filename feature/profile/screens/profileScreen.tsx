@@ -14,15 +14,9 @@ import { useUserStore } from "@/store/userStore";
 import { useRouter } from "expo-router";
 import LoadingScreen from "@/app/loading";
 
-
 export default function ProfileScreen() {
   const router = useRouter();
-  const {
-    user,
-    setAvatarFile,
-    isLoading,
-    updateAvatar,
-  } = useUserStore();
+  const { user, setAvatarFile, isLoading, updateAvatar } = useUserStore();
 
   if (isLoading) {
     return <LoadingScreen textLoad="Загружаем профиль" />;
@@ -60,7 +54,7 @@ export default function ProfileScreen() {
         console.log("Аватар успешно обновлён!", response);
 
         // Показываем успешное сообщение (опционально)
-        // alert("Аватар успешно обновлён!");
+        //alert("Аватар успешно обновлён!");
       }
     } catch (error) {
       console.error("Ошибка при обновлении аватара:", error);
@@ -85,54 +79,66 @@ export default function ProfileScreen() {
   };
 
   return (
-    <View style={[commonStyles.container, { flex: 1, paddingBottom: 100 }]}>
-      <ScrollView>
-        <View style={commonStyles.mainContent}>
-          <Typography variant="h1" style={{ marginBottom: 16 }}>
+    <View style={[commonStyles.container, { flex: 1 }]}>
+      {/* contentContainerStyle отвечает за центрирование всего скролл-контента */}
+      <ScrollView
+        contentContainerStyle={styles.scrollContainer}
+        style={{ width: "100%" }} 
+      >
+        <View style={styles.responsiveWrapper}>
+          <Typography variant="h1" style={{ marginBottom: 16, width: "100%" }}>
             Профиль
           </Typography>
 
+          {/* Блок био */}
           <View style={[commonStyles.mainBox, styles.bioBox]}>
             <Pressable onPress={handlePickAvatar}>
               {user?.avatarUrl ? (
                 <Image
                   source={{ uri: user.avatarUrl }}
-                  style={{ width: 100, height: 100, borderRadius: 100 }}
+                  style={{ width: 80, height: 80, borderRadius: 40 }} 
                 />
               ) : (
-                <UserAvatar size={100} />
+                <UserAvatar size={80} />
               )}
             </Pressable>
             <View style={styles.aboutBox}>
               <View style={styles.nameBox}>
                 <Typography variant="h2">{user?.firstName}</Typography>
-
                 <Typography variant="h2">{user?.lastName}</Typography>
               </View>
-              <Typography variant="h3" color={colors.darkGray}>
-                {user?.bio}
+              <Typography
+                variant="h3"
+                color={colors.darkGray}
+                numberOfLines={3}
+              >
+                {user?.bio || "О себе"}
               </Typography>
             </View>
           </View>
+
+          {/* Блок активности */}
           <View style={styles.boxActivity}>
             <Typography variant="h2">Активность</Typography>
             <View style={commonStyles.mainBox}>
               <View style={styles.boxProgress}>
-                <View style={styles.boxProgress__name}>
-                  <Typography variant="h2">Пн</Typography>
-                  <Typography variant="h2">Вт</Typography>
-                  <Typography variant="h2">Ср</Typography>
-                  <Typography variant="h2">Чт</Typography>
-                  <Typography variant="h2">Пт</Typography>
-                  <Typography variant="h2">Сб</Typography>
-                  <Typography variant="h2">Вс</Typography>
+                {/* Дни недели теперь адаптивно распределяются */}
+                <View style={styles.boxProgress__nameRow}>
+                  {["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"].map((day) => (
+                    <View key={day} style={styles.dayLabelWrapper}>
+                      <Typography variant="h2">{day}</Typography>
+                    </View>
+                  ))}
                 </View>
 
+                {/* Сетка звезд теперь идеально совпадает с днями недели */}
                 <View style={styles.boxProgress__starsBox}>
                   {Array.from({ length: 4 }).map((_, row) => (
                     <View key={row} style={styles.boxProgress__line}>
                       {Array.from({ length: 7 }).map((_, col) => (
-                        <StarProgress key={`${row}-${col}`} />
+                        <View key={`${row}-${col}`} style={styles.starWrapper}>
+                          <StarProgress />
+                        </View>
                       ))}
                     </View>
                   ))}
@@ -140,6 +146,7 @@ export default function ProfileScreen() {
 
                 <View style={styles.boxProgress__boxLine}></View>
 
+                {/* Статистика внизу */}
                 <View style={styles.boxProgress__infoBox}>
                   <View style={styles.boxProgress__infoBoxItem}>
                     <Typography variant="h2">0</Typography>
@@ -164,6 +171,7 @@ export default function ProfileScreen() {
             </View>
           </View>
 
+          {/* Кнопка настроек */}
           <Pressable
             style={[commonStyles.mainBox, styles.settingsButton]}
             onPress={handleSettings}

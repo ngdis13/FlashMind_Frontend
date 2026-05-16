@@ -29,7 +29,7 @@ export default function DeckViewById() {
   const deck = decks.find((d) => d.id === id);
 
   const handleBack = () => {
-    router.push('/decks');
+    router.push("/decks");
   };
   const handleSettings = () => {
     //Переход в настройки колоды
@@ -63,7 +63,7 @@ export default function DeckViewById() {
   // ФИЛЬТРАЦИЯ (Логика поиска)
   const filteredCards = useMemo(() => {
     return cards.filter((card) =>
-      card.front.toLowerCase().includes(search.toLowerCase())
+      card.front.toLowerCase().includes(search.toLowerCase()),
     );
   }, [search, cards]);
 
@@ -111,9 +111,13 @@ export default function DeckViewById() {
             <View style={[commonStyles.mainBox, { maxWidth: "100%" }]}>
               <Typography variant="h2">{name}</Typography>
             </View>
-            <View style={[commonStyles.mainBox, { maxWidth: "100%" }]}>
-              <Typography variant="h2">{description}</Typography>
-            </View>
+
+            {description.trim() !== "" && (
+              <View style={[commonStyles.mainBox, { maxWidth: "100%" }]}>
+                <Typography variant="h2">{description}</Typography>
+              </View>
+            )}
+
             <Pressable
               style={[commonStyles.mainBox, styles.settingsButton]}
               onPress={handleSettings}
@@ -149,7 +153,10 @@ export default function DeckViewById() {
             {!hasCards ? (
               <View style={styles.emptyDeck}>
                 <Logo size={144} style={{ marginBottom: 16 }} />
-                <Typography color={colors.darkGray} style={{ textAlign: "center" }}>
+                <Typography
+                  color={colors.darkGray}
+                  style={{ textAlign: "center" }}
+                >
                   Пока что колода пуста...
                 </Typography>
               </View>
@@ -170,7 +177,7 @@ export default function DeckViewById() {
                     />
                   ))
                 ) : (
-                  <Typography style={{ textAlign: 'center', marginTop: 12 }}>
+                  <Typography style={{ textAlign: "center", marginTop: 12 }}>
                     Ничего не найдено :(
                   </Typography>
                 )}

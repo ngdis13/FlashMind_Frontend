@@ -58,7 +58,7 @@ export default function StudyDecksScreen() {
 
         // Ставим по умолчанию 5 карточек, но если их всего 3, то поставим 3
         const defaultToLearn = Math.min(availableNew, 5);
-
+        
         setAddCount(defaultToLearn);
       });
     }

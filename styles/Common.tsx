@@ -25,7 +25,7 @@ export const commonStyles = StyleSheet.create({
     marginTop: 30,
   },
   mainBox: {
-    maxWidth: 373,
+    width: "100%", // Теперь карточка занимает всё доступное ей пространство родителя
     borderColor: colors.lightGray,
     backgroundColor: colors.white,
     borderRadius: 20,
@@ -34,17 +34,10 @@ export const commonStyles = StyleSheet.create({
   },
 
   greyButton: {
-    /**для кнопок как в настройках 
-     * 
-     * 
-    */
     flexDirection: "row",
     gap: 8,
   },
 
-  /**Квадратики для таб бара 
-   * 
-  */
   tabIconBox: {
     alignItems: "center",
     justifyContent: "center",
@@ -53,8 +46,7 @@ export const commonStyles = StyleSheet.create({
     backgroundColor: "#F1F1F1",
     borderRadius: 12,
   },
-  //Стили для информационных окон (например в создании карточки, в отображении карточек)
-  //.
+  
   infoBox: {
     flexDirection: "row",
     alignItems: "center",

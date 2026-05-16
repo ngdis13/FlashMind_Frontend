@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
 import React, { useEffect } from "react";
-import { Text, TouchableWithoutFeedback } from "react-native";
+import { DevSettings, Text, TouchableWithoutFeedback } from "react-native";
 import { styles } from "./index.styles";
 import { Typography } from "@/styles/Typography";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -28,7 +28,7 @@ export default function WelcomeScreen() {
   }, [router]);
 
   const handleSkip = async () => {
-    router.replace("/login");
+    router.replace('/login')
   };
 
   return (
