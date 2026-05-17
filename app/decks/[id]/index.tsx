@@ -91,101 +91,121 @@ export default function DeckViewById() {
   const hasCards = cards.length > 0;
 
   return (
-    <View style={[commonStyles.container, { flex: 1, paddingBottom: 30 }]}>
-      <ScrollView keyboardShouldPersistTaps="handled">
-        <View style={[commonStyles.mainContent]}>
-          <View style={commonStyles.header}>
-            <Pressable onPress={handleBack}>
-              <Image
-                source={ReturnIcon}
-                style={{ width: 12, height: 22, top: -7 }}
-              />
-            </Pressable>
+    // 1. Внешняя фоновая подложка на весь экран ПК
+    <View style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}>
+      
+      {/* 2. Адаптивный контейнер шириной 800px (берется из commonStyles), центрированный на экране */}
+      <View style={[commonStyles.container, { flex: 1, paddingBottom: 30 }]}>
+        <ScrollView 
+          keyboardShouldPersistTaps="handled"
+          style={{ width: "100%" }}
+          // ИСПРАВЛЕНИЕ: Центрируем внутренности скролла на больших экранах
+          contentContainerStyle={{ alignItems: "center", width: "100%" }}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* 3. ИСПРАВЛЕНИЕ: Ограничиваем максимальную ширину контента до 800px с помощью commonStyles.content */}
+          <View style={[commonStyles.content, { width: "100%", paddingHorizontal: 16 }]}>
+            <View style={[commonStyles.mainContent, { width: "100%", paddingHorizontal: 0 }]}>
+              
+              <View style={commonStyles.header}>
+                <Pressable onPress={handleBack}>
+                  <Image
+                    source={ReturnIcon}
+                    style={{ width: 12, height: 22, top: -7 }}
+                  />
+                </Pressable>
 
-            <Typography variant="h1" style={{ marginBottom: 16 }}>
-              Вернуться к колодам
-            </Typography>
-          </View>
-
-          <View style={styles.mainInfo}>
-            <View style={[commonStyles.mainBox, { maxWidth: "100%" }]}>
-              <Typography variant="h2">{name}</Typography>
-            </View>
-
-            {description.trim() !== "" && (
-              <View style={[commonStyles.mainBox, { maxWidth: "100%" }]}>
-                <Typography variant="h2">{description}</Typography>
-              </View>
-            )}
-
-            <Pressable
-              style={[commonStyles.mainBox, styles.settingsButton]}
-              onPress={handleSettings}
-            >
-              <SettingsIcon />
-              <Typography variant="h2">Настройки</Typography>
-            </Pressable>
-          </View>
-
-          <View style={styles.cards}>
-            <View style={styles.cardsHeader}>
-              <Typography variant="h2">Карточки</Typography>
-              <Pressable onPress={handleAddCard}>
-                <Image source={PlusIcon} style={{ width: 16, height: 16 }} />
-              </Pressable>
-            </View>
-
-            <View style={styles.searchBox}>
-              <Input
-                style={{ textAlign: "left" }}
-                placeholder={"Поиск"}
-                value={search}
-                onChangeText={setSearch} // Теперь фокус не будет слетать
-              />
-              <View style={styles.searchButton}>
-                <Image
-                  source={searchButton}
-                  style={{ width: 18, height: 18 }}
-                />
-              </View>
-            </View>
-
-            {!hasCards ? (
-              <View style={styles.emptyDeck}>
-                <Logo size={144} style={{ marginBottom: 16 }} />
-                <Typography
-                  color={colors.darkGray}
-                  style={{ textAlign: "center" }}
-                >
-                  Пока что колода пуста...
+                <Typography variant="h1" style={{ marginBottom: 16 }}>
+                  Вернуться к колодам
                 </Typography>
               </View>
-            ) : (
-              <View style={{ gap: 16, paddingVertical: 8 }}>
-                {filteredCards.length > 0 ? (
-                  filteredCards.map((item, index) => (
-                    <CardItem
-                      key={item.id}
-                      id={item.id}
-                      front={item.front}
-                      back={item.back}
-                      deckId={id}
-                      index={index}
-                      viewMode="compact"
-                      onPress={handleCardPress}
-                      onDelete={handleDeleteCard}
+
+              <View style={styles.mainInfo}>
+                <View style={[commonStyles.mainBox, { width: "100%" }]}>
+                  <Typography variant="h2">{name}</Typography>
+                </View>
+
+                {description.trim() !== "" && (
+                  <View style={[commonStyles.mainBox, { width: "100%" }]}>
+                    <Typography variant="h2">{description}</Typography>
+                  </View>
+                )}
+
+                <Pressable
+                  style={[commonStyles.mainBox, styles.settingsButton]}
+                  onPress={handleSettings}
+                >
+                  <SettingsIcon />
+                  <Typography variant="h2">Настройки</Typography>
+                </Pressable>
+              </View>
+
+              <View style={styles.cards}>
+                <View style={styles.cardsHeader}>
+                  <Typography variant="h2">Карточки</Typography>
+                  <Pressable onPress={handleAddCard}>
+                    <Image source={PlusIcon} style={{ width: 16, height: 16 }} />
+                  </Pressable>
+                </View>
+
+                <View style={styles.searchBox}>
+                  {/* ИСПРАВЛЕНИЕ: Даем инпуту занять всю ширину строки */}
+                  <View style={{ flex: 1, width: "100%" }}>
+                    <Input
+                      style={{ textAlign: "left", width: "100%" }}
+                      placeholder={"Поиск"}
+                      value={search}
+                      onChangeText={setSearch}
                     />
-                  ))
+                  </View>
+                  <View style={styles.searchButton}>
+                    <Image
+                      source={searchButton}
+                      style={{ width: 18, height: 18 }}
+                    />
+                  </View>
+                </View>
+
+                {!hasCards ? (
+                  <View style={styles.emptyDeck}>
+                    <Logo size={144} style={{ marginBottom: 16 }} />
+                    <Typography
+                      color={colors.darkGray}
+                      style={{ textAlign: "center" }}
+                    >
+                      Пока что колода пуста...
+                    </Typography>
+                  </View>
                 ) : (
-                  <Typography style={{ textAlign: "center", marginTop: 12 }}>
-                    Ничего не найдено :(
-                  </Typography>
+                  <View style={{ gap: 16, paddingVertical: 8, width: "100%" }}>
+                    {filteredCards.length > 0 ? (
+                      filteredCards.map((item, index) => (
+                        <CardItem
+                          key={item.id}
+                          id={item.id}
+                          front={item.front}
+                          back={item.back}
+                          deckId={id}
+                          index={index}
+                          viewMode="compact"
+                          onPress={handleCardPress}
+                          onDelete={handleDeleteCard}
+                        />
+                      ))
+                    ) : (
+                      <Typography style={{ textAlign: "center", marginTop: 12 }}>
+                        Ничего не найдено :(
+                      </Typography>
+                    )}
+                  </View>
                 )}
               </View>
-            )}
+
+            </View>
           </View>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </View>
     </View>
   );
+
 }

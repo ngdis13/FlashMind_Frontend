@@ -6,6 +6,7 @@ export const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
     width: "100%",
+    
 // Центрирует контент на веб-странице / планшете
     paddingHorizontal: 16,
     paddingTop: 16,

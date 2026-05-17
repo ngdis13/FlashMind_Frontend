@@ -7,16 +7,19 @@ export const styles = StyleSheet.create({
     gap: 12,
     alignItems: "center",
     marginBottom: 16,
+    width: "100%", 
   },
   counter: {
     alignItems: "center",
-    maxWidth: 370,
+    width: "100%", 
     marginBottom: 12,
   },
   buttonBox: {
     flexDirection: "row",
     gap: 10,
     justifyContent: "center",
+    maxWidth: 500, 
+    alignSelf: "center",
   },
 
   redButton: {
@@ -32,6 +35,6 @@ export const styles = StyleSheet.create({
     backgroundColor: colors.ratingDarkGreen,
   },
   darkenOverlay: {
-    backgroundColor: "rgba(0, 0, 0, 0.15)", // Универсальный способ затемнить
+    backgroundColor: "rgba(0, 0, 0, 0.15)", 
   },
 });

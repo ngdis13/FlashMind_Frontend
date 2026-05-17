@@ -122,90 +122,104 @@ export default function StudyDecksScreen() {
   }, [finishedCount, totalToStudy]);
 
   return (
-    <View style={[commonStyles.container, { flex: 1, paddingBottom: 30 }]}>
-      <View style={[commonStyles.mainContent, { flex: 1 }]}>
-        <View style={styles.header}>
-          <Pressable onPress={handleBack}>
-            <Image source={ReturnIcon} style={{ width: 12, height: 22 }} />
-          </Pressable>
-          <Typography variant="h1">{deck?.name || "Изучение"}</Typography>
+    // 1. Внешняя фоновая подложка на весь экран ПК
+    <View style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}>
+      
+      {/* 2. Адаптивный контейнер шириной 800px (берется из commonStyles), центрированный на экране */}
+      <View style={[commonStyles.container, { flex: 1, paddingBottom: 30 }]}>
+        
+        {/* 3. ИСПРАВЛЕНИЕ: Ограничиваем ширину верхней части контента */}
+        <View style={[commonStyles.content, { flex: 1, justifyContent: "flex-start", width: "100%" }]}>
+          
+          <View style={[commonStyles.mainContent, { flex: 1, width: "100%", marginTop: 16 }]}>
+            <View style={styles.header}>
+              <Pressable onPress={handleBack}>
+                <Image source={ReturnIcon} style={{ width: 12, height: 22 }} />
+              </Pressable>
+              <Typography variant="h1">{deck?.name || "Изучение"}</Typography>
+            </View>
+
+            <View style={styles.counter}>
+              <Typography variant="h2">
+                {loading ? "Загрузка..." : `${currentIndex} / ${totalToStudy}`}
+              </Typography>
+            </View>
+
+            {loading ? (
+              <ActivityIndicator
+                size="large"
+                style={{ flex: 1 }}
+                color={colors.primary}
+              />
+            ) : cards.length > 0 ? (
+              <Animated.View
+                style={{
+                  flex: 1,
+                  opacity: fadeAnim,
+                  transform: [{ translateY: slideAnim }],
+                  width: "100%",
+                }}
+              >
+                <StudyCardView card={cards[0]} isFirstCard={finishedCount === 0} />
+              </Animated.View>
+            ) : (
+              <Pressable
+                style={{
+                  flex: 1,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  gap: 8,
+                  width: "100%",
+                }}
+                onPress={handleBack}
+              >
+                <Logo size={174} />
+                <Typography variant="h1" style={{ textAlign: "center" }}>
+                  Молодец! На сегодня всё!
+                </Typography>
+                <Typography
+                  variant="h3"
+                  color={colors.darkGray}
+                  style={{ textAlign: "center" }}
+                >
+                  Ты изучил все карточки в этой колоде
+                </Typography>
+              </Pressable>
+            )}
+          </View>
         </View>
 
-        <View style={styles.counter}>
-          <Typography variant="h2">
-            {loading ? "Загрузка..." : `${currentIndex} / ${totalToStudy}`}
-          </Typography>
-        </View>
-
-        {loading ? (
-          <ActivityIndicator
-            size="large"
-            style={{ flex: 1 }}
-            color={colors.primary}
-          />
-        ) : cards.length > 0 ? (
-          <Animated.View
-            style={{
-              flex: 1,
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }],
-            }}
-          >
-            <StudyCardView card={cards[0]} isFirstCard={finishedCount === 0} />
-          </Animated.View>
-        ) : (
-          <Pressable
-            style={{
-              flex: 1,
-              justifyContent: "center",
-              alignItems: "center",
-              gap: 8,
-            }}
-            onPress={handleBack} // Используем функцию возврата, которая у тебя уже есть
-          >
-            <Logo size={174} />
-            <Typography variant="h1" style={{ textAlign: "center" }}>
-              Молодец! На сегодня всё!
-            </Typography>
-            <Typography
-              variant="h3"
-              color={colors.darkGray}
-              style={{ textAlign: "center" }}
-            >
-              Ты изучил все карточки в этой колоде
-            </Typography>
-          </Pressable>
+        {/* 4. ИСПРАВЛЕНИЕ: Ограничиваем блок кнопок оценки, чтобы на ПК они не расползались по краям */}
+        {cards.length > 0 && (
+          <View style={[styles.buttonBox, { width: "100%", paddingHorizontal: 10 }]}>
+            <RatingButton
+              label="Забыл"
+              colorStyle={styles.redButton}
+              onPress={() => handleRate(1)}
+              disabled={isSubmitting}
+            />
+            <RatingButton
+              label="Сложно"
+              colorStyle={styles.yellowButton}
+              onPress={() => handleRate(2)}
+              disabled={isSubmitting}
+            />
+            <RatingButton
+              label="Хорошо"
+              colorStyle={styles.lightGreenButton}
+              onPress={() => handleRate(3)}
+              disabled={isSubmitting}
+            />
+            <RatingButton
+              label="Легко"
+              colorStyle={styles.darkGreenButton}
+              onPress={() => handleRate(4)}
+              disabled={isSubmitting}
+            />
+          </View>
         )}
       </View>
-
-      {cards.length > 0 && (
-        <View style={styles.buttonBox}>
-          <RatingButton
-            label="Забыл"
-            colorStyle={styles.redButton}
-            onPress={() => handleRate(1)}
-            disabled={isSubmitting}
-          />
-          <RatingButton
-            label="Сложно"
-            colorStyle={styles.yellowButton}
-            onPress={() => handleRate(2)}
-            disabled={isSubmitting}
-          />
-          <RatingButton
-            label="Хорошо"
-            colorStyle={styles.lightGreenButton}
-            onPress={() => handleRate(3)}
-            disabled={isSubmitting}
-          />
-          <RatingButton
-            label="Легко"
-            colorStyle={styles.darkGreenButton}
-            onPress={() => handleRate(4)}
-            disabled={isSubmitting}
-          />
-        </View>
-      )}
     </View>
   );
+
 }

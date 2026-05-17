@@ -1,9 +1,11 @@
 import { StyleSheet } from "react-native";
+import { colors } from "@/styles/Colors"; // ИСПРАВЛЕНИЕ: Импортируем палитру цветов
 
 export const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
     width: "100%",
+    alignItems: "center", // ИСПРАВЛЕНО: Центрирует шапку и инпуты по горизонтали на ПК
     paddingHorizontal: 10,
     paddingTop: 30,
     paddingBottom: 40,
@@ -25,23 +27,17 @@ export const styles = StyleSheet.create({
     width: "100%",
     marginBottom: 32,
   },
-
-  // Базовые настройки текста внутри инпутов (рамки и фоны придут из mainBox)
   input: {
-    height: 54, // Высота плашки, как у вас в Фигме
+    height: 54, 
     textAlign: "left",
-    paddingHorizontal: 16, // Внутренний отступ для текста
+    paddingHorizontal: 16, 
   },
-
-  // Особые настройки для многострочного текстового поля
   descriptionInput: {
-    minHeight: 90, // Делаем плашку описания повыше
-    height: "auto", // Позволяет полю расти, если текста много
-    paddingTop: 14, // Аккуратный отступ сверху, чтобы текст не прилипал к верхней рамке
-    textAlignVertical: "top", // Фикс для Android, чтобы текст начинался сверху
+    minHeight: 90, 
+    height: "auto", 
+    paddingTop: 14, 
+    textAlignVertical: "top", 
   },
-
-  // Кнопка выбора цвета
   colorPickerRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -53,20 +49,20 @@ export const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: "#FF8E8E", // Розовый цвет кружка
+    backgroundColor: "#FF8E8E", 
   },
   colorText: {
     fontSize: 16,
   },
   bottomButtonContainer: {
     width: "100%",
-    paddingHorizontal: 10, // Отступы по 10 пикселей слева и справа, как у карточек
-    paddingBottom: 20, // Идеальный отступ от самого низа экрана до кнопки
-    backgroundColor: "#F8F9FA", // Поставьте цвет фона вашего экрана (colors.background)
+    paddingHorizontal: 10, 
+    paddingBottom: 20, 
+    backgroundColor: colors.background, 
   },
-
   button: {
     width: "100%",
     marginTop: 0,
+    alignSelf: "center",
   },
 });

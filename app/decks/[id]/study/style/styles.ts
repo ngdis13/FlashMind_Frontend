@@ -5,9 +5,11 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 12,
     alignItems: "center",
+    width: "100%", // Гарантируем, что шапка занимает всю ширину контейнера
   },
   mainContent: {
     gap: 24,
+    width: "100%", // Чтобы контент не сжимался
   },
   infoLine: {
     flexDirection: "row",
@@ -18,14 +20,15 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    zIndex: 10, // Чтобы тултип был поверх других элементов
+    zIndex: 10,
   },
   counter: {
     flexDirection: "row",
     gap: 11,
+    alignItems: "center", // Выравниваем плюс/минус и цифру по вертикали
   },
   startButton: {
-    maxWidth: 373,
+    width: "100%", // Теперь кнопка растянется ровно по ширине контента (до 800px)
   },
   tooltip: {
     flexDirection: "row",
@@ -33,11 +36,10 @@ export const styles = StyleSheet.create({
     backgroundColor: "#E2E4FF",
     padding: 12,
     borderRadius: 20,
-     maxWidth: 373, // Чтобы растягивался по ширине контента
-    marginTop: -30, // Ключевой момент: "наезжает" на белый блок на 10 пикселей
-    zIndex: 2, // Чтобы быть поверх тени/границы блока
+    width: "100%", // Растягиваем подсказку на всю ширину карточки
+    marginTop: -16, // Корректируем наезд на блок с учетом отступов
+    zIndex: 2,
 
-    // Тени оставляем
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,

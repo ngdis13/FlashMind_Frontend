@@ -2,17 +2,16 @@ import { colors } from "@/styles/Colors";
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
-  // Главная обертка для всего экрана
   wrapper: {
     flex: 1,
     width: "100%",
-    paddingHorizontal: 10, // Задаем отступы 10px для всего контента разом
+    paddingHorizontal: 10, // Отступы 10px для всего контента разом
   },
 
   headerContainer: {
     paddingHorizontal: 0,
     marginHorizontal: 0,
-    marginTop: 20, // Перенесли отступ сверху в шапку
+    marginTop: 20, 
     width: "100%",
   },
   
@@ -31,7 +30,7 @@ export const styles = StyleSheet.create({
   },
   deckItemWrapper: {
     flex: 1, 
-    minWidth: 130, 
+    minWidth: 160, 
     maxWidth: 240, 
   },
 
@@ -47,9 +46,9 @@ export const styles = StyleSheet.create({
     marginRight: 12,
   },
 
-  // Кнопка теперь всегда опускается вниз благодаря marginTop: "auto"
   addDecksButton: {
     width: "100%",
+    alignSelf: "center",  
     marginTop: "auto",    
     marginBottom: 80,     
   },
@@ -60,10 +59,11 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "flex-end",
     paddingBottom: 135,
+    width: "100%",
   },
   modalContent: {
     width: "95%",
-    maxWidth: 500,
+    maxWidth: 400, 
     backgroundColor: colors.mainColor,
     paddingHorizontal: 12,
     paddingVertical: 24,

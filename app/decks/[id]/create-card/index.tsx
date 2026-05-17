@@ -32,57 +32,74 @@ export default function CreateCardView() {
     }
   };
   return (
-    <View style={[commonStyles.container, { flex: 1, paddingBottom: 30 }]}>
-      <ScrollView>
-        <View style={[commonStyles.mainContent]}>
-          <View style={styles.header}>
-            <Pressable onPress={handleBack}>
-              <Image
-                source={ReturnIcon}
-                style={{ width: 12, height: 22, top: -7 }}
-              />
-            </Pressable>
+    <View style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}>
+      <View style={[commonStyles.container, { flex: 1, paddingBottom: 30 }]}>
+        <ScrollView 
+          style={{ width: "100%" }}
+          contentContainerStyle={{ alignItems: "center", width: "100%" }}
+          showsVerticalScrollIndicator={false}
+        >
+          
+          <View style={[commonStyles.content, { width: "100%", paddingHorizontal: 16 }]}>
+            <View style={[commonStyles.mainContent, { width: "100%", paddingHorizontal: 0 }]}>
+              
+              <View style={styles.header}>
+                <Pressable onPress={handleBack}>
+                  <Image
+                    source={ReturnIcon}
+                    style={{ width: 12, height: 22, top: -7 }}
+                  />
+                </Pressable>
 
-            <Typography variant="h1" style={{ marginBottom: 16 }}>
-              Вернуться к колоде
-            </Typography>
-          </View>
-          <View style={[commonStyles.infoBox, { flexDirection: "column" }]}>
-            <View style={styles.inputWrapper}>
-              <Typography variant="h3" style={styles.firstHeader}>
-                термин
-              </Typography>
-              <TextInput
-                style={[styles.underlineInput, variants.h2]}
-                placeholder="Введите термин"
-                placeholderTextColor={colors.darkGray}
-                underlineColorAndroid="transparent"
-                value={front}
-                onChangeText={setFront}
-              />
-            </View>
+                <Typography variant="h1" style={{ marginBottom: 16 }}>
+                  Вернуться к колоде
+                </Typography>
+              </View>
 
-            <View style={styles.inputWrapper}>
-              <Typography variant="h3" style={styles.firstHeader}>
-                определение
-              </Typography>
-              <TextInput
-                style={[styles.underlineInput, variants.h2]}
-                placeholder="Введите определение"
-                placeholderTextColor={colors.darkGray}
-                underlineColorAndroid="transparent"
-                value={back}
-                onChangeText={setBack}
-              />
+              <View style={[commonStyles.infoBox, { flexDirection: "column", width: "100%" }]}>
+                <View style={styles.inputWrapper}>
+                  <Typography variant="h3" style={styles.firstHeader}>
+                    термин
+                  </Typography>
+                  <TextInput
+                    style={[styles.underlineInput, variants.h2]}
+                    placeholder="Введите термин"
+                    placeholderTextColor={colors.darkGray}
+                    underlineColorAndroid="transparent"
+                    value={front}
+                    onChangeText={setFront}
+                  />
+                </View>
+
+                <View style={styles.inputWrapper}>
+                  <Typography variant="h3" style={styles.firstHeader}>
+                    определение
+                  </Typography>
+                  <TextInput
+                    style={[styles.underlineInput, variants.h2]}
+                    placeholder="Введите определение"
+                    placeholderTextColor={colors.darkGray}
+                    underlineColorAndroid="transparent"
+                    value={back}
+                    onChangeText={setBack}
+                  />
+                </View>
+              </View>
+
             </View>
           </View>
+        </ScrollView>
+
+        <View style={{ width: "100%", paddingHorizontal: 16, alignItems: "center" }}>
+          <MainButton
+            style={styles.createCardButton}
+            title="Создать карточку"
+            onPress={handleCreateCard}
+          />
         </View>
-      </ScrollView>
-      <MainButton
-        style={styles.createCardButton}
-        title="Создать карточку"
-        onPress={handleCreateCard}
-      />
+
+      </View>
     </View>
   );
+
 }

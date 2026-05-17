@@ -39,6 +39,9 @@ export default function SettingsScreens() {
     router.push('/profile')
   };
   return (
+        <View
+      style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}
+    >
     <View style={commonStyles.container}>
       <View style={commonStyles.mainContent}>
         <View style={styles.header}>
@@ -125,6 +128,7 @@ export default function SettingsScreens() {
           </Pressable>
         </View>
       </View>
+    </View>
     </View>
   );
 }

@@ -49,60 +49,64 @@ export default function CreateDecksScreen() {
 
   return (
     <View
-      style={[
-        commonStyles.container,
-        { flex: 1, justifyContent: "space-between", paddingBottom: 20 },
-      ]}
+      style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}
     >
-      <View style={commonStyles.mainContent}>
-        <View style={styles.header}>
-          <Pressable onPress={() => router.back()} hitSlop={10}>
-            <Image
-              source={ReturnIcon}
-              style={{ width: 12, height: 22, top: 5 }}
-              resizeMode="contain"
+      <View
+        style={[
+          commonStyles.container,
+          { flex: 1, justifyContent: "space-between", paddingBottom: 20 },
+        ]}
+      >
+        <View style={commonStyles.mainContent}>
+          <View style={styles.header}>
+            <Pressable onPress={() => router.back()} hitSlop={10}>
+              <Image
+                source={ReturnIcon}
+                style={{ width: 12, height: 22, top: 5 }}
+                resizeMode="contain"
+              />
+            </Pressable>
+
+            <Typography variant="h1" style={{ marginBottom: 16 }}>
+              Создание новой колоды
+            </Typography>
+          </View>
+          <View style={styles.inputBox}>
+            <Input
+              style={{ textAlign: "left" }}
+              placeholder={"Название"}
+              value={name}
+              onChangeText={setName}
             />
-          </Pressable>
+            <Input
+              placeholder="Описание"
+              value={description}
+              onChangeText={handleDescriptionChange}
+              multiline={true}
+              maxLength={120}
+              style={{
+                textAlign: "left",
+                height: 130,
+                textAlignVertical: "top", // Текст начинается сверху
+              }}
+            />
+          </View>
 
-          <Typography variant="h1" style={{ marginBottom: 16 }}>
-            Создание новой колоды
-          </Typography>
+          <View style={styles.infoBox}>
+            <Logo size={160} />
+            <Typography color={colors.darkGray} style={{ textAlign: "center" }}>
+              После создания колоды ты сможешь добавить карточки в режиме
+              редактирования колоды
+            </Typography>
+          </View>
         </View>
-        <View style={styles.inputBox}>
-          <Input
-            style={{ textAlign: "left" }}
-            placeholder={"Название"}
-            value={name}
-            onChangeText={setName}
-          />
-          <Input
-            placeholder="Описание"
-            value={description}
-            onChangeText={handleDescriptionChange}
-            multiline={true}
-            maxLength={120}
-            style={{
-              textAlign: "left",
-              height: 130,
-              textAlignVertical: "top", // Текст начинается сверху
-            }}
-          />
-        </View>
-
-        <View style={styles.infoBox}>
-          <Logo size={160} />
-          <Typography color={colors.darkGray} style={{ textAlign: "center" }}>
-            После создания колоды ты сможешь добавить карточки в режиме
-            редактирования колоды
-          </Typography>
-        </View>
+        <MainButton
+          style={styles.createDecksButton}
+          title="Создать колоду"
+          disabled={isLoading}
+          onPress={handleCreateDecks}
+        />
       </View>
-      <MainButton
-        style={styles.createDecksButton}
-        title="Создать колоду"
-        disabled={isLoading}
-        onPress={handleCreateDecks}
-      />
     </View>
   );
 }
