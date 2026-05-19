@@ -37,6 +37,7 @@ export const fetchUserDecks = async (): Promise<Deck[]> => {
     );
 
     console.log(`Загружено ${resp.data.decks.length} колод`);
+    console.log('Колоды:', resp.data)
 
     // Добавляем extraCount для UI и поле cards
     const decksWithExtra = resp.data.decks.map((deck) => ({

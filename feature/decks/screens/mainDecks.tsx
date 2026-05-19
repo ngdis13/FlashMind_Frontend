@@ -29,6 +29,7 @@ export default function MainDecksScreen() {
 
   const { decks, loading } = useDecks();
 
+
   const modalAnim = useRef(new Animated.Value(0)).current;
   //Настройка экрана
   const { width } = useWindowDimensions();
@@ -71,7 +72,6 @@ export default function MainDecksScreen() {
         {loading ? (
           <ActivityIndicator size="large" color="#000" style={{ flex: 1 }} />
         ) : (
-          // Добавляем внешний контейнер wrapper для правильного распределения высоты
           <View style={styles.wrapper}>
             <FlatList
               key={numColumns}
@@ -115,7 +115,7 @@ export default function MainDecksScreen() {
                     cardCount={getPluralCards(item.total_cards)}
                     onCardPress={() => handleDeckPress(item.id)}
                     onEditPress={() => handleEditDecks(item.id)}
-                    cardCountNow={0}
+                    cardCountRepeat={item.repeat_cards}
                     index={index}
                   />
                 </View>

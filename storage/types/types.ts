@@ -10,16 +10,24 @@ export interface Card {
   created_at: string;
 }
 
+export interface DeckSettings {
+  color: string;
+  desired_retention: number;
+  maximum_interval: number;
+}
+
 /**
  * Колода - соответствует ответу от сервера
  */
 export interface Deck {
   id: string;
-  name: string;           // ← у вас name, не title
+  name: string; // ← у вас name, не title
+  repeat_cards: number;
+  settings: DeckSettings,
   description: string;
-  total_cards: number;    // ← у вас total_cards, не cardCount
-  extraCount?: number;    // ← добавим отдельно для вашего UI (23 на скриншоте)
-  cards?: Card[];         // ← карточки подгрузятся позже
+  total_cards: number; // ← у вас total_cards, не cardCount
+  extraCount?: number; // ← добавим отдельно для вашего UI (23 на скриншоте)
+  cards?: Card[];
   created_at?: string;
   updated_at?: string;
 }

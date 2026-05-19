@@ -7,7 +7,7 @@ import editButton from "../assets/editButton.png";
 interface DecksViewProps {
   title: string;
   cardCount: string;
-  cardCountNow: number;
+  cardCountRepeat: number;
   onEditPress: () => void;
   onCardPress: () => void;
   index: number;
@@ -25,7 +25,7 @@ const randomColors = [
 export default function DecksView({
   title,
   cardCount,
-  cardCountNow,
+  cardCountRepeat,
   onEditPress,
   onCardPress,
   index,
@@ -59,7 +59,7 @@ export default function DecksView({
               color={colors.white}
               style={styles.extraCountText}
             >
-              {cardCountNow}
+              {cardCountRepeat}
             </Typography>
           </View>
           <TouchableOpacity
