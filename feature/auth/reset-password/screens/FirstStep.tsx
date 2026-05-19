@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 // --------------- Компоненты и хуки ----------------
-import { View } from "react-native";
+import { View, Pressable, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { AxiosError } from "axios";
@@ -9,6 +9,7 @@ import { AxiosError } from "axios";
 // --------------- Стили и цвета ----------------
 import { styles } from "@/feature-auth/reset-password/styles/FirstStep.styles";
 import { colors } from "@/styles/Colors";
+import ReturnIcon from "@/assets/icons/ReturnIcon.png";
 
 // --------------- Вспомогательные компоненты ----------------
 import { Typography } from "@/styles/Typography";
@@ -19,6 +20,7 @@ import { MainButton } from "@/components/MainButton";
 import { isValidEmail } from "@/feature-auth/validators/email.validator";
 import { resetPassword } from "@/feature-auth/reset-password/api/resetPassword.api";
 import { useResetPasswordStore } from "@/feature-auth/store/resetPassword.store";
+import { commonStyles } from "@/styles/Common";
 
 /**
  * Экран первого шага сброса пароля, где пользователь вводит свой email.
@@ -73,43 +75,76 @@ export default function FirstStepResetPassword() {
       setLoading(false); // Снимаем состояние загрузки.
     }
   };
+  const handleBack = () => {
+    router.push("/login");
+  };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Typography variant="h1" style={styles.pageNames}>
-        Введите ваш адрес электронной почты
-      </Typography>
-
-      <View style={styles.infoContainer}>
-        <Typography variant="h2">
-          Мы отправим вам код для сброса пароля
-        </Typography>
-
-        <Input
-          style={[styles.input, error ? styles.inputError : undefined]}
-          placeholder="Email*"
-          value={emailInput}
-          onChangeText={setEmailInput}
-          autoCapitalize="none"
-        />
-
-        {error ? (
-          <Typography
-            variant="h3"
-            color={colors.errorColor}
-            style={{ alignSelf: "center" }}
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}
+    >
+      <View style={commonStyles.container}>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center", // Выравнивает стрелку и текст строго по одной горизонтальной линии
+            gap: 12, // Фиксированный отступ между стрелкой и текстом, как в дизайне
+            width: "100%",
+            paddingTop: 32,
+            paddingBottom: 16,
+            paddingHorizontal: 16, // Боковой отступ, чтобы на мобилках не прижималось к краю
+          }}
+        >
+          <Pressable
+            onPress={handleBack}
+            style={{
+              justifyContent: "center",
+              alignItems: "center",
+              padding: 20,
+              
+            }}
           >
-            {error}
-          </Typography>
-        ) : null}
-      </View>
+            <Image source={ReturnIcon} style={{ width: 12, height: 22 }} />
+          </Pressable>
+        </View>
 
-      <View style={styles.buttonContainer}>
-        <MainButton
-          title={loading ? "Отправка..." : "Сбросить пароль"}
-          onPress={handleContinue}
-          disabled={!isButtonActive}
-        />
+        <View style={{top: 250}}>
+          <Typography variant="h1" style={styles.pageNames}>
+            Введите ваш адрес электронной почты
+          </Typography>
+
+          <View style={styles.infoContainer}>
+            <Typography variant="h2">
+              Мы отправим вам код для сброса пароля
+            </Typography>
+
+            <Input
+              style={[styles.input, error ? styles.inputError : undefined]}
+              placeholder="Email*"
+              value={emailInput}
+              onChangeText={setEmailInput}
+              autoCapitalize="none"
+            />
+
+            {error ? (
+              <Typography
+                variant="h3"
+                color={colors.errorColor}
+                style={{ alignSelf: "center" }}
+              >
+                {error}
+              </Typography>
+            ) : null}
+          </View>
+        </View>
+
+        <View style={styles.buttonContainer}>
+          <MainButton
+            title={loading ? "Отправка..." : "Сбросить пароль"}
+            onPress={handleContinue}
+            disabled={!isButtonActive}
+          />
+        </View>
       </View>
     </SafeAreaView>
   );
