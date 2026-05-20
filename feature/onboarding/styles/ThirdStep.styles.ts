@@ -4,28 +4,28 @@ import { colors } from '@/styles/Colors';
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    width: '100%',               // Тянется до 800px
+    paddingHorizontal: 16,
+    paddingTop: 40,
   },
   progressLineBox: {
-    maxWidth: 400,
-    width: '100%',
-    alignSelf: 'center',
+    width: '100%',               // Убрали maxWidth: 400
+    marginBottom: 20,
   },
   content: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 10,
+    width: '100%',
   },
   typography: {
     textAlign: 'center',
-    maxWidth: 400,
+    width: '100%',               // Убрали maxWidth: 400
     marginBottom: 24,
   },
   inputContainer: {
-    gap: 12,
-    width: '100%',
-    maxWidth: 400,
+    gap: 16,                     // Увеличили шаг, чтобы красиво разделять поля ввода с учетом ошибок
+    width: '100%',               // Убрали maxWidth: 400
   },
   input: {
     width: '100%',
@@ -36,10 +36,14 @@ export const styles = StyleSheet.create({
   },
   inputError: {
     borderColor: colors.errorColor,
-    color: colors.errorColor,
   },
   errorText: {
     color: colors.errorColor,
     textAlign: 'center',
+  },
+  buttonContainer: {
+    width: '100%',
+    marginTop: 'auto',           // Кнопка прижимается к низу по флексу
+    marginBottom: 30,
   },
 });

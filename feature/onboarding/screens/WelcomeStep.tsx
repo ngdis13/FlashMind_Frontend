@@ -45,6 +45,7 @@ export default function WelcomeScreen() {
       router.push('/profile');
 
     } catch(error){
+      router.push('/login');
       console.error('ошибка:', error)
     }
   };

@@ -5,6 +5,13 @@ import { colors } from "./Colors";
 const MAX_CONTENT_WIDTH = 800;
 
 export const commonStyles = StyleSheet.create({
+  //Самый главный контейнер который задает цвет, то есть самый дальний контейнер
+  //Структура контейнеров viewContainer => container => content или индивидуальный для экрана контейнер
+  viewContainer: {
+    flex: 1,
+    backgroundColor: colors.background,
+    width: "100%",
+  },
   // Главный экран приложения. На ПК он займет 100%, но отцентрирует всё содержимое
   container: {
     flex: 1,
@@ -12,7 +19,7 @@ export const commonStyles = StyleSheet.create({
     alignItems: "center", // Центрирует дочерние элементы по горизонтали
     width: "100%",
     maxWidth: MAX_CONTENT_WIDTH,
-    marginHorizontal: "auto", 
+    marginHorizontal: "auto",
   },
 
   // Центральный блок контента. Теперь он не растянется шире 600px
@@ -46,7 +53,7 @@ export const commonStyles = StyleSheet.create({
 
   // Карточки, инфо-боксы и шапки будут занимать 100% от родителя (то есть от макс. 600px)
   mainBox: {
-    width: "100%", 
+    width: "100%",
     borderColor: colors.lightGray,
     backgroundColor: colors.white,
     borderRadius: 20,

@@ -19,6 +19,8 @@ import { isValidEmail } from "../../validators/email.validator";
 // --------------------------- Стили ---------------------------
 import { styles } from "../styles/login.styles";
 import { Typography } from "@/styles/Typography";
+import { commonStyles } from "@/styles/Common";
+import { colors } from "@/styles/Colors";
 
 /**
  * Экран авторизации пользователя. Пользователь вводит email и пароль для входа.
@@ -79,7 +81,7 @@ export default function LoginScreen() {
       });
 
       setAccessToken(data.access_token); // Сохраняем токен
-      router.replace("/profile"); 
+      router.replace("/profile");
     } catch (err: unknown) {
       // Обработка ошибок с сервера
       if (err instanceof AxiosError) {
@@ -112,77 +114,83 @@ export default function LoginScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      {/* Логотип */}
-      <Logo size={150} style={{ marginBottom: 16 }} />
+    <View
+      style={commonStyles.viewContainer}
+    >
+      <View style={commonStyles.container}>
+        <View style={styles.container}>
+          {/* Логотип */}
+          <Logo size={150} style={{ marginBottom: 16 }} />
 
-      {/* Заголовок страницы */}
-      <Typography variant="h1" style={styles.title}>
-        Добро пожаловать в Flashmind!
-      </Typography>
-
-      {/* Контейнер с полями ввода */}
-      <View style={styles.inputContainer}>
-        {/* Поле ввода email */}
-        <Input
-          style={[styles.input, emailError ? styles.inputError : undefined]}
-          placeholder="Email"
-          value={email}
-          onChangeText={(text) => setEmail(text)}
-          autoCapitalize="none"
-        />
-
-        {/* Поле ввода пароля */}
-        <View style={styles.passwordWrapper}>
-          <Input
-            style={[
-              styles.input,
-              passwordError ? styles.inputError : undefined,
-            ]}
-            placeholder="Пароль*"
-            value={password}
-            onChangeText={(text) => setPassword(text)}
-            autoCapitalize="none"
-            secureTextEntry={!showPassword}
-          />
-
-          {/* Иконка для показа/скрытия пароля */}
-          <Pressable
-            onPress={() => setShowPassword((prev) => !prev)}
-            hitSlop={10}
-            style={styles.eyeButton}
-            accessibilityRole="button"
-            accessibilityLabel={
-              showPassword ? "Скрыть пароль" : "Показать пароль"
-            }
-          >
-            {showPassword ? <OpenEyesIcon /> : <CloseEyesIcon />}
-          </Pressable>
-        </View>
-      </View>
-
-      {/* Сообщение об ошибке сервера */}
-      <View style={styles.errorContainer}>
-        {serverError ? (
-          <Typography variant="h3" style={styles.errorMessage}>
-            {serverError}
+          {/* Заголовок страницы */}
+          <Typography variant="h1" style={styles.title}>
+            Добро пожаловать в Flashmind!
           </Typography>
-        ) : null}
-      </View>
 
-      {/* Ссылка на восстановление пароля */}
-      <Pressable onPress={handleChangePassword}>
-        <Typography variant="h2">Забыли пароль?</Typography>
-      </Pressable>
+          {/* Контейнер с полями ввода */}
+          <View style={styles.inputContainer}>
+            {/* Поле ввода email */}
+            <Input
+              style={[styles.input, emailError ? styles.inputError : undefined]}
+              placeholder="Email"
+              value={email}
+              onChangeText={(text) => setEmail(text)}
+              autoCapitalize="none"
+            />
 
-      {/* Кнопки для входа и регистрации */}
-      <View style={styles.buttonContainer}>
-        <MainButton
-          title="Войти"
-          onPress={handleLogin}
-          disabled={!isButtonActive} // Кнопка активна только при заполнении обоих полей
-        />
-        <SecondButton title="Регистрация" onPress={handleRegister} />
+            {/* Поле ввода пароля */}
+            <View style={styles.passwordWrapper}>
+              <Input
+                style={[
+                  styles.input,
+                  passwordError ? styles.inputError : undefined,
+                ]}
+                placeholder="Пароль*"
+                value={password}
+                onChangeText={(text) => setPassword(text)}
+                autoCapitalize="none"
+                secureTextEntry={!showPassword}
+              />
+
+              {/* Иконка для показа/скрытия пароля */}
+              <Pressable
+                onPress={() => setShowPassword((prev) => !prev)}
+                hitSlop={10}
+                style={styles.eyeButton}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  showPassword ? "Скрыть пароль" : "Показать пароль"
+                }
+              >
+                {showPassword ? <OpenEyesIcon /> : <CloseEyesIcon />}
+              </Pressable>
+            </View>
+          </View>
+
+          {/* Сообщение об ошибке сервера */}
+          <View style={styles.errorContainer}>
+            {serverError ? (
+              <Typography variant="h3" style={styles.errorMessage}>
+                {serverError}
+              </Typography>
+            ) : null}
+          </View>
+
+          {/* Ссылка на восстановление пароля */}
+          <Pressable onPress={handleChangePassword}>
+            <Typography variant="h2">Забыли пароль?</Typography>
+          </Pressable>
+
+          {/* Кнопки для входа и регистрации */}
+          <View style={styles.buttonContainer}>
+            <MainButton
+              title="Войти"
+              onPress={handleLogin}
+              disabled={!isButtonActive} // Кнопка активна только при заполнении обоих полей
+            />
+            <SecondButton title="Регистрация" onPress={handleRegister} />
+          </View>
+        </View>
       </View>
     </View>
   );

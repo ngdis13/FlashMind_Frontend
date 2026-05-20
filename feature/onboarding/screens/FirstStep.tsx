@@ -1,12 +1,12 @@
 // Основные рабочие импорты
 import React, { useState } from 'react';
 import { View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
 // Стили
 import { Typography } from '@/styles/Typography';
 import { styles } from '../styles/FirstStep.styles';
+import { commonStyles } from '@/styles/Common';
 
 // Иконки
 import { ExamIcon } from '../assets/assetsComponents/ExamIcon';
@@ -22,20 +22,7 @@ import { ProgressLineAnimated } from '@/components/ProgressLine';
  *
  * @description
  * Пользователь выбирает основную цель обучения. 
- * Выбор цели используется для персонализации дальнейшего процесса обучения
- * и управления навигацией к следующему шагу онбординга.
- *
- * Особенности:
- * - Отображает прогресс-линию с текущим шагом.
- * - Предоставляет три варианта выбора цели с иконками.
- * - При выборе варианта выполняется переход к следующему шагу.
- *
- * @example
- * ```tsx
- * <FirstStepScreen />
- * ```
- *
- * @returns {JSX.Element} Компонент экрана первого шага онбординга
+ * Выбор цели используется для персонализации дальнейшего процесса обучения.
  */
 export default function FirstStepScreen() {
   const router = useRouter();
@@ -54,40 +41,43 @@ export default function FirstStepScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Прогресс-линию */}
-      <View style={styles.progressLineBox}>
-        <ProgressLineAnimated currentStep={1} />
-      </View>
+    <View style={commonStyles.viewContainer}>
+      <View style={commonStyles.container}>
+        <View style={styles.container}>
+          
+          {/* Прогресс-линия */}
+          <View style={styles.progressLineBox}>
+            <ProgressLineAnimated currentStep={1} />
+          </View>
 
-      {/* Контент экрана */}
-      <View style={styles.content}>
-        <Typography
-          variant="h1"
-          style={{ textAlign: 'center', marginBottom: 24 }}
-        >
-          Какая твоя цель?
-        </Typography>
+          {/* Контент экрана */}
+          <View style={styles.content}>
+            <Typography variant="h1" style={styles.title}>
+              Какая твоя цель?
+            </Typography>
 
-        {/* Поля выбора целей */}
-        <View style={styles.selectionFields}>
-          <SelectionField
-            image={<LanguageIcon />}
-            title="Выучить новый язык"
-            onPress={() => handleSelect('Выучить новый язык')}
-          />
-          <SelectionField
-            image={<ExamIcon />}
-            title="Подготовиться к экзамену"
-            onPress={() => handleSelect('Подготовиться к экзамену')}
-          />
-          <SelectionField
-            image={<OtherIcon />}
-            title="Другое"
-            onPress={() => handleSelect('Другое')}
-          />
+            {/* Поля выбора целей */}
+            <View style={styles.selectionFields}>
+              <SelectionField
+                image={<LanguageIcon />}
+                title="Выучить новый язык"
+                onPress={() => handleSelect('Выучить новый язык')}
+              />
+              <SelectionField
+                image={<ExamIcon />}
+                title="Подготовиться к экзамену"
+                onPress={() => handleSelect('Подготовиться к экзамену')}
+              />
+              <SelectionField
+                image={<OtherIcon />}
+                title="Другое"
+                onPress={() => handleSelect('Другое')}
+              />
+            </View>
+          </View>
+
         </View>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }

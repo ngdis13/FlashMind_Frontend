@@ -2,7 +2,6 @@
 import React from 'react';
 import { View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 //Стили
 import { styles } from '../styles/SecondStep.styles';
@@ -31,23 +30,30 @@ export default function SecondStepScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.progressLineBox}>
-        <ProgressLineAnimated currentStep={2} />
-      </View>
+    <View style={commonStyles.viewContainer}>
+      <View style={commonStyles.container}>
+        <View style={styles.container}>
+          
+          {/* Индикатор прогресса */}
+          <View style={styles.progressLineBox}>
+            <ProgressLineAnimated currentStep={2} />
+          </View>
 
-      <View style={styles.content}>
-        <Typography
-          variant="h1"
-          style={{ textAlign: 'center', maxWidth: 400 }}
-        >
-          Сколько минут в день ты планируешь уделять обучению?
-        </Typography>
-        <MinutesSelectionField />
+          {/* Центральный контент */}
+          <View style={styles.content}>
+            <Typography variant="h1" style={styles.title}>
+              Сколько минут в день ты планируешь уделять обучению?
+            </Typography>
+            <MinutesSelectionField />
+          </View>
+
+          {/* Контейнер для кнопки */}
+          <View style={styles.buttonContainer}>
+            <MainButton title="Дальше" onPress={handleNextStep} />
+          </View>
+
+        </View>
       </View>
-      <View style={commonStyles.buttonContainer}>
-        <MainButton title="Дальше" onPress={handleNextStep} />
-      </View>
-    </SafeAreaView>
+    </View>
   );
 }

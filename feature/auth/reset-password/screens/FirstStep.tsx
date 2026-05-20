@@ -81,7 +81,7 @@ export default function FirstStepResetPassword() {
 
   return (
     <SafeAreaView
-      style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}
+      style={commonStyles.viewContainer}
     >
       <View style={commonStyles.container}>
         <View

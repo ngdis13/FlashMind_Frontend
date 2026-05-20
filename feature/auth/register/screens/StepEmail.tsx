@@ -24,6 +24,7 @@ import { isValidEmail } from "@/feature-auth/validators/email.validator";
 import { AxiosError } from "axios";
 import { startRegistration } from "../api/registerApi";
 import { useRegistrationStore } from "../../store/register.store";
+import { commonStyles } from "@/styles/Common";
 
 /**
  * Экран регистрации нового пользователя.
@@ -92,7 +93,10 @@ export default function RegisterScreen() {
     // Отправка данных на сервер
     try {
       setEmail(emailInput.trim());
-      await startRegistration({email: emailInput.trim(), password: password.trim()});
+      await startRegistration({
+        email: emailInput.trim(),
+        password: password.trim(),
+      });
       router.push("/register/step-confirm-email");
     } catch (err: unknown) {
       if (err instanceof AxiosError) {
@@ -113,79 +117,95 @@ export default function RegisterScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Логотип */}
-      <Logo size={150} style={{ marginBottom: 16 }} />
+    <View style={commonStyles.viewContainer}>
+      <View style={commonStyles.container}>
+        <SafeAreaView style={styles.container}>
+          {/* Логотип */}
+          <Logo size={150} style={{ marginBottom: 16 }} />
 
-      {/* Заголовок страницы */}
-      <Typography variant="h1" style={styles.pageNames}>
-        Регистрация
-      </Typography>
-
-      {/* --------------------------- Форма --------------------------- */}
-      <View style={styles.inputContainer}>
-        {/* Email */}
-        <Input
-          style={[styles.input, emailError ? styles.inputError : undefined]}
-          placeholder="Email*"
-          value={emailInput}
-          autoCapitalize="none"
-          onChangeText={(text) => {
-            setEmailInput(text);
-            if (emailError) setEmailError(false);
-          }}
-        />
-
-        {/* Пароль */}
-        <View style={styles.passwordWrapper}>
-          <Input
-            style={[styles.input, passwordError ? styles.inputError : undefined]}
-            placeholder="Пароль*"
-            value={password}
-            onChangeText={setPassword}
-            autoCapitalize="none"
-            secureTextEntry={!showPassword}
-          />
-          <Pressable
-            onPress={() => setShowPassword((prev) => !prev)}
-            hitSlop={10}
-            style={styles.eyeButton}
-            accessibilityRole="button"
-            accessibilityLabel={showPassword ? "Скрыть пароль" : "Показать пароль"}
-          >
-            {showPassword ? <OpenEyesIcon /> : <CloseEyesIcon />}
-          </Pressable>
-        </View>
-
-        {/* Подтверждение пароля */}
-        <Input
-          style={[styles.input, confirmError ? styles.inputError : undefined]}
-          placeholder="Подтверждение пароля*"
-          value={confirmPassword}
-          onChangeText={setConfirmPassword}
-          autoCapitalize="none"
-          secureTextEntry
-        />
-
-        {/* Ошибка сервера */}
-        {serverError && (
-          <Typography
-            variant="h3"
-            color={colors.errorColor}
-            style={{ alignSelf: "center", textAlign: "center" }}
-          >
-            {serverError}
+          {/* Заголовок страницы */}
+          <Typography variant="h1" style={styles.pageNames}>
+            Регистрация
           </Typography>
-        )}
-      </View>
 
-      {/* --------------------------- Кнопки --------------------------- */}
-      <View style={styles.buttonContainer}>
-        <MainButton title="Продолжить" onPress={handleContinue} disabled={!isFormFilled} />
-        <Pressable onPress={handleHavingAccount}>
-          <Typography variant="h2">У вас уже есть аккаунт?</Typography>
-        </Pressable>
+          {/* --------------------------- Форма --------------------------- */}
+          <View style={styles.inputContainer}>
+            {/* Email */}
+            <Input
+              style={[styles.input, emailError ? styles.inputError : undefined]}
+              placeholder="Email*"
+              value={emailInput}
+              autoCapitalize="none"
+              onChangeText={(text) => {
+                setEmailInput(text);
+                if (emailError) setEmailError(false);
+              }}
+            />
+
+            {/* Пароль */}
+            <View style={styles.passwordWrapper}>
+              <Input
+                style={[
+                  styles.input,
+                  passwordError ? styles.inputError : undefined,
+                ]}
+                placeholder="Пароль*"
+                value={password}
+                onChangeText={setPassword}
+                autoCapitalize="none"
+                secureTextEntry={!showPassword}
+              />
+              <Pressable
+                onPress={() => setShowPassword((prev) => !prev)}
+                hitSlop={10}
+                style={styles.eyeButton}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  showPassword ? "Скрыть пароль" : "Показать пароль"
+                }
+              >
+                {showPassword ? <OpenEyesIcon /> : <CloseEyesIcon />}
+              </Pressable>
+            </View>
+
+            {/* Подтверждение пароля */}
+            <Input
+              style={[
+                styles.input,
+                confirmError ? styles.inputError : undefined,
+              ]}
+              placeholder="Подтверждение пароля*"
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              autoCapitalize="none"
+              secureTextEntry
+            />
+
+            {/* Ошибка сервера */}
+            {serverError && (
+              <Typography
+                variant="h3"
+                color={colors.errorColor}
+                style={{ alignSelf: "center", textAlign: "center" }}
+              >
+                {serverError}
+              </Typography>
+            )}
+          </View>
+
+          {/* --------------------------- Кнопки --------------------------- */}
+          <View style={styles.buttonContainer}>
+            <MainButton
+              title="Продолжить"
+              onPress={handleContinue}
+              disabled={!isFormFilled}
+            />
+            <Pressable onPress={handleHavingAccount}>
+              <Typography variant="h2" >У вас уже есть аккаунт?</Typography>
+            </Pressable>
+          </View>
+        </SafeAreaView>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
