@@ -14,12 +14,12 @@ interface DecksViewProps {
 }
 
 const randomColors = [
-  colors.red,
-  colors.orange,
-  colors.yellow,
-  colors.green,
-  colors.blue,
-  colors.purple,
+  colors.red1,
+  colors.orange1,
+  colors.yellow1,
+  colors.green1,
+  colors.blue1,
+  colors.purple1,
 ];
 
 export default function DecksView({
@@ -59,7 +59,7 @@ export default function DecksView({
               color={colors.white}
               style={styles.extraCountText}
             >
-              {cardCountRepeat}
+              {cardCountRepeat ? cardCountRepeat : 0}
             </Typography>
           </View>
           <TouchableOpacity
