@@ -11,6 +11,7 @@ import { MainButton } from "@/components/MainButton";
 import { Logo } from "@/components/Logo";
 import { colors } from "@/styles/Colors";
 import { createNewDeck } from "../api/createDecks.api";
+import { ColorPalette } from "../components/colorPalette";
 
 export default function CreateDecksScreen() {
   const router = useRouter();
@@ -18,11 +19,14 @@ export default function CreateDecksScreen() {
   const [description, setDescription] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleDescriptionChange = (text: string) => {
-    // Разбиваем текст по символу новой строки
-    const lines = text.split("\n");
+  // 1. Стейт для управления видимостью модалки
+  const [visibleColorPalette, setVisibleColorPalette] = useState(false);
 
-    // Если строк 4 или меньше — разрешаем ввод
+  // 2. Стейт для хранения выбранного цвета (по умолчанию ставим, например, colors.red1)
+  const [selectedColor, setSelectedColor] = useState(colors.red1);
+
+  const handleDescriptionChange = (text: string) => {
+    const lines = text.split("\n");
     if (lines.length <= 4) {
       setDescription(text);
     }
@@ -30,11 +34,14 @@ export default function CreateDecksScreen() {
 
   const handleCreateDecks = async () => {
     if (!name.trim()) return;
+    setIsLoading(true); // Включаем лоадер перед запросом
 
     try {
+      // 3. Передаем выбранный цвет (selectedColor) в API
       const result = await createNewDeck({
         name: name,
         description: description,
+        color: selectedColor, // Добавляем поле цвета в запрос
       });
 
       if (result) {
@@ -45,6 +52,10 @@ export default function CreateDecksScreen() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleColorModalToggle = () => {
+    setVisibleColorPalette((prev) => !prev);
   };
 
   return (
@@ -71,9 +82,10 @@ export default function CreateDecksScreen() {
               Создание новой колоды
             </Typography>
           </View>
+
           <View style={styles.inputBox}>
             <Input
-              style={{ textAlign: "left" }}
+              style={[{ textAlign: "left" }, commonStyles.mainBox]}
               placeholder={"Название"}
               value={name}
               onChangeText={setName}
@@ -84,12 +96,30 @@ export default function CreateDecksScreen() {
               onChangeText={handleDescriptionChange}
               multiline={true}
               maxLength={120}
-              style={{
-                textAlign: "left",
-                height: 130,
-                textAlignVertical: "top", // Текст начинается сверху
-              }}
+              style={[
+                {
+                  textAlign: "left",
+                  height: 130,
+                  textAlignVertical: "top",
+                },
+                commonStyles.mainBox,
+              ]}
             />
+
+            {/* Кнопка открытия палитры */}
+            <Pressable
+              style={[commonStyles.mainBox, styles.colorBox]}
+              onPress={handleColorModalToggle}
+            >
+              {/* 4. МеняемbackgroundColor на выбранный стейт selectedColor */}
+              <View
+                style={[
+                  styles.colorEllipse,
+                  { backgroundColor: selectedColor },
+                ]}
+              />
+              <Typography variant="h2">Цвет</Typography>
+            </Pressable>
           </View>
 
           <View style={styles.infoBox}>
@@ -99,14 +129,22 @@ export default function CreateDecksScreen() {
               редактирования колоды
             </Typography>
           </View>
+          <MainButton
+            style={styles.createDecksButton}
+            title="Создать колоду"
+            disabled={isLoading}
+            onPress={handleCreateDecks}
+          />
         </View>
-        <MainButton
-          style={styles.createDecksButton}
-          title="Создать колоду"
-          disabled={isLoading}
-          onPress={handleCreateDecks}
-        />
       </View>
+
+      {/* 5. Подключаем модальное окно */}
+      {visibleColorPalette && (
+        <ColorPalette
+          onCancel={handleColorModalToggle}
+          onSelectColor={setSelectedColor} // Передаем функцию изменения цвета
+        />
+      )}
     </View>
   );
 }

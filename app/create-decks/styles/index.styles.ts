@@ -12,9 +12,19 @@ export const styles = StyleSheet.create({
   },
   createDecksButton: {
     alignSelf: "center",
-    maxWidth: 373,
+    bottom: -30
   },
   infoBox: {
     alignItems: "center",
   },
+  colorBox: {
+    flexDirection: "row",
+    gap: 12,
+    alignItems: "center"
+  },
+  colorEllipse: {
+    width: 20,
+    height: 20,
+    borderRadius: 80
+  }
 });
