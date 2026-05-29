@@ -2,22 +2,17 @@ import { colors } from "@/styles/Colors";
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
-  // Новые контейнеры для адаптивного выравнивания по центру экрана
   scrollContainer: {
     flexGrow: 1,
     width: "100%",
-    
-// Центрирует контент на веб-странице / планшете
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 116, // Отступ снизу с учетом вашей нижней панели
+    paddingBottom: 116,
   },
   responsiveWrapper: {
-    width: "100%",// На компьютерах приложение не расползется шире этой границы
+    width: "100%",
     alignItems: "flex-start",
   },
-
-  // Блок профиля
   bioBox: {
     width: "100%",
     flexDirection: "row",
@@ -26,17 +21,59 @@ export const styles = StyleSheet.create({
     marginBottom: 16,
     padding: 16,
   },
+  // Стили для кнопки аватара и лоадера внутри круга
+  avatarButton: {
+    position: "relative",
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    overflow: "hidden", // Чтобы затемнение лоадера не вылезало за края круга
+  },
+  avatarImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+  },
+  avatarLoaderOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(255, 255, 255, 0.4)", // Полупрозрачный черный фон поверх аватарки
+    justifyContent: "center",
+    alignItems: "center",
+  },
   aboutBox: {
-    flex: 1, // Вместо фиксированных 230px теперь занимает все оставшееся место
+    flex: 1,
     gap: 4,
   },
   nameBox: {
     flexDirection: "row",
-    flexWrap: "wrap", // Если имя + фамилия слишком длинные, они перенесутся
+    flexWrap: "wrap",
     gap: 6,
   },
-
-  // Блок активности общего назначения
+  // Стили для контейнера сообщений об ошибках
+  errorContainer: {
+    position: "absolute",
+    zIndex: 9999,
+    elevation: 999,
+    bottom: 20,
+    width: "100%",
+    backgroundColor: colors.errorColor, 
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    borderColor: colors.mainColor,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+  },
+  errorText: {
+    color: colors.white,
+    textAlign: "center",
+  },
   boxActivity: {
     width: "100%",
     gap: 8,
@@ -47,8 +84,6 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 12,
   },
-
-  // АДАПТИВНАЯ СЕТКА КАЛЕНДАРЯ
   boxProgress__nameRow: {
     width: "100%",
     flexDirection: "row",
@@ -56,7 +91,7 @@ export const styles = StyleSheet.create({
     marginBottom: 12,
   },
   dayLabelWrapper: {
-    width: `${100 / 7}%`, // Делим строку ровно на 7 равных частей
+    width: `${100 / 7}%`,
     alignItems: "center",
   },
   boxProgress__starsBox: {
@@ -74,8 +109,6 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-
-
   boxProgress__boxLine: {
     backgroundColor: "#E0E0E0",
     height: 1,
@@ -89,12 +122,10 @@ export const styles = StyleSheet.create({
     gap: 8,
   },
   boxProgress__infoBoxItem: {
-    flex: 1, 
+    flex: 1,
     alignItems: "center",
     gap: 4,
   },
-
-  // Кнопка настроек
   settingsButton: {
     width: "100%",
     flexDirection: "row",
