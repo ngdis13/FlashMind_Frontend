@@ -1,6 +1,13 @@
 import React, { useState } from "react";
-import { View, Pressable, Image, ScrollView, ActivityIndicator } from "react-native";
+import {
+  View,
+  Pressable,
+  Image,
+  ScrollView,
+  ActivityIndicator,
+} from "react-native";
 import * as ImagePicker from "expo-image-picker";
+import * as ImageManipulator from "expo-image-manipulator";
 
 import { commonStyles } from "@/styles/Common";
 import { styles } from "@/feature-profile/styles/profileScreen.styles";
@@ -31,9 +38,10 @@ export default function ProfileScreen() {
   // Функция отвечает за выбор аватара из галереи устройства
   const handlePickAvatar = async () => {
     setAvatarError(null); // Сбрасываем прошлую ошибку перед выбором файла
-    
+
     try {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
 
       if (status !== "granted") {
         setAvatarError("Нужно разрешение на доступ к галерее");
@@ -44,38 +52,54 @@ export default function ProfileScreen() {
         mediaTypes: ["images"],
         allowsEditing: true,
         aspect: [1, 1],
-        quality: 0.8,
+        quality: 0.9, // Исходное качество перед сжатием
       });
 
       if (!result.canceled) {
         const asset = result.assets[0];
-        const selectedUri = asset.uri;
+        let selectedUri = asset.uri;
 
-        // ВАЛИДАЦИЯ: Проверка размера файла (например, максимум 5 МБ = 5 * 1024 * 1024 байт)
-        if (asset.fileSize && asset.fileSize > 5242880) {
-          setAvatarError("Файл слишком большой. Выберите фото до 5 МБ.");
-          return;
-        }
-
-        console.log("Выбран аватар:", selectedUri);
-        
-        // Включаем локальный лоадер вместо блокировки всего экрана
+      
         setIsAvatarUploading(true);
 
-        // Сохраняем в стор локально для мгновенного отображения
+        console.log("Исходный аватар:", selectedUri);
+
+        //сжатие изображенияч
+        try {
+
+          const manipResult = await ImageManipulator.manipulateAsync(
+            selectedUri,
+            [{ resize: { width: 800 } }], 
+            { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG },
+          );
+
+          selectedUri = manipResult.uri;
+          console.log("Сжатый аватар готов:", selectedUri);
+        } catch (manipError) {
+          console.error(
+            "Не удалось сжать картинку, пробуем отправить оригинал:",
+            manipError,
+          );
+        }
+
+        // Сохраняем в стор локально для мгновенного отображения в интерфейсе
         setAvatarFile(selectedUri);
 
         console.log("Отправляем аватар на сервер...");
         await updateAvatar(selectedUri);
         console.log("Аватар успешно обновлён!");
-
       }
     } catch (error) {
       console.error("Ошибка при обновлении аватара:", error);
 
       if (error instanceof Error) {
-        if (error.message.includes("Network")) {
-          setAvatarError("Ошибка сети. Проверьте подключение к интернету.");
+        if (
+          error.message.includes("Network") ||
+          error.message.includes("413")
+        ) {
+          setAvatarError(
+            "Файл слишком большой для сервера или проблема с сетью.",
+          );
         } else if (error.message.includes("401")) {
           setAvatarError("Сессия истекла. Пожалуйста, перезайдите в аккаунт.");
         } else {
@@ -95,25 +119,35 @@ export default function ProfileScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}>
+    <View
+      style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}
+    >
       <View style={[commonStyles.container, { flex: 1 }]}>
-        <ScrollView contentContainerStyle={styles.scrollContainer} style={{ width: "100%" }}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContainer}
+          style={{ width: "100%" }}
+        >
           <View style={styles.responsiveWrapper}>
-            
-            <Typography variant="h1" style={{ marginBottom: 16, width: "100%" }}>
+            <Typography
+              variant="h1"
+              style={{ marginBottom: 16, width: "100%" }}
+            >
               Профиль
             </Typography>
 
             {/* Блок био */}
             <View style={[commonStyles.mainBox, styles.bioBox]}>
-              <Pressable 
-                onPress={handlePickAvatar} 
-                disabled={isAvatarUploading} 
+              <Pressable
+                onPress={handlePickAvatar}
+                disabled={isAvatarUploading}
                 style={styles.avatarButton}
               >
                 {/* Картинка или дефолтный аватар */}
                 {user?.avatarUrl ? (
-                  <Image source={{ uri: user.avatarUrl }} style={styles.avatarImage} />
+                  <Image
+                    source={{ uri: user.avatarUrl }}
+                    style={styles.avatarImage}
+                  />
                 ) : (
                   <UserAvatar size={80} />
                 )}
@@ -131,7 +165,11 @@ export default function ProfileScreen() {
                   <Typography variant="h2">{user?.firstName}</Typography>
                   <Typography variant="h2">{user?.lastName}</Typography>
                 </View>
-                <Typography variant="h3" color={colors.darkGray} numberOfLines={3}>
+                <Typography
+                  variant="h3"
+                  color={colors.darkGray}
+                  numberOfLines={3}
+                >
                   {user?.bio || "О себе"}
                 </Typography>
               </View>
@@ -163,7 +201,10 @@ export default function ProfileScreen() {
                     {Array.from({ length: 4 }).map((_, row) => (
                       <View key={row} style={styles.boxProgress__line}>
                         {Array.from({ length: 7 }).map((_, col) => (
-                          <View key={`${row}-${col}`} style={styles.starWrapper}>
+                          <View
+                            key={`${row}-${col}`}
+                            style={styles.starWrapper}
+                          >
                             <StarProgress />
                           </View>
                         ))}
@@ -198,11 +239,13 @@ export default function ProfileScreen() {
             </View>
 
             {/* Кнопка настроек */}
-            <Pressable style={[commonStyles.mainBox, styles.settingsButton]} onPress={handleSettings}>
+            <Pressable
+              style={[commonStyles.mainBox, styles.settingsButton]}
+              onPress={handleSettings}
+            >
               <SettingsIcon />
               <Typography variant="h2">Настройки</Typography>
             </Pressable>
-
           </View>
         </ScrollView>
       </View>
