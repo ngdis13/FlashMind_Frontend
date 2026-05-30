@@ -70,7 +70,7 @@ export default function CreateDecksScreen() {
       >
         <View style={commonStyles.mainContent}>
           <View style={styles.header}>
-            <Pressable onPress={() => router.back()} hitSlop={10}>
+            <Pressable onPress={() => router.replace("/decks")} hitSlop={10}>
               <Image
                 source={ReturnIcon}
                 style={{ width: 12, height: 22, top: 5 }}
@@ -129,6 +129,9 @@ export default function CreateDecksScreen() {
               редактирования колоды
             </Typography>
           </View>
+        </View>
+
+        <View style={styles.createDecksButton}>
           <MainButton
             style={styles.createDecksButton}
             title="Создать колоду"

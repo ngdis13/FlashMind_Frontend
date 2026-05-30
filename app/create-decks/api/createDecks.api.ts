@@ -8,11 +8,12 @@ interface CreateDeckPayload {
   description: string;
 }
 
-// Сервер возвращает объект созданной колоды, а не массив decks
+
 interface CreateDeckResponse {
   id: string;
   name: string;
   description: string;
+  color: string;
 }
 
 

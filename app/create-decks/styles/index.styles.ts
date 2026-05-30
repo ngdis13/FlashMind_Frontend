@@ -12,7 +12,8 @@ export const styles = StyleSheet.create({
   },
   createDecksButton: {
     alignSelf: "center",
-    bottom: -30
+    width: "100%",
+    paddingHorizontal: 10,
   },
   infoBox: {
     alignItems: "center",
