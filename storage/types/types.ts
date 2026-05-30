@@ -21,12 +21,13 @@ export interface DeckSettings {
  */
 export interface Deck {
   id: string;
-  name: string; // ← у вас name, не title
+  name: string; 
+  color: string;
   repeat_cards: number;
   settings: DeckSettings,
   description: string;
-  total_cards: number; // ← у вас total_cards, не cardCount
-  extraCount?: number; // ← добавим отдельно для вашего UI (23 на скриншоте)
+  total_cards: number; 
+  extraCount?: number; 
   cards?: Card[];
   created_at?: string;
   updated_at?: string;

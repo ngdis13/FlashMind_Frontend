@@ -3,9 +3,13 @@ import { StyleSheet } from "react-native";
 export const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
-    gap: 12,
+    gap: 16, // Немного увеличили зазор для лучшей читаемости
     alignItems: "center",
     width: "100%", // Гарантируем, что шапка занимает всю ширину контейнера
+  },
+  headerTitle: {
+    flex: 1, // Текст забирает всё свободное пространство и не выталкивает стрелку
+    flexWrap: "wrap", // Перенос строго по словам, а не по буквам
   },
   mainContent: {
     gap: 24,
@@ -22,6 +26,10 @@ export const styles = StyleSheet.create({
     gap: 12,
     zIndex: 10,
   },
+  infoBox: {
+    minWidth: 370,
+    alignSelf: "center"
+  },
   counter: {
     flexDirection: "row",
     gap: 11,
@@ -29,6 +37,7 @@ export const styles = StyleSheet.create({
   },
   startButton: {
     width: "100%", // Теперь кнопка растянется ровно по ширине контента (до 800px)
+    paddingHorizontal: 10,
   },
   tooltip: {
     flexDirection: "row",

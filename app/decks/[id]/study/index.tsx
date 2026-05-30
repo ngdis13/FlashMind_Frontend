@@ -64,6 +64,7 @@ export default function StudyDecksScreen() {
       });
     }
   }, [id]);
+
   return (
     // 1. Внешняя фоновая подложка на весь экран ПК
     <View
@@ -71,7 +72,7 @@ export default function StudyDecksScreen() {
     >
       {/* 2. Наш адаптивный контейнер шириной 800px, центрированный по горизонтали */}
       <View style={[commonStyles.container, { flex: 1, paddingBottom: 30 }]}>
-        {/* 3. ИСПРАВЛЕНИЕ: Оборачиваем верхний контент в общий адаптивный блок */}
+        {/* 3. Оборачиваем верхний контент в общий адаптивный блок */}
         <View
           style={[
             commonStyles.content,
@@ -85,14 +86,25 @@ export default function StudyDecksScreen() {
               { width: "100%" },
             ]}
           >
+
             <View style={styles.header}>
-              <Pressable onPress={handleBack}>
+              <Pressable 
+                onPress={handleBack}
+                style={{ padding: 6, marginLeft: -6 }} 
+              >
                 <Image source={ReturnIcon} style={{ width: 12, height: 22 }} />
               </Pressable>
-              <Typography variant="h1">{deck?.name}</Typography>
+              <Typography 
+                variant="h1" 
+                style={styles.headerTitle}
+                numberOfLines={2}
+                ellipsizeMode="tail" 
+              >
+                {deck?.name}
+              </Typography>
             </View>
 
-            <View style={[commonStyles.mainBox, { gap: 24 }]}>
+            <View style={[commonStyles.mainBox, { gap: 24 }, styles.infoBox]}>
               <View style={styles.infoLine}>
                 <Typography variant="h2">Всего карточек</Typography>
                 <Typography variant="h2">{studyData?.total}</Typography>
@@ -193,13 +205,14 @@ export default function StudyDecksScreen() {
           <Typography variant="h2">
             К повторению сегодня: {(studyData?.learning_today ?? 0) + addCount}
           </Typography>
-
-          <MainButton
-            style={[styles.startButton, { width: "100%" }]} // Заставляем кнопку растягиваться до краев области 800px
-            title="Старт"
-            onPress={handleStartStudy}
-            disabled={!studyData}
-          />
+          <View style={styles.startButton}>
+            <MainButton
+              style={[styles.startButton, { width: "100%" }]} 
+              title="Старт"
+              onPress={handleStartStudy}
+              disabled={!studyData}
+            />
+          </View>
         </View>
       </View>
     </View>

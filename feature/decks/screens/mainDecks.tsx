@@ -117,6 +117,7 @@ export default function MainDecksScreen() {
                     onEditPress={() => handleEditDecks(item.id)}
                     cardCountRepeat={item.repeat_cards}
                     index={index}
+                    color={item.color || colors.mainColor}
                   />
                 </View>
               )}

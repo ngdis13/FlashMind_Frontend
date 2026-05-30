@@ -11,6 +11,7 @@ interface DecksViewProps {
   onEditPress: () => void;
   onCardPress: () => void;
   index: number;
+  color: string;
 }
 
 const randomColors = [
@@ -29,15 +30,16 @@ export default function DecksView({
   onEditPress,
   onCardPress,
   index,
+  color
 }: DecksViewProps) {
-  const stripeColor = randomColors[index % randomColors.length];
+
   return (
     <TouchableOpacity
       style={styles.card}
       onPress={onCardPress}
       activeOpacity={0.7}
     >
-      <View style={[styles.up, { backgroundColor: stripeColor }]} />
+      <View style={[styles.up, { backgroundColor: color }]} />
       <View style={styles.content}>
         <Typography variant="h2" numberOfLines={2}>
           {title}
@@ -53,7 +55,7 @@ export default function DecksView({
         </Typography>
 
         <View style={styles.bottom}>
-          <View style={[[styles.countBadge], { backgroundColor: stripeColor }]}>
+          <View style={[[styles.countBadge], { backgroundColor: color }]}>
             <Typography
               variant="h3"
               color={colors.white}
@@ -71,7 +73,7 @@ export default function DecksView({
             <View
               style={[
                 [styles.countBadgeEdit],
-                { backgroundColor: stripeColor },
+                { backgroundColor: color },
               ]}
             >
               <Image

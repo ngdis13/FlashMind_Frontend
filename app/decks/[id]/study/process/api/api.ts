@@ -41,7 +41,7 @@ export async function getStudyCard(deckId: string, total: number): Promise<Study
 }
 
 
-export async function postCardRating(cardId: string, rating: number) {
+export async function postCardRating(cardId: string, rating: number, reviewDuration: number) {
   try {
     const accessToken = useAuthStore.getState().accessToken;
 
@@ -49,7 +49,8 @@ export async function postCardRating(cardId: string, rating: number) {
       getMainServiceApiUrl('/api/v1/study'),
       {
         card_id: cardId,
-        rating: rating
+        rating: rating,
+        review_duration: reviewDuration
       },
       {
         headers: { Authorization: `Bearer ${accessToken}` }

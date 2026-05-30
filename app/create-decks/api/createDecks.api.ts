@@ -6,6 +6,7 @@ import { useAuthStore } from "@/store/auth.store";
 interface CreateDeckPayload {
   name: string;
   description: string;
+  color: string;
 }
 
 

@@ -96,7 +96,7 @@ export const StudyCardView = ({ card, isFirstCard }: Props) => {
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
           >
-            <Typography variant="h2" style={styles.mainText}>
+            <Typography variant="h2" style={[styles.mainText, {fontWeight: 800, fontSize: 21}]}>
               {card?.front}
             </Typography>
           </ScrollView>
@@ -145,6 +145,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
   },
   scrollContent: { flexGrow: 1, justifyContent: "center", padding: 20 },
-  mainText: { textAlign: "center" },
+  mainText: { textAlign: "center"},
   hintTextInside: { textAlign: "center", paddingBottom: 10 },
 });
