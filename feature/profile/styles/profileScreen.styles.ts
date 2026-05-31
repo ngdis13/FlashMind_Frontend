@@ -21,13 +21,12 @@ export const styles = StyleSheet.create({
     marginBottom: 16,
     padding: 16,
   },
-  // Стили для кнопки аватара и лоадера внутри круга
   avatarButton: {
     position: "relative",
     width: 80,
     height: 80,
     borderRadius: 40,
-    overflow: "hidden", // Чтобы затемнение лоадера не вылезало за края круга
+    overflow: "hidden",
   },
   avatarImage: {
     width: 80,
@@ -40,7 +39,7 @@ export const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "rgba(255, 255, 255, 0.4)", // Полупрозрачный черный фон поверх аватарки
+    backgroundColor: "rgba(255, 255, 255, 0.4)",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -53,7 +52,6 @@ export const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: 6,
   },
-  // Стили для контейнера сообщений об ошибках
   errorContainer: {
     position: "absolute",
     zIndex: 9999,
@@ -96,16 +94,16 @@ export const styles = StyleSheet.create({
   },
   boxProgress__starsBox: {
     width: "100%",
-    gap: 12,
+    gap: 12, // Расстояние между рядами (строками)
     marginBottom: 16,
   },
   boxProgress__line: {
     width: "100%",
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "space-between", // Равномерно распределяет 7 звезд по ширине
   },
   starWrapper: {
-    width: `${100 / 7}%`,
+    width: `${100 / 7}%`, // Идеальное деление на 7 колонок
     alignItems: "center",
     justifyContent: "center",
   },
@@ -131,6 +129,5 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    padding: 16,
   },
 });

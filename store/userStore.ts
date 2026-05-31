@@ -14,6 +14,11 @@ export type UserProfile = {
     name: string;
     type: string;
   } | null;
+  review_series: number;
+  total_reviews: number;
+  daily_review_counts: {
+    [date: string]: number;
+  };
 };
 
 /**
@@ -73,7 +78,7 @@ type UserState = {
    * @throws {Error} Если нет данных пользователя или ошибка отправки
    */
   submitOnbordingData: () => Promise<ProfileResponse>;
-  updateAvatar: (uri: string) => Promise<ProfileResponse>
+  updateAvatar: (uri: string) => Promise<ProfileResponse>;
 };
 
 /**
@@ -132,11 +137,15 @@ export const useUserStore = create<UserState>((set, get) => ({
 
     try {
       const response = await getUserProfile();
-      const mappedUserProfile = {
-        firstName: response.first_name ? response.first_name : "Star",
-        lastName: response.last_name ? response.last_name : "1234",
-        bio: response.bio ? response.bio : "О себе",
+      const mappedUserProfile: UserProfile = {
+        id: response.id, // если есть в ответе
+        firstName: response.first_name || "Star",
+        lastName: response.last_name || "1234",
+        bio: response.bio || "О себе",
         avatarUrl: response.avatar_url || null,
+        review_series: response.review_series ?? 0,
+        total_reviews: response.total_reviews ?? 0,
+        daily_review_counts: response.daily_review_counts || {},
       };
       set({
         user: mappedUserProfile,
@@ -153,17 +162,20 @@ export const useUserStore = create<UserState>((set, get) => ({
 
   updateProfile: (data) =>
     set((state) => {
-      // Если user существует - обновляем
       if (state.user) {
         return { user: { ...state.user, ...data } };
       }
-      // Если user не существует - создаем новый с данными
+      // Если user не существует - создаем с дефолтными значениями
       return {
         user: {
           firstName: data.firstName || "",
           lastName: data.lastName || "",
           bio: data.bio || "",
           avatarUrl: data.avatarUrl || null,
+          review_series: 0, 
+          total_reviews: 0, 
+          daily_review_counts: {}, 
+          ...data, 
         },
       };
     }),

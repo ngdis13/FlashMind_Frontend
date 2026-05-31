@@ -22,6 +22,38 @@ import { useUserStore } from "@/store/userStore";
 import { useRouter } from "expo-router";
 import LoadingScreen from "@/app/loading";
 
+// 1. Утилита генерации матрицы локальных дат 4 строки на 7 дней
+const getGridDays = () => {
+  const totalDays = 28;
+  const grid: string[][] = [];
+  const dates: string[] = [];
+
+  for (let i = totalDays - 1; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+
+    dates.push(`${year}-${month}-${day}`);
+  }
+
+  for (let i = 0; i < 4; i++) {
+    grid.push(dates.slice(i * 7, (i + 1) * 7));
+  }
+
+  return grid;
+};
+
+// 2. Утилита подбора цвета в зависимости от активности пользователя
+const getStarColor = (count: number) => {
+  if (count === 0) return "#D8D8D8"; // Серый — отдыхал
+  if (count <= 3) return "#BEC2FF"; // Светло-фиолетовый — размялся
+  if (count <= 10) return "#6E75D9"; // Средне-фиолетовый — хорошо поучился
+  return "#464A8D"; // Тёмно-фиолетовый — супер-продуктивный день
+};
+
 export default function ProfileScreen() {
   const router = useRouter();
   const { user, setAvatarFile, isLoading, updateAvatar } = useUserStore();
@@ -59,17 +91,15 @@ export default function ProfileScreen() {
         const asset = result.assets[0];
         let selectedUri = asset.uri;
 
-      
         setIsAvatarUploading(true);
 
         console.log("Исходный аватар:", selectedUri);
 
         //сжатие изображенияч
         try {
-
           const manipResult = await ImageManipulator.manipulateAsync(
             selectedUri,
-            [{ resize: { width: 800 } }], 
+            [{ resize: { width: 800 } }],
             { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG },
           );
 
@@ -189,25 +219,27 @@ export default function ProfileScreen() {
               <Typography variant="h2">Активность</Typography>
               <View style={commonStyles.mainBox}>
                 <View style={styles.boxProgress}>
-                  <View style={styles.boxProgress__nameRow}>
-                    {["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"].map((day) => (
-                      <View key={day} style={styles.dayLabelWrapper}>
-                        <Typography variant="h2">{day}</Typography>
-                      </View>
-                    ))}
-                  </View>
-
+                  {/* Контейнер всей сетки */}
                   <View style={styles.boxProgress__starsBox}>
-                    {Array.from({ length: 4 }).map((_, row) => (
-                      <View key={row} style={styles.boxProgress__line}>
-                        {Array.from({ length: 7 }).map((_, col) => (
-                          <View
-                            key={`${row}-${col}`}
-                            style={styles.starWrapper}
-                          >
-                            <StarProgress />
-                          </View>
-                        ))}
+                    {getGridDays().map((row, rowIndex) => (
+                      /* Отрисовка строки (всего выведется 4 строки) */
+                      <View key={rowIndex} style={styles.boxProgress__line}>
+                        {row.map((dateStr) => {
+                          // Получаем доступ к словарю дат с сервера
+                          const reviewCounts =
+                            user?.dailyReviewCounts ||
+                            user?.daily_review_counts ||
+                            {};
+                          const countForDay = reviewCounts[dateStr] ?? 0;
+                          const starColor = getStarColor(countForDay);
+
+                          return (
+                            /* Ячейка отдельной звезды (всего 7 в каждом ряду) */
+                            <View key={dateStr} style={styles.starWrapper}>
+                              <StarProgress size={24} color={starColor} />
+                            </View>
+                          );
+                        })}
                       </View>
                     ))}
                   </View>
@@ -216,19 +248,25 @@ export default function ProfileScreen() {
 
                   <View style={styles.boxProgress__infoBox}>
                     <View style={styles.boxProgress__infoBoxItem}>
-                      <Typography variant="h2">0</Typography>
+                      <Typography variant="h2">
+                        {user?.reviewSeries ?? user?.review_series ?? 0}
+                      </Typography>
                       <Typography variant="h3" style={{ textAlign: "center" }}>
                         дней без перерыва
                       </Typography>
                     </View>
                     <View style={styles.boxProgress__infoBoxItem}>
-                      <Typography variant="h2">0</Typography>
+                      <Typography variant="h2">
+                        {user?.reviewSeries ?? user?.review_series ?? 0}
+                      </Typography>
                       <Typography variant="h3" style={{ textAlign: "center" }}>
                         дней без перерыва (макс)
                       </Typography>
                     </View>
                     <View style={styles.boxProgress__infoBoxItem}>
-                      <Typography variant="h2">0</Typography>
+                      <Typography variant="h2">
+                        {user?.totalReviews ?? user?.total_reviews ?? 0}
+                      </Typography>
                       <Typography variant="h3" style={{ textAlign: "center" }}>
                         повторений
                       </Typography>
