@@ -14,17 +14,19 @@ import { Logo } from "@/components/Logo";
 import { useDecks } from "@/storage/hooks/useDecks";
 import { CardItem } from "../components/CardItem";
 import { Card } from "@/storage/types/types";
+import { ColorPalette } from "@/app/create-decks/components/colorPalette";
 
 export default function DeckViewById() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
 
-  const { decks, loading, getDeckCards, removeCard } = useDecks();
+  const { decks, getDeckCards, removeCard } = useDecks();
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [search, setSearch] = useState("");
   const [cards, setCards] = useState<Card[]>([]);
+
 
   const deck = decks.find((d) => d.id === id);
 

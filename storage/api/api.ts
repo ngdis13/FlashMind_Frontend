@@ -17,6 +17,14 @@ interface CardsResponse {
   total?: number;
 }
 
+interface UpdateDeckPayload {
+  name: string;
+  description: string;
+  desired_retention: number;
+  maximum_interval: number;
+  color: string;
+}
+
 /**
  * Получить все колоды пользователя с сервера
  */
@@ -50,6 +58,37 @@ export const fetchUserDecks = async (): Promise<Deck[]> => {
   } catch (err) {
     handleApiError(err, "Не удалось получить колоды пользователя");
     throw err;
+  }
+};
+
+
+/**
+ * Обновить поля колоды (PUT-запрос)
+ * @param deckId - ID колоды
+ * @param payload - Полный объект со всеми полями колоды (требование бэкенда)
+ */
+export const updateDeck = async (deckId: string, payload: UpdateDeckPayload): Promise<void> => {
+  try {
+    const accessToken = useAuthStore.getState().accessToken;
+
+    if (!accessToken) {
+      console.log("Токен доступа отсутствует");
+      throw new Error("Нет токена авторизации");
+    }
+
+    console.log(`Обновление колоды ${deckId}...`);
+
+    await apiClient.put(getMainServiceApiUrl(`/api/v1/decks${deckId}`), payload, {
+      headers: { 
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      },
+    });
+
+    console.log(`Данные колоды ${deckId} успешно обновлены на сервере`);
+  } catch (err) {
+    handleApiError(err, "Не удалось обновить поля колоды");
+    throw err; // Прокидываем ошибку, чтобы хук useDecks зафиксировал сбой
   }
 };
 

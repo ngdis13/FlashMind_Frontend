@@ -9,6 +9,8 @@ import { MainButton } from "@/components/MainButton";
 import { Input } from "@/components/Input";
 import { useEffect, useState } from "react";
 import { colors } from "@/styles/Colors";
+// Импортируем палитру
+import { ColorPalette } from "@/app/create-decks/components/colorPalette";
 
 export default function settingsDecks() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -16,31 +18,65 @@ export default function settingsDecks() {
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  // 1. Стейты для управления цветом и видимостью палитры
+  const [selectedColor, setSelectedColor] = useState(colors.red1);
+  const [visibleColorPalette, setVisibleColorPalette] = useState(false);
 
-  const { decks } = useDecks();
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Используем router.back() — это гарантирует, что целевой экран вспомнит свой стейт
+  const { decks, updateDeckFields } = useDecks();
+
   const handleBack = () => {
     router.push(`/decks/${id}`);
   };
 
-  const handleSaveEdit = () => {
-    // Здесь будет логика сохранения изменений
+  const handleColorModalToggle = () => {
+    setVisibleColorPalette((prev) => !prev);
+  };
+
+  const handleColorModalClose = () => {
+    setVisibleColorPalette(false);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!name.trim()) {
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      // Передаем измененное имя, описание и выбранный цвет
+      await updateDeckFields(id, {
+        name: name.trim(),
+        description: description.trim() || "",
+        color: selectedColor, // Сохраняем цвет на сервер и в сторадж
+      });
+      console.log("колода обновлена");
+      router.push(`/decks/${id}`);
+    } catch (error) {
+      console.error("Ошибка при сохранении:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
-    const deck = decks.find((d) => d.id === id);
+    const deck = decks.find((d) => d.id === id || d.deck_id === id);
     if (deck) {
       setName(deck.name);
       setDescription(deck.description || "");
+      // Если у колоды уже есть цвет в базе, инициализируем им
+      if (deck.color) {
+        setSelectedColor(deck.color);
+      }
     }
   }, [decks, id]);
 
   return (
-    // 1. Внешняя фоновая подложка на весь экран ПК (скрывает пустые поля справа и слева)
-    <View style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}>
-      
-      {/* 2. Адаптивный контейнер шириной 800px (из commonStyles), центрированный на экране */}
+    <View
+      style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}
+    >
       <View style={[commonStyles.container, { flex: 1 }]}>
         <ScrollView
           contentContainerStyle={styles.scrollContainer}
@@ -78,8 +114,15 @@ export default function settingsDecks() {
               onChangeText={setDescription}
             />
 
-            <Pressable style={[commonStyles.mainBox, styles.colorPickerRow]}>
-              <View style={styles.colorCircle} />
+            {/* Нажатие теперь открывает модалку */}
+            <Pressable
+              style={[commonStyles.mainBox, styles.colorPickerRow]}
+              onPress={handleColorModalToggle}
+            >
+              {/* Кружок теперь красится в выбранный цвет динамически */}
+              <View
+                style={[styles.colorCircle, { backgroundColor: selectedColor }]}
+              />
               <Typography variant="h2" style={styles.colorText}>
                 Цвет колоды
               </Typography>
@@ -87,16 +130,25 @@ export default function settingsDecks() {
           </View>
         </ScrollView>
 
-        {/* 3. ИСПРАВЛЕНИЕ: Ограничиваем блок кнопки до 800px, чтобы он совпадал по ширине с инпутами */}
-        <View style={[styles.bottomButtonContainer, { maxWidth: 800 }]}> 
+        <View style={[styles.bottomButtonContainer, { maxWidth: 800 }]}>
           <MainButton
             style={styles.button}
-            title="Сохранить изменения"
+            title={isLoading ? "Сохранение..." : "Сохранить изменения"}
             onPress={handleSaveEdit}
+            disabled={isLoading}
           />
         </View>
       </View>
+
+      {visibleColorPalette && (
+        <ColorPalette
+          onCancel={handleColorModalClose} // Передаем строгое закрытие для клика мимо
+          onSelectColor={(color) => {
+            setSelectedColor(color);
+            setVisibleColorPalette(false); // Закрываем стейт родителя
+          }}
+        />
+      )}
     </View>
   );
-
 }

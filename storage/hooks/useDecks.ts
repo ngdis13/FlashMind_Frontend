@@ -7,6 +7,7 @@ import {
   saveDecks,
   loadDeckCards,
   saveDeckCards,
+  updateSingleDeckInStorage,
 } from "../service/decksStorage";
 import {
   fetchUserDecks,
@@ -15,7 +16,9 @@ import {
   createCard,
   fetchCardById,
   updateCardOnServer,
+  updateDeck,
 } from "../api/api";
+import { colors } from "@/styles/Colors";
 
 export const useDecks = () => {
   const [decks, setDecks] = useState<Deck[]>([]);
@@ -66,6 +69,51 @@ export const useDecks = () => {
       console.log("Фоновая синхронизация не удалась, используем кэш");
     }
   };
+
+  const updateDeckFields = useCallback(
+    async (deckId: string, fieldsToUpdate: Partial<Deck>) => {
+      try {
+        setError(null);
+
+        const currentDeck = decks.find(
+          (d) => d.id === deckId
+        );
+        if (!currentDeck) {
+          throw new Error("Колода не найдена в текущем списке");
+        }
+
+        const fullUpdatedDeck = {
+          name: fieldsToUpdate.name ?? currentDeck.name,
+          description: fieldsToUpdate.description ?? currentDeck.description,
+          desired_retention:
+            fieldsToUpdate.desired_retention ??
+            currentDeck.desired_retention ??
+            0.9,
+          maximum_interval:
+            fieldsToUpdate.maximum_interval ??
+            currentDeck.maximum_interval ??
+            365,
+          color: fieldsToUpdate.color ?? currentDeck.color ?? colors.mainColor,
+        };
+
+        await updateDeck(deckId, fullUpdatedDeck);
+
+        const updatedDecksList = await updateSingleDeckInStorage(
+          deckId,
+          fieldsToUpdate,
+        );
+
+        setDecks(updatedDecksList);
+
+        console.log(`Колода ${deckId} успешно обновлена везде!`);
+      } catch (err) {
+        console.error("Ошибка при обновлении полей колоды:", err);
+        setError("Не удалось обновить данные колоды");
+        throw err;
+      }
+    },
+    [decks],
+  );
 
   /**
    * Получить карточки колоды
@@ -291,6 +339,7 @@ export const useDecks = () => {
     loadingCards,
     cards,
     getDeckById,
+    updateDeckFields,
     getDeckCards,
     updateDeckExtraCount,
     refreshDecks,

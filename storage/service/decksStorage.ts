@@ -42,6 +42,28 @@ export const loadDecks = async (): Promise<Deck[] | null> => {
 };
 
 /**
+ * Обновить одну конкретную колоду в хранилище
+ */
+export const updateSingleDeckInStorage = async (deckId: string, updatedFields: Partial<Deck>): Promise<Deck[]> => {
+  try {
+    const currentDecks = await loadDecks() || [];
+    
+    const updatedDecks = currentDecks.map(deck => {
+      if (deck.id === deckId || deck.deck_id === deckId) {
+        return { ...deck, ...updatedFields }; // Мержим старые поля с новыми
+      }
+      return deck;
+    });
+
+    await saveDecks(updatedDecks);
+    return updatedDecks;
+  } catch (error) {
+    console.error('Ошибка при обновлении колоды в AsyncStorage:', error);
+    throw error;
+  }
+};
+
+/**
  * Сохранить карточки конкретной колоды
  */
 export const saveDeckCards = async (deckId: string, cards: Card[]): Promise<void> => {
