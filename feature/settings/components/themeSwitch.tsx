@@ -13,38 +13,34 @@ import {
 export default function ThemeSwitch() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const systemTheme = useColorScheme();
-  
+
   const slideAnim = useRef(new Animated.Value(0)).current;
 
-  const toggleTheme = (newValue: boolean) => {
+  // Теперь функция не принимает аргумент, а просто инвертирует текущее состояние
+  const toggleTheme = () => {
+    const nextValue = !isDarkMode;
+
     Animated.spring(slideAnim, {
-      toValue: newValue ? 1 : 0,
+      toValue: nextValue ? 1 : 0,
       useNativeDriver: true,
       tension: 50,
       friction: 7,
     }).start();
-    
-    setIsDarkMode(newValue);
+
+    setIsDarkMode(nextValue);
   };
 
-  
   const sliderPosition = slideAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [1, 25]
+    outputRange: [1, 25],
   });
 
   return (
-    <View style={[styles.container, isDarkMode && styles.darkContainer]}>
-      <TouchableOpacity
-        style={styles.optionLeft}
-        onPress={() => toggleTheme(false)}
-      />
-
-      <TouchableOpacity
-        style={styles.optionRight}
-        onPress={() => toggleTheme(true)}
-      />
-
+    <TouchableOpacity
+      activeOpacity={0.8}
+      onPress={toggleTheme}
+      style={[styles.container, isDarkMode && styles.darkContainer]}
+    >
       <Animated.View
         style={[
           styles.slider,
@@ -54,6 +50,7 @@ export default function ThemeSwitch() {
             left: 4,
           },
         ]}
+        pointerEvents="none" 
       >
         <Image
           source={isDarkMode ? moon : sun}
@@ -61,7 +58,7 @@ export default function ThemeSwitch() {
           resizeMode="contain"
         />
       </Animated.View>
-    </View>
+    </TouchableOpacity>
   );
 }
 
@@ -112,6 +109,6 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   darkSlider: {
-    backgroundColor: "#808080", 
+    backgroundColor: "#808080",
   },
 });
