@@ -35,7 +35,7 @@ export default function DeckViewById() {
     router.push(`/decks/${id}/settings`);
   };
   const handleAddCard = () => {
-    router.push(`/decks/${id}/create-card`);
+    router.push(`/decks/${id}/create-card?deckId=${id}`);
   };
 
   const loadCards = async () => {
@@ -91,22 +91,28 @@ export default function DeckViewById() {
   const hasCards = cards.length > 0;
 
   return (
-    // 1. Внешняя фоновая подложка на весь экран ПК
-    <View style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}>
-      
-      {/* 2. Адаптивный контейнер шириной 800px (берется из commonStyles), центрированный на экране */}
+    <View
+      style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}
+    >
       <View style={[commonStyles.container, { flex: 1, paddingBottom: 30 }]}>
-        <ScrollView 
+        <ScrollView
           keyboardShouldPersistTaps="handled"
           style={{ width: "100%" }}
-          // ИСПРАВЛЕНИЕ: Центрируем внутренности скролла на больших экранах
           contentContainerStyle={{ alignItems: "center", width: "100%" }}
           showsVerticalScrollIndicator={false}
         >
-          {/* 3. ИСПРАВЛЕНИЕ: Ограничиваем максимальную ширину контента до 800px с помощью commonStyles.content */}
-          <View style={[commonStyles.content, { width: "100%", paddingHorizontal: 16 }]}>
-            <View style={[commonStyles.mainContent, { width: "100%", paddingHorizontal: 0 }]}>
-              
+          <View
+            style={[
+              commonStyles.content,
+              { width: "100%", paddingHorizontal: 16 },
+            ]}
+          >
+            <View
+              style={[
+                commonStyles.mainContent,
+                { width: "100%", paddingHorizontal: 0 },
+              ]}
+            >
               <View style={commonStyles.header}>
                 <Pressable onPress={handleBack}>
                   <Image
@@ -144,12 +150,14 @@ export default function DeckViewById() {
                 <View style={styles.cardsHeader}>
                   <Typography variant="h2">Карточки</Typography>
                   <Pressable onPress={handleAddCard}>
-                    <Image source={PlusIcon} style={{ width: 16, height: 16 }} />
+                    <Image
+                      source={PlusIcon}
+                      style={{ width: 16, height: 16 }}
+                    />
                   </Pressable>
                 </View>
 
                 <View style={styles.searchBox}>
-                  {/* ИСПРАВЛЕНИЕ: Даем инпуту занять всю ширину строки */}
                   <View style={{ flex: 1, width: "100%" }}>
                     <Input
                       style={{ textAlign: "left", width: "100%" }}
@@ -193,19 +201,19 @@ export default function DeckViewById() {
                         />
                       ))
                     ) : (
-                      <Typography style={{ textAlign: "center", marginTop: 12 }}>
+                      <Typography
+                        style={{ textAlign: "center", marginTop: 12 }}
+                      >
                         Ничего не найдено :(
                       </Typography>
                     )}
                   </View>
                 )}
               </View>
-
             </View>
           </View>
         </ScrollView>
       </View>
     </View>
   );
-
 }

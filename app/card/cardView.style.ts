@@ -1,5 +1,6 @@
 import { colors } from "@/styles/Colors";
-import { StyleSheet } from "react-native";
+import { StyleSheet} from "react-native";
+
 export const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
@@ -14,21 +15,21 @@ export const styles = StyleSheet.create({
   },
   inputWrapper: {
     width: "100%",
-    marginBottom: 32
+    marginBottom: 32,
   },
-   underlineInput: {
+  underlineInput: {
     fontSize: 18,
-    fontWeight: '500',
-    color: '#000',
-    borderBottomWidth: 2,      // Толщина линии
-    borderBottomColor: '#DBDBDB', // Цвет линии
-    paddingVertical: 8,        // Отступы внутри инпута
+    fontWeight: "500",
+    color: "#000",
+    borderBottomWidth: 2,
+    borderBottomColor: "#DBDBDB",
+    paddingBottom: 8, // Используем только нижний отступ, чтобы линия была ровно под текстом
+  },
+  multilineInput: {
   },
   updateCardButton: {
     marginLeft: 10,
     marginRight: 10,
     alignSelf: "center",
-    maxWidth: 375
-
-  }
+  },
 });
