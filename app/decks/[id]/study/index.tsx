@@ -26,10 +26,9 @@ export default function StudyDecksScreen() {
   const [studyData, setStudyData] = useState<StudyResponse | null>(null);
   const [addCount, setAddCount] = useState(0);
   const newCard = studyData
-    ? studyData.total - studyData.learned - studyData.in_learning
+    ? Math.max(0, studyData.total - studyData.learned - studyData.in_learning)
     : 0;
 
-  console.log(studyData);
   useEffect(() => {
     Animated.timing(fadeAnim, {
       toValue: isTooltipVisible ? 1 : 0, // 1 если виден, 0 если скрыт
@@ -58,7 +57,7 @@ export default function StudyDecksScreen() {
         const availableNew = data.total - data.learned - data.in_learning;
 
         // Ставим по умолчанию 5 карточек, но если их всего 3, то поставим 3
-        const defaultToLearn = Math.min(availableNew, 5);
+        const defaultToLearn = Math.max(0, Math.min(availableNew, 5));
 
         setAddCount(defaultToLearn);
       });
@@ -86,19 +85,18 @@ export default function StudyDecksScreen() {
               { width: "100%" },
             ]}
           >
-
             <View style={styles.header}>
-              <Pressable 
+              <Pressable
                 onPress={handleBack}
-                style={{ padding: 6, marginLeft: -6 }} 
+                style={{ padding: 6, marginLeft: -6 }}
               >
                 <Image source={ReturnIcon} style={{ width: 12, height: 22 }} />
               </Pressable>
-              <Typography 
-                variant="h1" 
+              <Typography
+                variant="h1"
                 style={styles.headerTitle}
                 numberOfLines={2}
-                ellipsizeMode="tail" 
+                ellipsizeMode="tail"
               >
                 {deck?.name}
               </Typography>
@@ -207,10 +205,10 @@ export default function StudyDecksScreen() {
           </Typography>
           <View style={styles.startButton}>
             <MainButton
-              style={[styles.startButton, { width: "100%" }]} 
+              style={[styles.startButton, { width: "100%" }]}
               title="Старт"
               onPress={handleStartStudy}
-              disabled={!studyData}
+              disabled={!studyData || ((studyData.learning_today ?? 0) + addCount) === 0}
             />
           </View>
         </View>
