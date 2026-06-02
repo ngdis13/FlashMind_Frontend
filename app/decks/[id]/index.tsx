@@ -127,15 +127,22 @@ export default function DeckViewById() {
               </View>
 
               <View style={styles.mainInfo}>
-                <View style={[commonStyles.mainBox, { width: "100%" }]}>
-                  <Typography variant="h2">{name}</Typography>
-                </View>
+                <View
+                  style={[commonStyles.mainBox, { width: "100%" }, styles.info]}
+                >
+                  {/* Красивая самостоятельная линия */}
+                  <View style={styles.purpleLine} />
 
-                {description.trim() !== "" && (
-                  <View style={[commonStyles.mainBox, { width: "100%" }]}>
-                    <Typography variant="h2">{description}</Typography>
+                  {/* Контейнер для текстов */}
+                  <View style={styles.textContainer}>
+                    <Typography variant="h2" style={{ fontWeight: 800 }}>
+                      {name}
+                    </Typography>
+                    {description.trim() !== "" && (
+                      <Typography variant="h2">{description}</Typography>
+                    )}
                   </View>
-                )}
+                </View>
 
                 <Pressable
                   style={[commonStyles.mainBox, styles.settingsButton]}

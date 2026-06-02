@@ -1,10 +1,27 @@
+import { colors } from "@/styles/Colors";
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
   mainInfo: {
     gap: 16,
     marginBottom: 16,
-    width: "100%", // ИСПРАВЛЕНО: Растягивается до краев адаптивного контейнера
+    width: "100%", 
+  },
+  info: {
+    flexDirection: "row", 
+    alignItems: "stretch", 
+    paddingVertical: 12, 
+    paddingHorizontal: 16, 
+  },
+  purpleLine: {
+    width: 4, 
+    backgroundColor: colors.mainColor,
+    borderRadius: 2, 
+    marginRight: 12, 
+  },
+  textContainer: {
+    flex: 1, 
+    gap: 4, 
   },
   settingsButton: {
     flexDirection: "row",
