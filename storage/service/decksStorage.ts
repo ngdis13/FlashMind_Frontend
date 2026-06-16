@@ -49,7 +49,7 @@ export const updateSingleDeckInStorage = async (deckId: string, updatedFields: P
     const currentDecks = await loadDecks() || [];
     
     const updatedDecks = currentDecks.map(deck => {
-      if (deck.id === deckId || deck.deck_id === deckId) {
+      if (deck.id === deckId) {
         return { ...deck, ...updatedFields }; // Мержим старые поля с новыми
       }
       return deck;
@@ -135,3 +135,5 @@ export const clearAllData = async (): Promise<void> => {
     console.error('Ошибка при очистке:', error);
   }
 };
+
+

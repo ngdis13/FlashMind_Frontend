@@ -92,6 +92,32 @@ export const updateDeck = async (deckId: string, payload: UpdateDeckPayload): Pr
   }
 };
 
+
+/**
+ * Удалить колоду по ID
+ * @param deckId - ID карточки
+ */
+export const deleteDeckOnServer = async (deckId: string): Promise<void> => {
+  try {
+    const accessToken = useAuthStore.getState().accessToken;
+
+    if (!accessToken) {
+      console.log("Токен доступа отсутствует");
+      throw new Error("Нет токена авторизации");
+    }
+
+    console.log("Удаление колоды...");
+
+    await apiClient.delete(getMainServiceApiUrl(`/api/v1/decks${deckId}`), {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    console.log(`Колода ${deckId} удалена`);
+  } catch (err) {
+    handleApiError(err, "Не удалось удалить колоду");
+  }
+};
+
 /**
  * Получить карточки по deck_id (согласно документации)
  * @param deckId - ID колоды (опционально, если не указан - все карточки пользователя)

@@ -9,8 +9,8 @@ import { MainButton } from "@/components/MainButton";
 import { Input } from "@/components/Input";
 import { useEffect, useState } from "react";
 import { colors } from "@/styles/Colors";
-import infoButton from "@/feature-decks/assets/infoButton.png"
-import deleteIcon from "@/feature-decks/assets/deleteIcon.png"
+import infoButton from "@/feature-decks/assets/infoButton.png";
+import deleteIcon from "@/feature-decks/assets/deleteIcon.png";
 // Импортируем палитру
 import { ColorPalette } from "@/app/create-decks/components/colorPalette";
 import Slider from "@react-native-community/slider";
@@ -52,7 +52,7 @@ export default function settingsDecks() {
 
   const [isLoading, setIsLoading] = useState(false);
 
-  const { decks, updateDeckFields } = useDecks();
+  const { decks, updateDeckFields, deleteDeck } = useDecks();
 
   const modes = [
     { id: "light", label: "Лайт" },
@@ -60,7 +60,6 @@ export default function settingsDecks() {
     { id: "intensive", label: "Интенсив" },
   ];
 
-  
   const handleBack = () => {
     router.push(`/decks/${id}`);
   };
@@ -115,9 +114,19 @@ export default function settingsDecks() {
       setMaxInterval(30);
     }
   };
-  const handleDelete = () => {
+  const handleDelete = async () => {
     //удаление колоды
-  }
+    try {
+      setIsLoading(true);
+      await deleteDeck(id); 
+      console.log("Колода успешно удалена");
+      router.push("/decks"); 
+    } catch (error) {
+      console.error("Ошибка при удалении колоды:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     const deck = decks.find((d) => d.id === id);

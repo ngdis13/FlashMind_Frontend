@@ -17,8 +17,10 @@ import {
   fetchCardById,
   updateCardOnServer,
   updateDeck,
+  deleteDeckOnServer
 } from "../api/api";
 import { colors } from "@/styles/Colors";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const useDecks = () => {
   const [decks, setDecks] = useState<Deck[]>([]);
@@ -75,9 +77,7 @@ export const useDecks = () => {
       try {
         setError(null);
 
-        const currentDeck = decks.find(
-          (d) => d.id === deckId
-        );
+        const currentDeck = decks.find((d) => d.id === deckId);
         if (!currentDeck) {
           throw new Error("Колода не найдена в текущем списке");
         }
@@ -172,6 +172,39 @@ export const useDecks = () => {
         );
       } catch (err) {
         console.error("Ошибка при обновлении extraCount:", err);
+      }
+    },
+    [decks],
+  );
+
+  const deleteDeck = useCallback(
+    async (deckId: string) => {
+      try {
+        setLoading(true);
+
+        // 1. Сначала удаляем колоду на сервере
+        await deleteDeckOnServer(deckId);
+
+        // 2. Если сервер ответил успешно, удаляем её из локального стейта
+        const updatedDecks = decks.filter((deck) => deck.id !== deckId);
+        setDecks(updatedDecks);
+
+        // 3. Перезаписываем список колод в локальном AsyncStorage
+        await saveDecks(updatedDecks);
+
+        // 4. Очищаем локальные карточки этой колоды из AsyncStorage, чтобы они не занимали память телефона
+        const cardsKey = `deck_cards_${deckId}`; 
+        await AsyncStorage.removeItem(cardsKey);
+
+        console.log(
+          `Колода с ID ${deckId} успешно удалена из локального хранилища и сервера`,
+        );
+      } catch (err) {
+        console.error(`Ошибка при полном удалении колоды ${deckId}:`, err);
+        setError("Не удалось удалить колоду");
+        throw err; // Прокидываем ошибку на экран настроек
+      } finally {
+        setLoading(false);
       }
     },
     [decks],
@@ -340,6 +373,7 @@ export const useDecks = () => {
     cards,
     getDeckById,
     updateDeckFields,
+    deleteDeck,
     getDeckCards,
     updateDeckExtraCount,
     refreshDecks,
