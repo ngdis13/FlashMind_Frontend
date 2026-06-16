@@ -49,6 +49,8 @@ export default function settingsDecks() {
   const [intensity, setIntensity] = useState("balance");
   const [targetRetention, setTargetRetention] = useState(90); // По умолчанию 90%
   const [maxInterval, setMaxInterval] = useState(90); // По умолчанию 90 дней
+  //для управления скролла во время настроек обучения
+  const [isScrollEnabled, setIsScrollEnabled] = useState(true);
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -84,7 +86,7 @@ export default function settingsDecks() {
         name: name.trim(),
         description: description.trim() || "",
         color: selectedColor,
-        desired_retention: targetRetention * 0.01,
+        desired_retention: Number((targetRetention * 0.01).toFixed(2)),
         maximum_interval: maxInterval,
       });
       console.log("колода обновлена");
@@ -118,9 +120,9 @@ export default function settingsDecks() {
     //удаление колоды
     try {
       setIsLoading(true);
-      await deleteDeck(id); 
+      await deleteDeck(id);
       console.log("Колода успешно удалена");
-      router.push("/decks"); 
+      router.push("/decks");
     } catch (error) {
       console.error("Ошибка при удалении колоды:", error);
     } finally {
@@ -184,6 +186,7 @@ export default function settingsDecks() {
           contentContainerStyle={styles.scrollContainer}
           style={{ width: "100%" }}
           showsVerticalScrollIndicator={false}
+          scrollEnabled={isScrollEnabled}
         >
           {/* Шапка экрана */}
           <View style={styles.header}>
@@ -282,7 +285,7 @@ export default function settingsDecks() {
                       flexDirection: "row",
                       alignItems: "center",
                       gap: 4,
-                      marginBottom: 8,
+                      marginBottom: 4,
                     }}
                   >
                     <Typography variant="h2" style={styles.colorText}>
@@ -290,7 +293,7 @@ export default function settingsDecks() {
                     </Typography>
                     <Typography
                       variant="h2"
-                      style={{ color: colors.mainColor, fontWeight: "600" }}
+                      style={{ color: colors.mainColor }}
                     >
                       [ {targetRetention}% ]
                     </Typography>
@@ -303,6 +306,9 @@ export default function settingsDecks() {
                     step={1}
                     value={targetRetention}
                     onValueChange={setTargetRetention}
+                    //управление скроллом во время настройки
+                    onSlidingStart={() => setIsScrollEnabled(false)}
+                    onSlidingComplete={() => setIsScrollEnabled(true)}
                     minimumTrackTintColor={colors.mainColor}
                     maximumTrackTintColor="#E0E0E0"
                     thumbTintColor={colors.mainColor}
@@ -325,13 +331,13 @@ export default function settingsDecks() {
                 </View>
 
                 {/* НАСТРОЙКА 2: Максимальный интервал */}
-                <View style={[styles.settings, { marginTop: 16 }]}>
+                <View style={[styles.settings]}>
                   <View
                     style={{
                       flexDirection: "row",
                       alignItems: "center",
                       gap: 4,
-                      marginBottom: 8,
+                      marginBottom: 4,
                     }}
                   >
                     <Typography variant="h2" style={styles.colorText}>
@@ -339,7 +345,7 @@ export default function settingsDecks() {
                     </Typography>
                     <Typography
                       variant="h2"
-                      style={{ color: colors.mainColor, fontWeight: "600" }}
+                      style={{ color: colors.mainColor }}
                     >
                       [ {maxInterval} дней ]
                     </Typography>
@@ -356,6 +362,9 @@ export default function settingsDecks() {
                         setMaxInterval(calculatedDays);
                       }
                     }}
+                    
+                    onSlidingStart={() => setIsScrollEnabled(false)} 
+                    onSlidingComplete={() => setIsScrollEnabled(true)}
                     minimumTrackTintColor={colors.mainColor}
                     maximumTrackTintColor="#E0E0E0"
                     thumbTintColor={colors.mainColor}
@@ -368,12 +377,8 @@ export default function settingsDecks() {
                       marginTop: 2,
                     }}
                   >
-                    <Typography variant="h3" style={{ color: "#8E8E93" }}>
-                      30 дней
-                    </Typography>
-                    <Typography variant="h3" style={{ color: "#8E8E93" }}>
-                      3650 дней
-                    </Typography>
+                    <Typography variant="h3">30 дней</Typography>
+                    <Typography variant="h3">3650 дней</Typography>
                   </View>
 
                   <Typography variant="h3" style={styles.sliderDescription}>

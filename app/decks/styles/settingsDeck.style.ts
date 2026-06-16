@@ -69,6 +69,7 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E0E0E0", // Базовый цвет рамки неактивной кнопки
     backgroundColor: colors.white,
+        borderWidth: 2,
   },
   colorCircle: {
     width: 20,
@@ -81,19 +82,21 @@ export const styles = StyleSheet.create({
   },
   advancedSettingsBox: {
     width: "100%",
-    marginTop: 20,
   },
   advancedSettings: {
-    padding: 16,
-    borderRadius: 24,
+    paddingVertical: 16,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+
     backgroundColor: "#FFFFFF",
     width: "100%",
+    gap: 16,
   },
   settings: {
     width: "100%",
   },
   sliderDescription: {
-    fontSize: 13,
+    fontSize: 12,
     color: "#8E8E93",
     marginTop: 6,
     lineHeight: 18,
