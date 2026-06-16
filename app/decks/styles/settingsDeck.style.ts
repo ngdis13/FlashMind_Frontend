@@ -28,15 +28,15 @@ export const styles = StyleSheet.create({
     marginBottom: 32,
   },
   input: {
-    height: 54, 
+    height: 54,
     textAlign: "left",
-    paddingHorizontal: 16, 
+    paddingHorizontal: 16,
   },
   descriptionInput: {
-    minHeight: 90, 
-    height: "auto", 
-    paddingTop: 14, 
-    textAlignVertical: "top", 
+    minHeight: 90,
+    height: "auto",
+    paddingTop: 14,
+    textAlignVertical: "top",
   },
   colorPickerRow: {
     flexDirection: "row",
@@ -45,20 +45,64 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 16,
     gap: 12,
   },
+
+  intensityBox: {
+    gap: 8,
+    width: "100%",
+  },
+  headerIntensity: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  intensityButtonBox: {
+    flexDirection: "row",
+    justifyContent: "space-between", // Распределяет кнопки равномерно
+    gap: 8, // Отступы между самими кнопками
+    width: "100%",
+  },
+  intensityButton: {
+    flex: 1, // Каждая кнопка займет равную долю пространства
+    height: 40, // Высота кнопки под размер текста
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 20, // Скругленные края как на макете
+    borderWidth: 1,
+    borderColor: "#E0E0E0", // Базовый цвет рамки неактивной кнопки
+    backgroundColor: colors.white,
+  },
   colorCircle: {
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: "#FF8E8E", 
+    backgroundColor: "#FF8E8E",
   },
   colorText: {
     fontSize: 16,
   },
+  advancedSettingsBox: {
+    width: "100%",
+    marginTop: 20,
+  },
+  advancedSettings: {
+    padding: 16,
+    borderRadius: 24,
+    backgroundColor: "#FFFFFF",
+    width: "100%",
+  },
+  settings: {
+    width: "100%",
+  },
+  sliderDescription: {
+    fontSize: 13,
+    color: "#8E8E93",
+    marginTop: 6,
+    lineHeight: 18,
+  },
   bottomButtonContainer: {
     width: "100%",
-    paddingHorizontal: 10, 
-    paddingBottom: 20, 
-    backgroundColor: colors.background, 
+    paddingHorizontal: 10,
+    paddingBottom: 20,
+    backgroundColor: colors.background,
   },
   button: {
     width: "100%",

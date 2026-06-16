@@ -9,8 +9,31 @@ import { MainButton } from "@/components/MainButton";
 import { Input } from "@/components/Input";
 import { useEffect, useState } from "react";
 import { colors } from "@/styles/Colors";
+import infoButton from "@/feature-decks/assets/infoButton.png";
 // Импортируем палитру
 import { ColorPalette } from "@/app/create-decks/components/colorPalette";
+import Slider from "@react-native-community/slider";
+
+// Константы для логарифмического слайдера интервала
+const MIN_DAYS = 30;
+const MAX_DAYS = 3650;
+
+// Перевод позиции слайдера (0...1) в реальные дни
+const logScale = (value: number) => {
+  const minLog = Math.log(MIN_DAYS);
+  const maxLog = Math.log(MAX_DAYS);
+  const scale = minLog + value * (maxLog - minLog);
+  return Math.round(Math.exp(scale));
+};
+
+// Перевод реальных дней обратно в позицию слайдера (0...1)
+const logPosition = (days: number) => {
+  if (days < MIN_DAYS) return 0;
+  if (days > MAX_DAYS) return 1;
+  const minLog = Math.log(MIN_DAYS);
+  const maxLog = Math.log(MAX_DAYS);
+  return (Math.log(days) - minLog) / (maxLog - minLog);
+};
 
 export default function settingsDecks() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -22,9 +45,19 @@ export default function settingsDecks() {
   const [selectedColor, setSelectedColor] = useState(colors.red1);
   const [visibleColorPalette, setVisibleColorPalette] = useState(false);
 
+  const [intensity, setIntensity] = useState("balance");
+  const [targetRetention, setTargetRetention] = useState(90); // По умолчанию 90%
+  const [maxInterval, setMaxInterval] = useState(90); // По умолчанию 90 дней
+
   const [isLoading, setIsLoading] = useState(false);
 
   const { decks, updateDeckFields } = useDecks();
+
+  const modes = [
+    { id: "light", label: "Лайт" },
+    { id: "balance", label: "Баланс" },
+    { id: "intensive", label: "Интенсив" },
+  ];
 
   const handleBack = () => {
     router.push(`/decks/${id}`);
@@ -46,11 +79,12 @@ export default function settingsDecks() {
     try {
       setIsLoading(true);
 
-      // Передаем измененное имя, описание и выбранный цвет
       await updateDeckFields(id, {
         name: name.trim(),
         description: description.trim() || "",
-        color: selectedColor, // Сохраняем цвет на сервер и в сторадж
+        color: selectedColor,
+        desired_retention: targetRetention * 0.01,
+        maximum_interval: maxInterval,
       });
       console.log("колода обновлена");
       router.push(`/decks/${id}`);
@@ -61,14 +95,52 @@ export default function settingsDecks() {
     }
   };
 
+  const handleInfo = () => {
+    //для блока информации об интенсивностти обучения
+  };
+
+  const handleSelectIntensity = (mode: string) => {
+    setIntensity(mode);
+
+    if (mode === "light") {
+      setTargetRetention(85);
+      setMaxInterval(720);
+    } else if (mode === "balance") {
+      setTargetRetention(90);
+      setMaxInterval(180);
+    } else if (mode === "intensive") {
+      setTargetRetention(95);
+      setMaxInterval(30);
+    }
+  };
+
   useEffect(() => {
-    const deck = decks.find((d) => d.id === id || d.deck_id === id);
+    const deck = decks.find((d) => d.id === id);
     if (deck) {
       setName(deck.name);
       setDescription(deck.description || "");
-      // Если у колоды уже есть цвет в базе, инициализируем им
       if (deck.color) {
         setSelectedColor(deck.color);
+      }
+
+      if (deck.desired_retention) {
+        const rawRetention = deck.desired_retention;
+        setTargetRetention(
+          rawRetention <= 1
+            ? Math.round(rawRetention * 100)
+            : Math.round(rawRetention),
+        );
+      }
+
+      if (deck.maximum_interval) {
+        const rawInterval = deck.maximum_interval;
+        const boundedInterval =
+          rawInterval < MIN_DAYS
+            ? MIN_DAYS
+            : rawInterval > MAX_DAYS
+              ? MAX_DAYS
+              : rawInterval;
+        setMaxInterval(boundedInterval);
       }
     }
   }, [decks, id]);
@@ -127,6 +199,159 @@ export default function settingsDecks() {
                 Цвет колоды
               </Typography>
             </Pressable>
+
+            <View style={styles.intensityBox}>
+              <View style={styles.headerIntensity}>
+                <Typography variant="h2" style={styles.colorText}>
+                  Интенсивность обучения
+                </Typography>
+                <Pressable onPress={handleInfo} style={styles.backButton}>
+                  <Image
+                    source={infoButton}
+                    style={{ width: 16, height: 16 }}
+                  />
+                </Pressable>
+              </View>
+
+              <View style={styles.intensityButtonBox}>
+                {modes.map((mode) => {
+                  const isActive = intensity === mode.id;
+
+                  return (
+                    <Pressable
+                      key={mode.id}
+                      style={[
+                        styles.intensityButton,
+                        isActive && {
+                          borderColor: colors.mainColor,
+                          borderWidth: 2,
+                        },
+                      ]}
+                      onPress={() => handleSelectIntensity(mode.id)}
+                    >
+                      <Typography variant="h3">{mode.label}</Typography>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+
+            <View style={styles.advancedSettingsBox}>
+              <Typography
+                variant="h1"
+                style={[styles.colorText, { marginBottom: 12 }]}
+              >
+                Продвинутые настройки
+              </Typography>
+
+              <View style={[commonStyles.mainBox, styles.advancedSettings]}>
+                {/* НАСТРОЙКА 1: Целевое запоминание */}
+                <View style={styles.settings}>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 4,
+                      marginBottom: 8,
+                    }}
+                  >
+                    <Typography variant="h2" style={styles.colorText}>
+                      Целевое запоминание
+                    </Typography>
+                    <Typography
+                      variant="h2"
+                      style={{ color: colors.mainColor, fontWeight: "600" }}
+                    >
+                      [ {targetRetention}% ]
+                    </Typography>
+                  </View>
+
+                  <Slider
+                    style={{ width: "100%", height: 30 }}
+                    minimumValue={85}
+                    maximumValue={95}
+                    step={1}
+                    value={targetRetention}
+                    onValueChange={setTargetRetention}
+                    minimumTrackTintColor={colors.mainColor}
+                    maximumTrackTintColor="#E0E0E0"
+                    thumbTintColor={colors.mainColor}
+                  />
+
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      marginTop: 2,
+                    }}
+                  >
+                    <Typography variant="h3">85%</Typography>
+                    <Typography variant="h3">95%</Typography>
+                  </View>
+
+                  <Typography variant="h3" style={styles.sliderDescription}>
+                    Чем выше процент, тем чаще будут возвращаться карточки
+                  </Typography>
+                </View>
+
+                {/* НАСТРОЙКА 2: Максимальный интервал */}
+                <View style={[styles.settings, { marginTop: 16 }]}>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 4,
+                      marginBottom: 8,
+                    }}
+                  >
+                    <Typography variant="h2" style={styles.colorText}>
+                      Максимальный интервал
+                    </Typography>
+                    <Typography
+                      variant="h2"
+                      style={{ color: colors.mainColor, fontWeight: "600" }}
+                    >
+                      [ {maxInterval} дней ]
+                    </Typography>
+                  </View>
+
+                  <Slider
+                    style={{ width: "100%", height: 30 }}
+                    minimumValue={0} // Теперь слайдер работает в абстрактных координатах от 0
+                    maximumValue={1} // до 1
+                    value={logPosition(maxInterval)} // Переводим реальные дни в позицию кружка на экране
+                    onValueChange={(val) => {
+                      const calculatedDays = logScale(val);
+                      if (calculatedDays >= 30 && calculatedDays <= 3650) {
+                        setMaxInterval(calculatedDays);
+                      }
+                    }}
+                    minimumTrackTintColor={colors.mainColor}
+                    maximumTrackTintColor="#E0E0E0"
+                    thumbTintColor={colors.mainColor}
+                  />
+
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      marginTop: 2,
+                    }}
+                  >
+                    <Typography variant="h3" style={{ color: "#8E8E93" }}>
+                      30 дней
+                    </Typography>
+                    <Typography variant="h3" style={{ color: "#8E8E93" }}>
+                      3650 дней
+                    </Typography>
+                  </View>
+
+                  <Typography variant="h3" style={styles.sliderDescription}>
+                    Максимальный перерыв перед проверкой хорошо знакомого слова
+                  </Typography>
+                </View>
+              </View>
+            </View>
           </View>
         </ScrollView>
 

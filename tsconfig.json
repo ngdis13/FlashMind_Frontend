@@ -26,6 +26,7 @@
       "@/feature-auth/*": ["./feature/auth/*"],
       "@/feature-profile/*": ["./feature/profile/*"],
       "@/feature-settings/*": ["./feature/settings/*"],
+      "@/feature-decks/*": ["./feature/decks/*"],
     }
   },
   "include": ["**/*.ts", "**/*.tsx", "declarations.d.ts"

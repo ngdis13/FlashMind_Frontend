@@ -228,7 +228,7 @@ export default function ProfileScreen() {
                         {row.map((dateStr) => {
                           // Получаем доступ к словарю дат с сервера
                           const reviewCounts =
-                            user?.dailyReviewCounts ||
+                          
                             user?.daily_review_counts ||
                             {};
                           const countForDay = reviewCounts[dateStr] ?? 0;
@@ -250,7 +250,7 @@ export default function ProfileScreen() {
                   <View style={styles.boxProgress__infoBox}>
                     <View style={styles.boxProgress__infoBoxItem}>
                       <Typography variant="h2">
-                        {user?.reviewSeries ?? user?.review_series ?? 0}
+                        {user?.review_series || 0}
                       </Typography>
                       <Typography variant="h3" style={{ textAlign: "center" }}>
                         дней без перерыва
@@ -258,7 +258,7 @@ export default function ProfileScreen() {
                     </View>
                     <View style={styles.boxProgress__infoBoxItem}>
                       <Typography variant="h2">
-                        {user?.reviewSeries ?? user?.review_series ?? 0}
+                        {user?.review_series || 0}
                       </Typography>
                       <Typography variant="h3" style={{ textAlign: "center" }}>
                         дней без перерыва (макс)
@@ -266,7 +266,7 @@ export default function ProfileScreen() {
                     </View>
                     <View style={styles.boxProgress__infoBoxItem}>
                       <Typography variant="h2">
-                        {user?.totalReviews ?? user?.total_reviews ?? 0}
+                        {user?.total_reviews || 0}
                       </Typography>
                       <Typography variant="h3" style={{ textAlign: "center" }}>
                         повторений
