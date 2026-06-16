@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { View, Image, Pressable } from "react-native";
 import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
+import * as ImageManipulator from "expo-image-manipulator"; // Исправлен импорт библиотеки сжатия
 
 //Стили
 import { styles } from "../styles/FourthStep.styles";
@@ -26,30 +27,58 @@ export default function FourthStepScreen() {
     router.push("/onboarding/welcome-last-step");
   };
 
-  // Функция отвечает за выбор аватара из галереи устройства
+  // Функция отвечает за выбор аватара из галереи устройства и его сжатие
   const handlePickAvatar = async () => {
-    // Запрашиваем разрешение на доступ к галерее
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    try {
+      // Запрашиваем разрешение на доступ к галерее
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-    if (status !== "granted") {
-      alert("Нужно разрешение на доступ к галерее");
-      return;
-    }
+      if (status !== "granted") {
+        alert("Нужно разрешение на доступ к галерее");
+        return;
+      }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
-    });
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsEditing: true,
+        aspect:[1, 1],
+        quality: 0.9,   // Исходное качество перед сжатием
+      });
 
-    // Если пользователь НЕ нажал "Отмена"
-    if (!result.canceled) {
-      const selectedUri = result.assets[0].uri;
-      setAvatarUri(selectedUri);
-      setAvatarFile(selectedUri);
+      // Если пользователь НЕ нажал "Отмена"
+      if (!result.canceled) {
+        const asset = result.assets[0];
+        let selectedUri = asset.uri;
 
-      console.log('Аватар выбран и сохранен:', selectedUri);
+        console.log("Исходный аватар:", selectedUri);
+
+        // Блок сжатия изображения
+        try {
+          const manipResult = await ImageManipulator.manipulateAsync(
+            selectedUri,
+            [{ resize: { width: 800 } }], // Пропорционально ужимаем ширину до 800px
+            { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }, // Качество 70% в формате JPEG
+          );
+
+          selectedUri = manipResult.uri;
+          console.log("Сжатый аватар готов:", selectedUri);
+        } catch (manipError) {
+          console.error(
+            "Не удалось сжать картинку, используем оригинал:",
+            manipError,
+          );
+        }
+
+        // Обновляем локальное состояние экрана для красивого отображения картинки
+        setAvatarUri(selectedUri);
+        
+        // Сохраняем сжатый URI в глобальный Zustand/Redux стор для последующей отправки
+        setAvatarFile(selectedUri);
+
+        console.log("Аватар успешно сохранен в стор приложения:", selectedUri);
+      }
+    } catch (error) {
+      console.error("Ошибка при выборе или обработке изображения:", error);
     }
   };
 

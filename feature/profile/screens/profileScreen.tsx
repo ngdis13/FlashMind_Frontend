@@ -85,6 +85,7 @@ export default function ProfileScreen() {
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.9, // Исходное качество перед сжатием
+        
       });
 
       if (!result.canceled) {
