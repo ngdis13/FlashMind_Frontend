@@ -9,7 +9,8 @@ import { MainButton } from "@/components/MainButton";
 import { Input } from "@/components/Input";
 import { useEffect, useState } from "react";
 import { colors } from "@/styles/Colors";
-import infoButton from "@/feature-decks/assets/infoButton.png";
+import infoButton from "@/feature-decks/assets/infoButton.png"
+import deleteIcon from "@/feature-decks/assets/deleteIcon.png"
 // Импортируем палитру
 import { ColorPalette } from "@/app/create-decks/components/colorPalette";
 import Slider from "@react-native-community/slider";
@@ -59,6 +60,7 @@ export default function settingsDecks() {
     { id: "intensive", label: "Интенсив" },
   ];
 
+  
   const handleBack = () => {
     router.push(`/decks/${id}`);
   };
@@ -113,6 +115,9 @@ export default function settingsDecks() {
       setMaxInterval(30);
     }
   };
+  const handleDelete = () => {
+    //удаление колоды
+  }
 
   useEffect(() => {
     const deck = decks.find((d) => d.id === id);
@@ -123,24 +128,40 @@ export default function settingsDecks() {
         setSelectedColor(deck.color);
       }
 
+      // 1. Получаем и нормализуем значения из базы данных
+      let loadedRetention = 90; // Дефолтное значение
       if (deck.desired_retention) {
         const rawRetention = deck.desired_retention;
-        setTargetRetention(
+        loadedRetention =
           rawRetention <= 1
             ? Math.round(rawRetention * 100)
-            : Math.round(rawRetention),
-        );
+            : Math.round(rawRetention);
       }
 
+      let loadedInterval = 180; // Дефолтное значение
       if (deck.maximum_interval) {
         const rawInterval = deck.maximum_interval;
-        const boundedInterval =
+        loadedInterval =
           rawInterval < MIN_DAYS
             ? MIN_DAYS
             : rawInterval > MAX_DAYS
               ? MAX_DAYS
               : rawInterval;
-        setMaxInterval(boundedInterval);
+      }
+
+      // 2. Сетим значения в стейты для ползунков
+      setTargetRetention(loadedRetention);
+      setMaxInterval(loadedInterval);
+
+      // 3. Автоматически определяем режим на основе пришедших данных
+      if (loadedRetention === 85 && loadedInterval === 720) {
+        setIntensity("light");
+      } else if (loadedRetention === 90 && loadedInterval === 180) {
+        setIntensity("balance");
+      } else if (loadedRetention === 95 && loadedInterval === 30) {
+        setIntensity("intensive");
+      } else {
+        setIntensity("custom");
       }
     }
   }, [decks, id]);
@@ -317,9 +338,9 @@ export default function settingsDecks() {
 
                   <Slider
                     style={{ width: "100%", height: 30 }}
-                    minimumValue={0} // Теперь слайдер работает в абстрактных координатах от 0
-                    maximumValue={1} // до 1
-                    value={logPosition(maxInterval)} // Переводим реальные дни в позицию кружка на экране
+                    minimumValue={0}
+                    maximumValue={1}
+                    value={logPosition(maxInterval)}
                     onValueChange={(val) => {
                       const calculatedDays = logScale(val);
                       if (calculatedDays >= 30 && calculatedDays <= 3650) {
@@ -353,6 +374,26 @@ export default function settingsDecks() {
               </View>
             </View>
           </View>
+
+          <Pressable
+            style={[
+              commonStyles.mainBox,
+              commonStyles.greyButton,
+              styles.deleteButton,
+            ]}
+            onPress={handleDelete}
+          >
+            <Image
+              source={deleteIcon}
+              style={[
+                { width: 20, height: 20, shadowColor: colors.errorColor },
+              ]}
+              resizeMode="contain"
+            />
+            <Typography variant="h2" color={colors.errorColor}>
+              Удалить колоду
+            </Typography>
+          </Pressable>
         </ScrollView>
 
         <View style={[styles.bottomButtonContainer, { maxWidth: 800 }]}>

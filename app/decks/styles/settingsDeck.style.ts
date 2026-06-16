@@ -104,6 +104,9 @@ export const styles = StyleSheet.create({
     paddingBottom: 20,
     backgroundColor: colors.background,
   },
+  deleteButton: {
+    borderColor: colors.errorColor,
+  },
   button: {
     width: "100%",
     marginTop: 0,

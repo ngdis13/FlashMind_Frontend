@@ -1,3 +1,4 @@
+import { colors } from '@/styles/Colors';
 import React from 'react';
 import {
   TextInput,
@@ -75,12 +76,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     height: 40,
     width: '100%',
-
-    // --- тень под инпутом (имитация глубины) ---
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 4, // для Android
+    backgroundColor: colors.white
   },
 });
