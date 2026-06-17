@@ -16,6 +16,7 @@ export type UserProfile = {
   } | null;
   review_series: number;
   total_reviews: number;
+  max_review_series: number;
   daily_review_counts: {
     [date: string]: number;
   };
@@ -145,6 +146,7 @@ export const useUserStore = create<UserState>((set, get) => ({
         avatarUrl: response.avatar_url || null,
         review_series: response.review_series ?? 0,
         total_reviews: response.total_reviews ?? 0,
+        max_review_series: response.max_review_series ?? 0,
         daily_review_counts: response.daily_review_counts || {},
       };
       set({
@@ -174,6 +176,7 @@ export const useUserStore = create<UserState>((set, get) => ({
           avatarUrl: data.avatarUrl || null,
           review_series: 0, 
           total_reviews: 0, 
+          max_review_series: 0,
           daily_review_counts: {}, 
           ...data, 
         },

@@ -258,7 +258,7 @@ export default function ProfileScreen() {
                     </View>
                     <View style={styles.boxProgress__infoBoxItem}>
                       <Typography variant="h2">
-                        {user?.review_series || 0}
+                        {user?.max_review_series || 0}
                       </Typography>
                       <Typography variant="h3" style={{ textAlign: "center" }}>
                         дней без перерыва (макс)
