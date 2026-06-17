@@ -17,6 +17,7 @@ import Slider from "@react-native-community/slider";
 import { LogoSadStar } from "@/components/LogoSadStar";
 import { CustomAlert } from "@/components/CustomAlert";
 
+
 // Константы для логарифмического слайдера интервала
 const MIN_DAYS = 30;
 const MAX_DAYS = 3650;
@@ -59,6 +60,7 @@ export default function settingsDecks() {
   const { decks, updateDeckFields, deleteDeck } = useDecks();
   //Удаление колоды
   const [alertVisible, setAlertVisible] = useState(false);
+
 
   const modes = [
     { id: "light", label: "Лайт" },
@@ -122,12 +124,15 @@ export default function settingsDecks() {
   };
   // 1. Эта функция теперь срабатывает ТОЛЬКО при подтверждении в модалке
   const handleConfirmDelete = async () => {
+   
     setAlertVisible(false); // Закрываем модалку
     try {
       setIsLoading(true);
       await deleteDeck(id);
+      
       console.log("Колода успешно удалена");
       router.push("/decks");
+      
     } catch (error) {
       console.error("Ошибка при удалении колоды:", error);
     } finally {

@@ -21,6 +21,7 @@ import { SettingsIcon } from "../assets/SettingsIcon";
 import { useUserStore } from "@/store/userStore";
 import { useRouter } from "expo-router";
 import LoadingScreen from "@/app/loading";
+import { StarTooltip } from "../assets/ProgressTooltip";
 
 // 1. Утилита генерации матрицы локальных дат 4 строки на 7 дней
 const getGridDays = () => {
@@ -85,7 +86,6 @@ export default function ProfileScreen() {
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.9, // Исходное качество перед сжатием
-        
       });
 
       if (!result.canceled) {
@@ -223,21 +223,25 @@ export default function ProfileScreen() {
                   {/* Контейнер всей сетки */}
                   <View style={styles.boxProgress__starsBox}>
                     {getGridDays().map((row, rowIndex) => (
-                      /* Отрисовка строки (всего выведется 4 строки) */
-                      <View key={rowIndex} style={styles.boxProgress__line}>
+                      /* ВНИМАНИЕ: Изменили формулу zIndex. Теперь строки снизу будут поверх верхних */
+                      <View
+                        key={rowIndex}
+                        style={[
+                          styles.boxProgress__line,
+                          { zIndex: rowIndex + 1 },
+                        ]}
+                      >
                         {row.map((dateStr) => {
-                          // Получаем доступ к словарю дат с сервера
-                          const reviewCounts =
-                          
-                            user?.daily_review_counts ||
-                            {};
+                          const reviewCounts = user?.daily_review_counts || {};
                           const countForDay = reviewCounts[dateStr] ?? 0;
                           const starColor = getStarColor(countForDay);
 
                           return (
-                            /* Ячейка отдельной звезды (всего 7 в каждом ряду) */
                             <View key={dateStr} style={styles.starWrapper}>
-                              <StarProgress size={24} color={starColor} />
+                              <StarTooltip
+                                count={countForDay}
+                                starColor={starColor}
+                              />
                             </View>
                           );
                         })}
