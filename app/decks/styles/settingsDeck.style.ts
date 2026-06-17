@@ -69,7 +69,7 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E0E0E0", // Базовый цвет рамки неактивной кнопки
     backgroundColor: colors.white,
-        borderWidth: 2,
+      borderWidth: 2,
   },
   colorCircle: {
     width: 20,

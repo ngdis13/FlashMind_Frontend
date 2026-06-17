@@ -114,7 +114,7 @@ export default function settingsDecks() {
       setMaxInterval(720);
     } else if (mode === "balance") {
       setTargetRetention(90);
-      setMaxInterval(180);
+      setMaxInterval(365);
     } else if (mode === "intensive") {
       setTargetRetention(95);
       setMaxInterval(30);
