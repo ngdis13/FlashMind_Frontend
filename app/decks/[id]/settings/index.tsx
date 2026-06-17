@@ -14,6 +14,8 @@ import deleteIcon from "@/feature-decks/assets/deleteIcon.png";
 // Импортируем палитру
 import { ColorPalette } from "@/app/create-decks/components/colorPalette";
 import Slider from "@react-native-community/slider";
+import { LogoSadStar } from "@/components/LogoSadStar";
+import { CustomAlert } from "@/components/CustomAlert";
 
 // Константы для логарифмического слайдера интервала
 const MIN_DAYS = 30;
@@ -53,8 +55,10 @@ export default function settingsDecks() {
   const [isScrollEnabled, setIsScrollEnabled] = useState(true);
 
   const [isLoading, setIsLoading] = useState(false);
-
+  //Взаимодействие колоды с сервером и хранилищем
   const { decks, updateDeckFields, deleteDeck } = useDecks();
+  //Удаление колоды
+  const [alertVisible, setAlertVisible] = useState(false);
 
   const modes = [
     { id: "light", label: "Лайт" },
@@ -116,8 +120,9 @@ export default function settingsDecks() {
       setMaxInterval(30);
     }
   };
-  const handleDelete = async () => {
-    //удаление колоды
+  // 1. Эта функция теперь срабатывает ТОЛЬКО при подтверждении в модалке
+  const handleConfirmDelete = async () => {
+    setAlertVisible(false); // Закрываем модалку
     try {
       setIsLoading(true);
       await deleteDeck(id);
@@ -128,6 +133,16 @@ export default function settingsDecks() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // 2. Функция для открытия модалки (вешается на саму кнопку в интерфейсе)
+  const handlePressDeleteButton = () => {
+    setAlertVisible(true);
+  };
+
+  // 3. Функция отмены в модалке
+  const handleCancelDelete = () => {
+    setAlertVisible(false);
   };
 
   useEffect(() => {
@@ -219,12 +234,11 @@ export default function settingsDecks() {
               onChangeText={setDescription}
             />
 
-            {/* Нажатие теперь открывает модалку */}
+            {/* Выбор цвета колоды*/}
             <Pressable
               style={[commonStyles.mainBox, styles.colorPickerRow]}
               onPress={handleColorModalToggle}
             >
-              {/* Кружок теперь красится в выбранный цвет динамически */}
               <View
                 style={[styles.colorCircle, { backgroundColor: selectedColor }]}
               />
@@ -362,8 +376,7 @@ export default function settingsDecks() {
                         setMaxInterval(calculatedDays);
                       }
                     }}
-                    
-                    onSlidingStart={() => setIsScrollEnabled(false)} 
+                    onSlidingStart={() => setIsScrollEnabled(false)}
                     onSlidingComplete={() => setIsScrollEnabled(true)}
                     minimumTrackTintColor={colors.mainColor}
                     maximumTrackTintColor="#E0E0E0"
@@ -388,14 +401,15 @@ export default function settingsDecks() {
               </View>
             </View>
           </View>
-
+          {/* Удаление колоды */}
           <Pressable
             style={[
               commonStyles.mainBox,
               commonStyles.greyButton,
               styles.deleteButton,
             ]}
-            onPress={handleDelete}
+            onPress={handlePressDeleteButton}
+            disabled={isLoading}
           >
             <Image
               source={deleteIcon}
@@ -409,6 +423,16 @@ export default function settingsDecks() {
             </Typography>
           </Pressable>
         </ScrollView>
+        {/* Модалка для подтверждения удаления */}
+        <CustomAlert
+          visible={alertVisible}
+          message="Ты действительно хочешь удалить колоду?"
+          confirmText="Удалить"
+          cancelText="Вернуться к колоде"
+          onConfirm={handleConfirmDelete}
+          onCancel={handleCancelDelete}
+          icon={<LogoSadStar size={128} />}
+        />
 
         <View style={[styles.bottomButtonContainer, { maxWidth: 800 }]}>
           <MainButton
@@ -422,10 +446,10 @@ export default function settingsDecks() {
 
       {visibleColorPalette && (
         <ColorPalette
-          onCancel={handleColorModalClose} // Передаем строгое закрытие для клика мимо
+          onCancel={handleColorModalClose} 
           onSelectColor={(color) => {
             setSelectedColor(color);
-            setVisibleColorPalette(false); // Закрываем стейт родителя
+            setVisibleColorPalette(false); 
           }}
         />
       )}

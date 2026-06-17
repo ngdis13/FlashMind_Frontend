@@ -1,11 +1,11 @@
 import { StyleSheet } from "react-native";
-import { colors } from "@/styles/Colors"; // ИСПРАВЛЕНИЕ: Импортируем палитру цветов
+import { colors } from "@/styles/Colors"; 
 
 export const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
     width: "100%",
-    alignItems: "center", // ИСПРАВЛЕНО: Центрирует шапку и инпуты по горизонтали на ПК
+    alignItems: "center", 
     paddingHorizontal: 10,
     paddingTop: 30,
     paddingBottom: 40,

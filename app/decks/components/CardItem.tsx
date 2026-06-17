@@ -12,7 +12,8 @@ import {
   Alert,
 } from "react-native";
 import DeleteIcon from "@/assets/icons/DeleteIcon.png";
-import { CustomAlert } from "./CustomAlert";
+import { CustomAlert } from "@/components/CustomAlert";
+import { LogoSadStar } from "@/components/LogoSadStar";
 
 interface CardItemProps {
   id: string;
@@ -76,12 +77,12 @@ export const CardItem = ({
 
       <CustomAlert
         visible={alertVisible}
-        message={`Ты действительно хочешь удалить карточку?`}
+        message="Ты действительно хочешь удалить карточку?"
         confirmText="Удалить"
         cancelText="Вернуться к карточкам"
         onConfirm={handleConfirmDelete}
         onCancel={handleCancelDelete}
-        type="danger"
+        icon={<LogoSadStar size={128} />} 
       />
     </View>
   );
@@ -99,11 +100,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     width: "100%",
 
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 4,
     justifyContent: "space-between",
   },
   cardContent: {
