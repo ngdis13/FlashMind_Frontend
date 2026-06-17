@@ -1,13 +1,26 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { View, Text, Pressable, StyleSheet, Animated } from 'react-native';
 import { StarProgress } from './StarProgress'; 
-import { colors } from '@/styles/Colors';
 
-export const StarTooltip = ({ count, starColor }) => {
-  const [isHovered, setIsHovered] = useState(false);
-  
+export const StarTooltip = ({ dateStr, count, starColor, isActive, onOpen, onClose }) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const timerRef = useRef(null);
+
+  // Форматирование даты из формата "YYYY-MM-DD" в "ДД Месяца" (например, "17 июня")
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    try {
+      const date = new Date(dateString);
+      // Проверяем корректность даты
+      if (isNaN(date.getTime())) return dateString; 
+      
+      return date.toLocaleDateString('ru-RU', {
+        day: 'numeric',
+        month: 'long',
+      });
+    } catch (e) {
+      return dateString;
+    }
+  };
 
   const getPluralForm = (n) => {
     if (n % 10 === 1 && n % 100 !== 11) return 'повторение';
@@ -16,30 +29,19 @@ export const StarTooltip = ({ count, starColor }) => {
   };
 
   useEffect(() => {
-    // Запуск анимации появления (1) или исчезновения (0)
     Animated.timing(fadeAnim, {
-      toValue: isHovered ? 1 : 0,
-      duration: 250, 
+      toValue: isActive ? 1 : 0,
+      duration: 200, 
       useNativeDriver: true, 
     }).start();
+  }, [isActive, fadeAnim]);
 
-    // Если подсказка открылась — запускаем таймер автозакрытия на 5 секунд
-    if (isHovered) {
-      if (timerRef.current) clearTimeout(timerRef.current);
-
-      timerRef.current = setTimeout(() => {
-        setIsHovered(false);
-      }, 2500); // 
-    }
-
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, [isHovered, fadeAnim]);
-
-  // Обработка ручного клика (для мобилок и веба)
   const handlePress = () => {
-    setIsHovered((prev) => !prev);
+    if (isActive) {
+      onClose();
+    } else {
+      onOpen();
+    }
   };
 
   return (
@@ -49,11 +51,16 @@ export const StarTooltip = ({ count, starColor }) => {
           styles.tooltipContainer, 
           { 
             opacity: fadeAnim,
-            pointerEvents: isHovered ? 'auto' : 'none' 
+            pointerEvents: isActive ? 'auto' : 'none' 
           }
         ]}
       >
         <View style={styles.tooltipCard}>
+          {/* Строка с датой */}
+          <Text style={styles.tooltipDate}>
+            {formatDate(dateStr)}
+          </Text>
+          {/* Строка с количеством повторений */}
           <Text style={styles.tooltipText}>
             {count} {getPluralForm(count)}
           </Text>
@@ -62,12 +69,8 @@ export const StarTooltip = ({ count, starColor }) => {
       </Animated.View>
 
       <Pressable
-        // Убираем onHoverOut, чтобы уход курсора/пальца не закрывал плашку раньше времени
-        onHoverIn={() => setIsHovered(true)}
-        
-        // Клик/Тап переключает состояние и запускает 5-секундный таймер
+        onHoverIn={onOpen}
         onPress={handlePress}
-        
         style={styles.starArea}
       >
         <StarProgress size={24} color={starColor} />
@@ -91,15 +94,15 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 36, 
     alignItems: 'center',
-    width: 120, 
+    width: 140, // Чуть увеличили ширину, чтобы дата и текст гарантированно влезали
     zIndex: 99999,
   },
   tooltipCard: {
-    backgroundColor: colors.darkMainColor, 
+    backgroundColor: '#1e293b', 
     paddingVertical: 6,
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
     borderRadius: 6,
-    minWidth: 100, 
+    minWidth: 110, 
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -107,6 +110,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 8,
+  },
+  tooltipDate: {
+    color: '#94a3b8', // Серый полупризрачный цвет (Slate-400) для даты
+    fontSize: 11,
+    fontWeight: '400',
+    marginBottom: 2, // Отступ между датой и повторениями
+    textAlign: 'center',
   },
   tooltipText: {
     color: '#ffffff',

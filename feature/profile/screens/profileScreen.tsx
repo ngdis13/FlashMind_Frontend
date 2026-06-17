@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Pressable,
@@ -50,8 +50,8 @@ const getGridDays = () => {
 // 2. Утилита подбора цвета в зависимости от активности пользователя
 const getStarColor = (count: number) => {
   if (count === 0) return "#D8D8D8"; // Серый — отдыхал
-  if (count <= 3) return "#BEC2FF"; // Светло-фиолетовый — размялся
-  if (count <= 10) return "#6E75D9"; // Средне-фиолетовый — хорошо поучился
+  if (count <= 60) return "#BEC2FF"; // Светло-фиолетовый — размялся
+  if (count <= 99) return "#6E75D9"; // Средне-фиолетовый — хорошо поучился
   return "#464A8D"; // Тёмно-фиолетовый — супер-продуктивный день
 };
 
@@ -62,6 +62,28 @@ export default function ProfileScreen() {
   // Локальные состояния для загрузки аватара и ошибок
   const [isAvatarUploading, setIsAvatarUploading] = useState(false);
   const [avatarError, setAvatarError] = useState<string | null>(null);
+
+  // Новое состояние для контроля ОДНОЙ активной подсказки звёздочки
+  const [activeTooltip, setActiveTooltip] = useState<string | null>(null); // Хранит dateStr активной звезды
+  const globalTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Автоматическое закрытие подсказки через 5 секунд
+  useEffect(() => {
+    if (activeTooltip) {
+      // Очищаем предыдущий таймер, если пользователь нажал на другую звезду
+      if (globalTimerRef.current) clearTimeout(globalTimerRef.current);
+
+      // Запускаем таймер заново на 5 секунд
+      globalTimerRef.current = setTimeout(() => {
+        setActiveTooltip(null);
+      }, 5000);
+    }
+
+    // Очистка при размонтировании экрана
+    return () => {
+      if (globalTimerRef.current) clearTimeout(globalTimerRef.current);
+    };
+  }, [activeTooltip]);
 
   // Глобальный лоадер оставляем ТОЛЬКО для первой загрузки всего профиля
   if (isLoading && !isAvatarUploading) {
@@ -223,7 +245,7 @@ export default function ProfileScreen() {
                   {/* Контейнер всей сетки */}
                   <View style={styles.boxProgress__starsBox}>
                     {getGridDays().map((row, rowIndex) => (
-                      /* ВНИМАНИЕ: Изменили формулу zIndex. Теперь строки снизу будут поверх верхних */
+                      /* Отрисовка строки с zIndex. Нижние строки перекрывают верхние подсказками */
                       <View
                         key={rowIndex}
                         style={[
@@ -238,9 +260,14 @@ export default function ProfileScreen() {
 
                           return (
                             <View key={dateStr} style={styles.starWrapper}>
+                              {/* Наш обновленный компонент подсказки */}
                               <StarTooltip
+                                dateStr={dateStr} 
                                 count={countForDay}
                                 starColor={starColor}
+                                isActive={activeTooltip === dateStr}
+                                onOpen={() => setActiveTooltip(dateStr)}
+                                onClose={() => setActiveTooltip(null)}
                               />
                             </View>
                           );
