@@ -20,7 +20,7 @@ import { CustomAlert } from "@/components/CustomAlert";
 
 // Константы для логарифмического слайдера интервала
 const MIN_DAYS = 30;
-const MAX_DAYS = 3650;
+const MAX_DAYS = 730;
 
 // Перевод позиции слайдера (0...1) в реальные дни
 const logScale = (value: number) => {
@@ -113,9 +113,9 @@ export default function settingsDecks() {
 
     if (mode === "light") {
       setTargetRetention(85);
-      setMaxInterval(720);
+      setMaxInterval(730);
     } else if (mode === "balance") {
-      setTargetRetention(90);
+      setTargetRetention(92);
       setMaxInterval(365);
     } else if (mode === "intensive") {
       setTargetRetention(95);
@@ -160,7 +160,7 @@ export default function settingsDecks() {
       }
 
       // 1. Получаем и нормализуем значения из базы данных
-      let loadedRetention = 90; // Дефолтное значение
+      let loadedRetention = 92; // Дефолтное значение
       if (deck.desired_retention) {
         const rawRetention = deck.desired_retention;
         loadedRetention =
@@ -169,7 +169,7 @@ export default function settingsDecks() {
             : Math.round(rawRetention);
       }
 
-      let loadedInterval = 180; // Дефолтное значение
+      let loadedInterval = 365; // Дефолтное значение
       if (deck.maximum_interval) {
         const rawInterval = deck.maximum_interval;
         loadedInterval =
@@ -185,9 +185,9 @@ export default function settingsDecks() {
       setMaxInterval(loadedInterval);
 
       // 3. Автоматически определяем режим на основе пришедших данных
-      if (loadedRetention === 85 && loadedInterval === 720) {
+      if (loadedRetention === 85 && loadedInterval === 730) {
         setIntensity("light");
-      } else if (loadedRetention === 90 && loadedInterval === 180) {
+      } else if (loadedRetention === 92 && loadedInterval === 365) {
         setIntensity("balance");
       } else if (loadedRetention === 95 && loadedInterval === 30) {
         setIntensity("intensive");
@@ -377,7 +377,7 @@ export default function settingsDecks() {
                     value={logPosition(maxInterval)}
                     onValueChange={(val) => {
                       const calculatedDays = logScale(val);
-                      if (calculatedDays >= 30 && calculatedDays <= 3650) {
+                      if (calculatedDays >= 30 && calculatedDays <= 730) {
                         setMaxInterval(calculatedDays);
                       }
                     }}
@@ -396,7 +396,7 @@ export default function settingsDecks() {
                     }}
                   >
                     <Typography variant="h3">30 дней</Typography>
-                    <Typography variant="h3">3650 дней</Typography>
+                    <Typography variant="h3">730 дней</Typography>
                   </View>
 
                   <Typography variant="h3" style={styles.sliderDescription}>
