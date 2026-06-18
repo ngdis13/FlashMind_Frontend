@@ -29,7 +29,7 @@ export default function NotFoundPage() {
             color="#FFFFFF"
             style={styles.mainText}
           >
-            Упс, кажется разработчики еще не создали эту страницу
+            Упс, кажется этой страницы пока нет
           </Typography>
         </View>
       </SafeAreaView>

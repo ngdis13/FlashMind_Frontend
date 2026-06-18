@@ -8,6 +8,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Logo } from "@/components/Logo";
 import { useAuthStore } from "@/store/auth.store";
 import { refreshToken } from "@/api/services/auth.service";
+import apiClient from "@/api/client";
 
 export default function WelcomeScreen() {
   const router = useRouter();

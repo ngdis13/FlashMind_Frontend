@@ -9,6 +9,7 @@ import { variants } from "@/styles/Typography";
 import { useState } from "react";
 import { MainButton } from "@/components/MainButton";
 import { useDecks } from "@/storage/hooks/useDecks";
+import Toast from "react-native-toast-message";
 
 export default function CreateCardView() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -22,27 +23,62 @@ export default function CreateCardView() {
     router.push(`/decks/${id}`);
   };
   const handleCreateCard = async () => {
+    const trimmedFront = front.trim();
+    const trimmedBack = back.trim();
+
+    if (!trimmedFront || !trimmedBack) {
+      Toast.show({
+        type: "error",
+        text1: "Заполните все поля",
+        text2: "Термин и определение не могут быть пустыми",
+        position: "bottom",
+        visibilityTime: 3000,
+      });
+      return;
+    }
     try {
       await addCard(id as string, front.trim(), back.trim());
+      Toast.show({
+        type: "success",
+        text1: "Карточка создана!",
+        position: "bottom",
+        visibilityTime: 3000,
+      });
       router.push(`/decks/${id}`);
     } catch (err) {
+      Toast.show({
+        type: "error",
+        text1: "Ошибка создания карточки",
+        position: "bottom",
+        visibilityTime: 3000,
+      });
       console.error(err);
-    } finally{
+    } finally {
       router.push(`/decks/${id}`);
     }
   };
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}>
+    <View
+      style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}
+    >
       <View style={[commonStyles.container, { flex: 1, paddingBottom: 30 }]}>
-        <ScrollView 
+        <ScrollView
           style={{ width: "100%" }}
           contentContainerStyle={{ alignItems: "center", width: "100%" }}
           showsVerticalScrollIndicator={false}
         >
-          
-          <View style={[commonStyles.content, { width: "100%", paddingHorizontal: 16 }]}>
-            <View style={[commonStyles.mainContent, { width: "100%", paddingHorizontal: 0 }]}>
-              
+          <View
+            style={[
+              commonStyles.content,
+              { width: "100%", paddingHorizontal: 16 },
+            ]}
+          >
+            <View
+              style={[
+                commonStyles.mainContent,
+                { width: "100%", paddingHorizontal: 0 },
+              ]}
+            >
               <View style={styles.header}>
                 <Pressable onPress={handleBack}>
                   <Image
@@ -56,7 +92,12 @@ export default function CreateCardView() {
                 </Typography>
               </View>
 
-              <View style={[commonStyles.infoBox, { flexDirection: "column", width: "100%" }]}>
+              <View
+                style={[
+                  commonStyles.infoBox,
+                  { flexDirection: "column", width: "100%" },
+                ]}
+              >
                 <View style={styles.inputWrapper}>
                   <Typography variant="h3" style={styles.firstHeader}>
                     термин
@@ -85,21 +126,20 @@ export default function CreateCardView() {
                   />
                 </View>
               </View>
-
             </View>
           </View>
         </ScrollView>
 
-        <View style={{ width: "100%", paddingHorizontal: 16, alignItems: "center" }}>
+        <View
+          style={{ width: "100%", paddingHorizontal: 16, alignItems: "center" }}
+        >
           <MainButton
             style={styles.createCardButton}
             title="Создать карточку"
             onPress={handleCreateCard}
           />
         </View>
-
       </View>
     </View>
   );
-
 }
