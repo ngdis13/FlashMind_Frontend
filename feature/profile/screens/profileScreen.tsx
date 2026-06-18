@@ -15,7 +15,6 @@ import { Typography } from "@/styles/Typography";
 import { colors } from "@/styles/Colors";
 
 import { UserAvatar } from "../assets/UserAvatar";
-import { StarProgress } from "../assets/StarProgress";
 import { SettingsIcon } from "../assets/SettingsIcon";
 
 import { useUserStore } from "@/store/userStore";
@@ -63,9 +62,9 @@ export default function ProfileScreen() {
   const [isAvatarUploading, setIsAvatarUploading] = useState(false);
   const [avatarError, setAvatarError] = useState<string | null>(null);
 
-  // Новое состояние для контроля ОДНОЙ активной подсказки звёздочки
-  const [activeTooltip, setActiveTooltip] = useState<string | null>(null); // Хранит dateStr активной звезды
-  const globalTimerRef = useRef<NodeJS.Timeout | null>(null);
+// Новое состояние для контроля ОДНОЙ активной подсказки звёздочки
+const [activeTooltip, setActiveTooltip] = useState<string | null>(null); // Хранит dateStr активной звезды
+const globalTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Автоматическое закрытие подсказки через 5 секунд
   useEffect(() => {
