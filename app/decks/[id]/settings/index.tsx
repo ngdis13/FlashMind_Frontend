@@ -16,7 +16,8 @@ import { ColorPalette } from "@/app/create-decks/components/colorPalette";
 import Slider from "@react-native-community/slider";
 import { LogoSadStar } from "@/components/LogoSadStar";
 import { CustomAlert } from "@/components/CustomAlert";
-
+import { AxiosError } from "axios";
+import Toast from "react-native-toast-message";
 
 // Константы для логарифмического слайдера интервала
 const MIN_DAYS = 30;
@@ -61,7 +62,6 @@ export default function settingsDecks() {
   //Удаление колоды
   const [alertVisible, setAlertVisible] = useState(false);
 
-
   const modes = [
     { id: "light", label: "Лайт" },
     { id: "balance", label: "Баланс" },
@@ -81,23 +81,53 @@ export default function settingsDecks() {
   };
 
   const handleSaveEdit = async () => {
-    if (!name.trim()) {
-      return;
+    const trimmedName = name.trim();
+
+    if (!trimmedName) {
+      Toast.show({
+        type: "error",
+        text1: "Заполните имя колоды",
+        text2: "Настройки не могут быть сохранены с пустым названием",
+        position: "bottom",
+        visibilityTime: 3000,
+      });
+      return; 
     }
 
     try {
       setIsLoading(true);
-
       await updateDeckFields(id, {
-        name: name.trim(),
+        name: trimmedName,
         description: description.trim() || "",
         color: selectedColor,
         desired_retention: Number((targetRetention * 0.01).toFixed(2)),
         maximum_interval: maxInterval,
       });
-      console.log("колода обновлена");
+
+      console.log("Колода обновлена");
+
+      Toast.show({
+        type: "success",
+        text1: "Настройки колоды сохранены",
+        position: "bottom",
+        visibilityTime: 3000,
+      });
+
+
       router.push(`/decks/${id}`);
     } catch (error) {
+      const err = error as AxiosError<{ message?: string }>;
+      const serverMessage =
+        err.response?.data?.message || "Не удалось сохранить настройки";
+
+      Toast.show({
+        type: "error",
+        text1: "Ошибка изменения настроек",
+        text2: serverMessage,
+        position: "bottom",
+        visibilityTime: 3000,
+      });
+
       console.error("Ошибка при сохранении:", error);
     } finally {
       setIsLoading(false);
@@ -124,15 +154,13 @@ export default function settingsDecks() {
   };
   // 1. Эта функция теперь срабатывает ТОЛЬКО при подтверждении в модалке
   const handleConfirmDelete = async () => {
-   
     setAlertVisible(false); // Закрываем модалку
     try {
       setIsLoading(true);
       await deleteDeck(id);
-      
+
       console.log("Колода успешно удалена");
       router.push("/decks");
-      
     } catch (error) {
       console.error("Ошибка при удалении колоды:", error);
     } finally {
@@ -451,10 +479,10 @@ export default function settingsDecks() {
 
       {visibleColorPalette && (
         <ColorPalette
-          onCancel={handleColorModalClose} 
+          onCancel={handleColorModalClose}
           onSelectColor={(color) => {
             setSelectedColor(color);
-            setVisibleColorPalette(false); 
+            setVisibleColorPalette(false);
           }}
         />
       )}

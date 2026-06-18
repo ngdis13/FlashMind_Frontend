@@ -12,6 +12,8 @@ import { Logo } from "@/components/Logo";
 import { colors } from "@/styles/Colors";
 import { createNewDeck } from "../api/createDecks.api";
 import { ColorPalette } from "../components/colorPalette";
+import Toast from "react-native-toast-message";
+import { AxiosError } from "axios";
 
 export default function CreateDecksScreen() {
   const router = useRouter();
@@ -33,22 +35,48 @@ export default function CreateDecksScreen() {
   };
 
   const handleCreateDecks = async () => {
-    if (!name.trim()) return;
-    setIsLoading(true); // Включаем лоадер перед запросом
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      Toast.show({
+        type: "error",
+        text1: "Заполните имя колоды",
+        text2: "Колода не может быть создана без названия",
+        position: "bottom",
+        visibilityTime: 3000,
+      });
+      return;
+    }
+
+    setIsLoading(true);
 
     try {
-      // 3. Передаем выбранный цвет (selectedColor) в API
       const result = await createNewDeck({
-        name: name,
-        description: description,
-        color: selectedColor, // Добавляем поле цвета в запрос
+        name: trimmedName,
+        description: description.trim(),
+        color: selectedColor,
       });
 
       if (result) {
+        Toast.show({
+          type: "success",
+          text1: "Колода создана",
+          position: "bottom",
+          visibilityTime: 3000,
+        });
         router.replace("/decks");
       }
-    } catch (e) {
-      console.error("Ошибка при создании:", e);
+    } catch (error) {
+      const err = error as AxiosError<{ message?: string }>;
+      const serverMessage = err?.message || "Попробуйте снова";
+
+      Toast.show({
+        type: "error",
+        text1: "Ошибка создания колоды",
+        text2: serverMessage,
+        position: "bottom",
+        visibilityTime: 3000,
+      });
+      console.error("Ошибка при создании:", err);
     } finally {
       setIsLoading(false);
     }

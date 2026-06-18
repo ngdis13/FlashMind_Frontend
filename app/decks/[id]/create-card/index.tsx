@@ -10,6 +10,7 @@ import { useState } from "react";
 import { MainButton } from "@/components/MainButton";
 import { useDecks } from "@/storage/hooks/useDecks";
 import Toast from "react-native-toast-message";
+import { AxiosError } from "axios";
 
 export default function CreateCardView() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -45,14 +46,17 @@ export default function CreateCardView() {
         visibilityTime: 3000,
       });
       router.push(`/decks/${id}`);
-    } catch (err) {
+    } catch (error) {
+      const err = error as AxiosError<{ message?: string }>;
+      const serverMessage = err?.message || "Попробуйте снова";
       Toast.show({
         type: "error",
         text1: "Ошибка создания карточки",
+        text2: serverMessage,
         position: "bottom",
         visibilityTime: 3000,
       });
-      console.error(err);
+      console.error(error);
     } finally {
       router.push(`/decks/${id}`);
     }

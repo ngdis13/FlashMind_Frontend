@@ -16,6 +16,8 @@ import { useCallback, useState } from "react";
 import { colors } from "@/styles/Colors";
 import { MainButton } from "@/components/MainButton";
 import { Card } from "@/storage/types/types";
+import { AxiosError } from "axios";
+import Toast from "react-native-toast-message";
 
 export default function CardView() {
   const { cardId, deckId } = useLocalSearchParams<{
@@ -33,26 +35,54 @@ export default function CardView() {
   const [inputHeight, setInputHeight] = useState(36); // Начальная базовая высота для одной строки
 
   const handleUpdateCard = async () => {
-    if (!front.trim() || !back.trim()) {
-      Alert.alert("Ошибка", "Заполните все поля");
-      return;
+    const trimmedFront = front.trim();
+    const trimmedBack = back.trim();
+
+    if (!trimmedFront || !trimmedBack) {
+      Toast.show({
+        type: "error",
+        text1: "Заполните все поля",
+        text2: "Термин и определение не могут быть пустыми",
+        position: "bottom",
+        visibilityTime: 3000,
+      });
+      return; 
     }
 
     try {
       const updatedCard = await updateCard(
         cardId as string,
-        front.trim(),
-        back.trim(),
+        trimmedFront,
+        trimmedBack,
       );
 
       if (updatedCard) {
         setCard(updatedCard);
         setFront(updatedCard.front);
         setBack(updatedCard.back);
+
+        Toast.show({
+          type: "success",
+          text1: "Изменения сохранены!",
+          position: "bottom",
+          visibilityTime: 3000,
+        });
+
         router.push(`/decks/${deckId}`);
       }
     } catch (error) {
-      Alert.alert("Ошибка", "Не удалось обновить карточку");
+      const err = error as AxiosError<{ message?: string }>;
+      const serverMessage =
+        err?.message || "Не удалось обновить карточку";
+
+      Toast.show({
+        type: "error",
+        text1: "Ошибка обновления карточки",
+        text2: serverMessage,
+        position: "bottom",
+        visibilityTime: 3000,
+      });
+      console.error(err);
     }
   };
 
@@ -124,8 +154,8 @@ export default function CardView() {
                   onPress={handleBack}
                   style={{
                     padding: 12,
-                    marginLeft: -12, 
-                    marginRight: -8,  
+                    marginLeft: -12,
+                    marginRight: -8,
                     justifyContent: "center",
                     alignItems: "center",
                   }}
