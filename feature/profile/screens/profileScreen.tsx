@@ -21,6 +21,8 @@ import { useUserStore } from "@/store/userStore";
 import { useRouter } from "expo-router";
 import LoadingScreen from "@/app/loading";
 import { StarTooltip } from "../assets/ProgressTooltip";
+import Toast from "react-native-toast-message";
+import { AxiosError } from "axios";
 
 // 1. Утилита генерации матрицы локальных дат 4 строки на 7 дней
 const getGridDays = () => {
@@ -62,9 +64,9 @@ export default function ProfileScreen() {
   const [isAvatarUploading, setIsAvatarUploading] = useState(false);
   const [avatarError, setAvatarError] = useState<string | null>(null);
 
-// Новое состояние для контроля ОДНОЙ активной подсказки звёздочки
-const [activeTooltip, setActiveTooltip] = useState<string | null>(null); // Хранит dateStr активной звезды
-const globalTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Новое состояние для контроля ОДНОЙ активной подсказки звёздочки
+  const [activeTooltip, setActiveTooltip] = useState<string | null>(null); // Хранит dateStr активной звезды
+  const globalTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Автоматическое закрытие подсказки через 5 секунд
   useEffect(() => {
@@ -98,14 +100,22 @@ const globalTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
         await ImagePicker.requestMediaLibraryPermissionsAsync();
 
       if (status !== "granted") {
-        setAvatarError("Нужно разрешение на доступ к галерее");
+        const errorMsg = "Нужно разрешение на доступ к галерее";
+        setAvatarError(errorMsg);
+        Toast.show({
+          type: "error",
+          text1: "Доступ запрещен",
+          text2: errorMsg,
+          position: "bottom",
+          visibilityTime: 3000,
+        });
         return;
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],
         allowsEditing: true,
-        aspect: [1, 1],
+        aspect:[1,1],
         quality: 0.9, // Исходное качество перед сжатием
       });
 
@@ -117,7 +127,7 @@ const globalTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
         console.log("Исходный аватар:", selectedUri);
 
-        //сжатие изображенияч
+        // Сжатие изображения
         try {
           const manipResult = await ImageManipulator.manipulateAsync(
             selectedUri,
@@ -139,27 +149,47 @@ const globalTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
         console.log("Отправляем аватар на сервер...");
         await updateAvatar(selectedUri);
+        
+        Toast.show({
+          type: "success",
+          text1: "Аватар успешно обновлен",
+          position: "bottom",
+          visibilityTime: 3000,
+        });
         console.log("Аватар успешно обновлён!");
       }
     } catch (error) {
       console.error("Ошибка при обновлении аватара:", error);
+      
+      let displayMessage = "Попробуйте другую картинку";
 
-      if (error instanceof Error) {
-        if (
-          error.message.includes("Network") ||
-          error.message.includes("413")
-        ) {
-          setAvatarError(
-            "Файл слишком большой для сервера или проблема с сетью.",
-          );
-        } else if (error.message.includes("401")) {
-          setAvatarError("Сессия истекла. Пожалуйста, перезайдите в аккаунт.");
+      // Проверка на ошибку Axios (как в создании колоды)
+      const err = error as AxiosError<{ message?: string }>;
+      if (err?.response?.data?.message || err?.message) {
+        const serverMessage = err.response?.data?.message || err.message;
+        
+        if (serverMessage.includes("Network") || serverMessage.includes("413")) {
+          displayMessage = "Файл слишком большой или проблема с сетью.";
+        } else if (serverMessage.includes("401")) {
+          displayMessage = "Сессия истекла. Пожалуйста, перезайдите в аккаунт.";
         } else {
-          setAvatarError(`Не удалось обновить аватар: ${error.message}`);
+          displayMessage = serverMessage;
         }
-      } else {
-        setAvatarError("Не удалось загрузить картинку. Попробуйте другую.");
+      } else if (error instanceof Error) {
+        displayMessage = error.message;
       }
+
+      // Обновляем локальное состояние ошибки
+      setAvatarError(displayMessage);
+
+      // Внедряем всплывающий Toast об ошибке
+      Toast.show({
+        type: "error",
+        text1: "Ошибка обновления аватара",
+        text2: displayMessage,
+        position: "bottom",
+        visibilityTime: 3000,
+      });
     } finally {
       // Выключаем локальный лоадер в любом случае
       setIsAvatarUploading(false);
@@ -261,7 +291,7 @@ const globalTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
                             <View key={dateStr} style={styles.starWrapper}>
                               {/* Наш обновленный компонент подсказки */}
                               <StarTooltip
-                                dateStr={dateStr} 
+                                dateStr={dateStr}
                                 count={countForDay}
                                 starColor={starColor}
                                 isActive={activeTooltip === dateStr}
