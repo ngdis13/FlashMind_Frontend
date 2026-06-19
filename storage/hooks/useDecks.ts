@@ -93,7 +93,7 @@ export const useDecks = () => {
         
         // Если количество не совпадает
         if (localCount !== serverCount) {
-          console.log(`⚠️ Несоответствие для колоды ${serverDeck.name}:`, {
+          console.log(`Несоответствие для колоды ${serverDeck.name}:`, {
             local: localCount,
             server: serverCount
           });
@@ -101,13 +101,13 @@ export const useDecks = () => {
           if (serverCount === 0) {
             // Если на сервере 0 - очищаем локальные карточки
             await saveDeckCards(serverDeck.id, []);
-            console.log(`🗑️ Очищены карточки колоды ${serverDeck.id} (на сервере 0)`);
+            console.log(`Очищены карточки колоды ${serverDeck.id} (на сервере 0)`);
           } else {
             // Загружаем актуальные карточки с сервера
-            console.log(`📥 Загружаем карточки колоды ${serverDeck.id} с сервера...`);
+            console.log(`Загружаем карточки колоды ${serverDeck.id} с сервера...`);
             const serverCards = await fetchDeckCards(serverDeck.id);
             await saveDeckCards(serverDeck.id, serverCards);
-            console.log(`✅ Обновлены карточки для колоды ${serverDeck.id}: ${serverCards.length} шт.`);
+            console.log(`Обновлены карточки для колоды ${serverDeck.id}: ${serverCards.length} шт.`);
             
             // Обновляем глобальное состояние cards если это текущая открытая колода
             // (можно добавить проверку по активной колоде)
@@ -181,7 +181,7 @@ export const useDecks = () => {
 
       // Если количество не совпадает или карточек нет - загружаем с сервера
       if (!localCards || localCount !== expectedCount || localCount === 0) {
-        console.log(`📥 Загружаем карточки колоды ${deckId} с сервера... (ожидается: ${expectedCount}, есть: ${localCount})`);
+        console.log(`Загружаем карточки колоды ${deckId} с сервера... (ожидается: ${expectedCount}, есть: ${localCount})`);
         
         const serverCards = await fetchDeckCards(deckId);
         
@@ -189,12 +189,12 @@ export const useDecks = () => {
         await saveDeckCards(deckId, serverCards);
         setCards(serverCards);
         
-        console.log(`✅ Загружено ${serverCards.length} карточек для колоды ${deckId}`);
+        console.log(`Загружено ${serverCards.length} карточек для колоды ${deckId}`);
         return serverCards;
       }
 
       // Данные в кэше актуальны
-      console.log(`📂 Карточки колоды ${deckId} загружены из хранилища (${localCards.length} шт.)`);
+      console.log(`Карточки колоды ${deckId} загружены из хранилища (${localCards.length} шт.)`);
       setCards(localCards);
       return localCards;
 
@@ -271,7 +271,6 @@ export const useDecks = () => {
       await saveDecks(serverDecks);
       setDecks(serverDecks);
       
-      // 🔥 Синхронизируем карточки после обновления колод
       await syncCardsCount(serverDecks);
       
       console.log("Колоды обновлены");
@@ -289,15 +288,12 @@ export const useDecks = () => {
   const removeCard = useCallback(async (deckId: string, cardId: string) => {
     try {
       await deleteCard(cardId);
-
-      // Обновляем кэш в AsyncStorage
       const currentCards = await loadDeckCards(deckId);
       if (currentCards) {
         const updatedCards = currentCards.filter((card) => card.id !== cardId);
         await saveDeckCards(deckId, updatedCards);
       }
 
-      // 🔥 Обновляем total_cards в колоде
       const updatedDecks = decks.map(deck => 
         deck.id === deckId 
           ? { ...deck, total_cards: Math.max(0, (deck.total_cards || 1) - 1) }
@@ -391,7 +387,7 @@ export const useDecks = () => {
       try {
         console.log(`Обновляем карточку ${cardId}...`);
 
-        // Обновляем на сервере
+
         const updatedCard = await updateCardOnServer(cardId, { front, back });
 
 
