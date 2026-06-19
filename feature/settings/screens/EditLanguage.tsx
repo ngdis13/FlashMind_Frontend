@@ -6,11 +6,27 @@ import { useState } from "react";
 import { colors } from "@/styles/Colors";
 import ReturnIcon from "@/assets/icons/ReturnIcon.png";
 import { useRouter } from "expo-router";
+import Toast from "react-native-toast-message"; // Импортируем Toast
 
 export default function EditLanguage() {
   const router = useRouter();
   const [selectedLanguage, setSelectedLanguage] = useState("ru");
-  const handleBack = () => router.back();
+  const handleBack = () => router.push('/settings');
+
+  const handleLanguageChange = (lang: "ru" | "en") => {
+    setSelectedLanguage(lang);
+    
+    const successMessage = lang === "ru" 
+      ? "Язык изменен на Русский" 
+      : "Language changed to English";
+
+    Toast.show({
+      type: "success",
+      text1: successMessage,
+      position: "bottom",
+      visibilityTime: 2000,
+    });
+  };
 
   return (
     <View
@@ -37,17 +53,18 @@ export default function EditLanguage() {
                 commonStyles.greyButton,
                 selectedLanguage === "ru" && { borderColor: colors.mainColor },
               ]}
-              onPress={() => setSelectedLanguage("ru")}
+              onPress={() => handleLanguageChange("ru")} // Используем новую функцию
             >
               <Typography variant="h2">Русский</Typography>
             </Pressable>
+            
             <Pressable
               style={[
                 commonStyles.mainBox,
                 commonStyles.greyButton,
                 selectedLanguage === "en" && { borderColor: colors.mainColor },
               ]}
-              onPress={() => setSelectedLanguage("en")}
+              onPress={() => handleLanguageChange("en")} // Используем новую функцию
             >
               <Typography variant="h2">Английский</Typography>
             </Pressable>

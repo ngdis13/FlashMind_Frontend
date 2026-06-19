@@ -9,6 +9,8 @@ import { useUserStore } from "@/store/userStore";
 import { useRouter } from "expo-router";
 import ReturnIcon from "@/assets/icons/ReturnIcon.png";
 import { colors } from "@/styles/Colors";
+import Toast from "react-native-toast-message";
+import { AxiosError } from "axios";
 
 export default function EditProfile() {
   const { user, updateProfile, submitOnbordingData } = useUserStore();
@@ -26,12 +28,53 @@ export default function EditProfile() {
     }
   }, [user]);
 
-  const handleSaveEdit = () => {
-    updateProfile({ firstName: name, lastName: lastname, bio: bio });
-    submitOnbordingData();
-    router.replace("/settings");
+  const handleSaveEdit = async () => {
+    const trimmedName = name.trim();
+    const trimmedLastname = lastname.trim();
+
+    if (!trimmedName || !trimmedLastname) {
+      Toast.show({
+        type: "error",
+        text1: "Заполните профиль",
+        text2: "Имя и фамилия не могут быть пустыми",
+        position: "bottom",
+        visibilityTime: 3000,
+      });
+      return;
+    }
+
+    try {
+      await updateProfile({
+        firstName: trimmedName,
+        lastName: trimmedLastname,
+        bio: bio.trim(),
+      });
+      await submitOnbordingData();
+
+      Toast.show({
+        type: "success",
+        text1: "Профиль успешно обновлен",
+        position: "bottom",
+        visibilityTime: 2500,
+      });
+
+      router.replace("/settings");
+    } catch (error) {
+      const err = error as AxiosError<{ message?: string }>;
+      const serverMessage =
+        err?.response?.data?.message || err?.message || "Попробуйте снова";
+
+      Toast.show({
+        type: "error",
+        text1: "Ошибка сохранения",
+        text2: serverMessage,
+        position: "bottom",
+        visibilityTime: 3000,
+      });
+      console.error("Ошибка обновления профиля:", error);
+    }
   };
-  const handleBack = () => router.back();
+  const handleBack = () => router.push("/settings");
 
   return (
     <View

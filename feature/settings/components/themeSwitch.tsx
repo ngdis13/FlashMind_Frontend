@@ -9,6 +9,7 @@ import {
   Image,
   Animated,
 } from "react-native";
+import Toast from "react-native-toast-message"; // Импортируем Toast
 
 export default function ThemeSwitch() {
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -16,7 +17,6 @@ export default function ThemeSwitch() {
 
   const slideAnim = useRef(new Animated.Value(0)).current;
 
-  // Теперь функция не принимает аргумент, а просто инвертирует текущее состояние
   const toggleTheme = () => {
     const nextValue = !isDarkMode;
 
@@ -28,11 +28,18 @@ export default function ThemeSwitch() {
     }).start();
 
     setIsDarkMode(nextValue);
+
+    Toast.show({
+      type: "success",
+      text1: nextValue ? "Включена тёмная тема" : "Включена светлая тема",
+      position: "bottom",
+      visibilityTime: 2000,
+    });
   };
 
   const sliderPosition = slideAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [1, 25],
+    inputRange:[0,1],
+    outputRange:[1,25],
   });
 
   return (
@@ -99,7 +106,7 @@ const styles = StyleSheet.create({
     height: 22,
     backgroundColor: "#fff",
     borderRadius: 11,
-    top: 2, // (высота контейнера 30 - высота ползунка 22) / 2 = 4
+    top: 2, 
     justifyContent: "center",
     alignItems: "center",
     shadowColor: "#000",
