@@ -18,6 +18,7 @@ import { LogoSadStar } from "@/components/LogoSadStar";
 import { CustomAlert } from "@/components/CustomAlert";
 import { AxiosError } from "axios";
 import Toast from "react-native-toast-message";
+import { InfoStudy } from "@/feature/decks/components/InfoStudy";
 
 // Константы для логарифмического слайдера интервала
 const MIN_DAYS = 30;
@@ -49,6 +50,8 @@ export default function settingsDecks() {
   // 1. Стейты для управления цветом и видимостью палитры
   const [selectedColor, setSelectedColor] = useState(colors.red1);
   const [visibleColorPalette, setVisibleColorPalette] = useState(false);
+
+  const [visibleInfo, setVisibleInfo] = useState(false);
 
   const [intensity, setIntensity] = useState("balance");
   const [targetRetention, setTargetRetention] = useState(90); // По умолчанию 90%
@@ -135,6 +138,7 @@ export default function settingsDecks() {
 
   const handleInfo = () => {
     //для блока информации об интенсивностти обучения
+    setVisibleInfo((prev) => !prev);
   };
 
   const handleSelectIntensity = (mode: string) => {
@@ -497,6 +501,8 @@ export default function settingsDecks() {
           }}
         />
       )}
+
+      {visibleInfo && <InfoStudy visible={visibleInfo} onCancel={handleInfo} />}
     </View>
   );
 }
