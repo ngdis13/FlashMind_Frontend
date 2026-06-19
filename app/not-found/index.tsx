@@ -26,7 +26,6 @@ export default function NotFoundPage() {
           <LogoSadStar size={190} style={{ marginBottom: 24 }} />
           <Typography
             variant="h2"
-            color="#FFFFFF"
             style={styles.mainText}
           >
             Упс, кажется этой страницы пока нет

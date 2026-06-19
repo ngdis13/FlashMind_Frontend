@@ -1,9 +1,9 @@
+import { colors } from '@/styles/Colors';
 import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#6E75D9',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 10,
@@ -15,7 +15,7 @@ export const styles = StyleSheet.create({
   },
   logoText: {
     fontSize: 40,
-    color: '#FFFFFF',
+    color: colors.darkMainColor,
     fontFamily: 'MontserratSemibold',
   },
   mainText: {
