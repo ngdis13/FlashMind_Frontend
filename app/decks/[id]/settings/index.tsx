@@ -91,7 +91,7 @@ export default function settingsDecks() {
         position: "bottom",
         visibilityTime: 3000,
       });
-      return; 
+      return;
     }
 
     try {
@@ -112,7 +112,6 @@ export default function settingsDecks() {
         position: "bottom",
         visibilityTime: 3000,
       });
-
 
       router.push(`/decks/${id}`);
     } catch (error) {
@@ -158,10 +157,22 @@ export default function settingsDecks() {
     try {
       setIsLoading(true);
       await deleteDeck(id);
-
+      Toast.show({
+        type: "success",
+        text1: "Колода успешно удалена",
+        position: "bottom",
+        visibilityTime: 3000,
+      });
       console.log("Колода успешно удалена");
       router.push("/decks");
     } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: "Ошибка удаления колоды",
+        text2: "Попробуйте снова",
+        position: "bottom",
+        visibilityTime: 3000,
+      });
       console.error("Ошибка при удалении колоды:", error);
     } finally {
       setIsLoading(false);

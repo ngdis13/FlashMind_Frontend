@@ -2,14 +2,12 @@ import { Typography } from "@/styles/Typography";
 import React, { useState } from "react";
 import {
   View,
-  Text,
   TouchableOpacity,
   StyleSheet,
   StyleProp,
   ViewStyle,
   Image,
   Pressable,
-  Alert,
 } from "react-native";
 import DeleteIcon from "@/assets/icons/DeleteIcon.png";
 import { CustomAlert } from "@/components/CustomAlert";
@@ -39,9 +37,11 @@ export const CardItem = ({
   style,
 }: CardItemProps) => {
   const [alertVisible, setAlertVisible] = useState(false);
+
   const handlePress = () => {
     onPress?.(id, deckId);
   };
+
   const handleDeletePress = () => {
     setAlertVisible(true);
   };
@@ -56,21 +56,21 @@ export const CardItem = ({
   };
 
   return (
-    <View style={[styles.card, style]}>
-      <TouchableOpacity onPress={handlePress} activeOpacity={0.7}>
-        <View style={styles.cardContent}>
-          <View style={styles.textContainer}>
-            <Typography variant="h2" numberOfLines={2}>
-              {front}
-            </Typography>
-          </View>
-        </View>
-      </TouchableOpacity>
+    <TouchableOpacity 
+      onPress={handlePress} 
+      activeOpacity={0.7}
+      style={[styles.card, style]}
+    >
+      <View style={styles.textContainer}>
+        <Typography variant="h2" numberOfLines={2}>
+          {front}
+        </Typography>
+      </View>
 
-      {/* Кнопка удаления вынесена отдельно, вне TouchableOpacity */}
       <Pressable
         onPress={handleDeletePress}
         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        style={styles.deleteButton}
       >
         <Image source={DeleteIcon} style={styles.deleteIcon} />
       </Pressable>
@@ -84,7 +84,7 @@ export const CardItem = ({
         onCancel={handleCancelDelete}
         icon={<LogoSadStar size={128} />} 
       />
-    </View>
+    </TouchableOpacity>
   );
 };
 
@@ -92,25 +92,23 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
     borderWidth: 2,
     borderColor: "#DBDBDB",
     borderRadius: 15,
     paddingVertical: 12,
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
     backgroundColor: "#FFFFFF",
     width: "100%",
-
-    justifyContent: "space-between",
   },
-  cardContent: {
-    flexDirection: "row",
-
-    alignItems: "center",
+  textContainer: {
     flex: 1,
   },
-
+  deleteButton: {
+    padding: 4, // Увеличивает область клика внутри карточки
+  },
   deleteIcon: {
-    width: 20,
-    height: 20,
+    width: 24,
+    height: 24,
   },
 });

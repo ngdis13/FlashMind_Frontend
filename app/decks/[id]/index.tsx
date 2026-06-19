@@ -15,6 +15,7 @@ import { useDecks } from "@/storage/hooks/useDecks";
 import { CardItem } from "../components/CardItem";
 import { Card } from "@/storage/types/types";
 import { ColorPalette } from "@/app/create-decks/components/colorPalette";
+import Toast from "react-native-toast-message";
 
 export default function DeckViewById() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -26,7 +27,6 @@ export default function DeckViewById() {
   const [description, setDescription] = useState("");
   const [search, setSearch] = useState("");
   const [cards, setCards] = useState<Card[]>([]);
-
 
   const deck = decks.find((d) => d.id === id);
 
@@ -58,6 +58,13 @@ export default function DeckViewById() {
       await removeCard(deckId || (id as string), cardId);
       setCards((prevCards) => prevCards.filter((card) => card.id !== cardId));
     } catch (err) {
+      Toast.show({
+        type: "error",
+        text1: "Ошибка удаления карточки",
+        text2: "Попробуйте снова",
+        position: "bottom",
+        visibilityTime: 3000,
+      });
       console.error("Ошибка при удалении карточки:", err);
     }
   };
@@ -132,10 +139,8 @@ export default function DeckViewById() {
                 <View
                   style={[commonStyles.mainBox, { width: "100%" }, styles.info]}
                 >
-                  {/* Красивая самостоятельная линия */}
                   <View style={styles.purpleLine} />
 
-                  {/* Контейнер для текстов */}
                   <View style={styles.textContainer}>
                     <Typography variant="h2" style={{ fontWeight: 800 }}>
                       {name}
