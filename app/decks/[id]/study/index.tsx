@@ -184,7 +184,8 @@ export default function StudyDecksScreen() {
                 <View style={{ flex: 1 }}>
                   <Typography variant="h3">
                     Не рекомендуем добавлять сразу все карточки к изучению,
-                    начните с 5-20 в день...
+                    начните с 5-20 в день. Следите, чтобы "К повтору сегодня" не
+                    росло слишком сильно, берегите свое здоровье
                   </Typography>
                 </View>
               </Animated.View>
@@ -208,7 +209,9 @@ export default function StudyDecksScreen() {
               style={[styles.startButton, { width: "100%" }]}
               title="Старт"
               onPress={handleStartStudy}
-              disabled={!studyData || ((studyData.learning_today ?? 0) + addCount) === 0}
+              disabled={
+                !studyData || (studyData.learning_today ?? 0) + addCount === 0
+              }
             />
           </View>
         </View>

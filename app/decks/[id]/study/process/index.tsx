@@ -162,7 +162,6 @@ export default function StudyDecksScreen() {
     <View
       style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}
     >
-      {/* 2. Адаптивный контейнер шириной 800px (берется из commonStyles), центрированный на экране */}
       <View style={[commonStyles.container, { flex: 1, paddingBottom: 30 }]}>
         {/* 3. ИСПРАВЛЕНИЕ: Ограничиваем ширину верхней части контента */}
         <View
@@ -258,7 +257,6 @@ export default function StudyDecksScreen() {
           </View>
         </View>
 
-        {/* 4. ИСПРАВЛЕНИЕ: Ограничиваем блок кнопок оценки, чтобы на ПК они не расползались по краям */}
         {cards.length > 0 && (
           <View
             style={[styles.buttonBox, { width: "100%", paddingHorizontal: 10 }]}
