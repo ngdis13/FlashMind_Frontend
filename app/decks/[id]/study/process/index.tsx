@@ -193,7 +193,6 @@ export default function StudyDecksScreen() {
               <ActivityIndicator
                 size="large"
                 style={{ flex: 1 }}
-                color={colors.primary}
               />
             ) : cards.length > 0 ? (
               <Animated.View

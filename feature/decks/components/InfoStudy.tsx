@@ -42,7 +42,7 @@ export const InfoStudy = ({ visible, onCancel }: InfoStudyProps) => {
                   <Typography variant="h3" style={styles.boldText}>
                     Максимальный интервал
                   </Typography>{" "}
-                  — самый долгий перерыв перед повторением уже знакомого слова.
+                  — самый долгий перерыв перед повторением уже хорошо изученного слова.
                 </Typography>
               </View>
 
