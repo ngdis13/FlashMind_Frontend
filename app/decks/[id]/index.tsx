@@ -80,6 +80,8 @@ export default function DeckViewById() {
     if (id) {
       loadCards();
     }
+    console.log("Карточки");
+    console.log(cards);
   }, [id]);
 
   useEffect(() => {
@@ -208,6 +210,7 @@ export default function DeckViewById() {
                           front={item.front}
                           back={item.back}
                           deckId={id}
+                          difficulty={item.difficulty}
                           index={index}
                           viewMode="compact"
                           onPress={handleCardPress}

@@ -8,6 +8,9 @@ export interface Card {
   front: string;
   back: string;
   created_at: string;
+  deck_id: string;
+  difficulty: number;
+  stability: number;
 }
 
 

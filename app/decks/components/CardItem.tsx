@@ -19,6 +19,7 @@ interface CardItemProps {
   back?: string;
   deckId?: string;
   index?: number;
+  difficulty?: number;
   viewMode?: "compact" | "expanded";
   onPress?: (id: string, deckId?: string) => void;
   onDelete: (id: string, deckId?: string) => void;
@@ -31,12 +32,25 @@ export const CardItem = ({
   back,
   deckId,
   index,
+  difficulty,
   viewMode = "compact",
   onPress,
   onDelete,
   style,
 }: CardItemProps) => {
   const [alertVisible, setAlertVisible] = useState(false);
+  const getBorderColor = (diff: number | string | null | undefined): string => {
+    if (diff === "none" || diff === null || diff === undefined || diff === "") {
+      return "#DBDBDB";
+    }
+    const numericDiff = Number(diff);
+    if (isNaN(numericDiff)) {
+      return "#DBDBDB";
+    }
+    if (numericDiff <= 3) return "#7EE083"; 
+    if (numericDiff <= 8) return "#FFC39B"; 
+    return "#FB8B93";
+  };
 
   const handlePress = () => {
     onPress?.(id, deckId);
@@ -56,10 +70,10 @@ export const CardItem = ({
   };
 
   return (
-    <TouchableOpacity 
-      onPress={handlePress} 
+    <TouchableOpacity
+      onPress={handlePress}
       activeOpacity={0.7}
-      style={[styles.card, style]}
+      style={[styles.card, { borderColor: getBorderColor(difficulty) }, style]}
     >
       <View style={styles.textContainer}>
         <Typography variant="h2" numberOfLines={2}>
@@ -82,7 +96,7 @@ export const CardItem = ({
         cancelText="Вернуться к карточкам"
         onConfirm={handleConfirmDelete}
         onCancel={handleCancelDelete}
-        icon={<LogoSadStar size={128} />} 
+        icon={<LogoSadStar size={128} />}
       />
     </TouchableOpacity>
   );
@@ -94,7 +108,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     borderWidth: 2,
-    borderColor: "#DBDBDB",
     borderRadius: 15,
     paddingVertical: 12,
     paddingHorizontal: 12,
