@@ -12,7 +12,7 @@ import { useEffect, useRef, useState } from "react";
 
 interface Props {
   card: StudyCard | undefined;
-  isFirstCard: boolean; // Добавляем новый проп
+  isFirstCard: boolean;
 }
 
 export const StudyCardView = ({ card, isFirstCard }: Props) => {
@@ -20,7 +20,32 @@ export const StudyCardView = ({ card, isFirstCard }: Props) => {
   const [wasFlipped, setWasFlipped] = useState(false); // Отслеживаем, был ли хоть один переворот
 
   const flipAnim = useRef(new Animated.Value(0)).current;
-  const hintOpacity = useRef(new Animated.Value(0)).current; // Анимация для подсказки
+  const hintOpacity = useRef(new Animated.Value(0)).current;
+
+  // --- ОБРАБОТКА ДРОБНОЙ СЛОЖНОСТИ ---
+  const getDifficultyLevel = (): number => {
+    if (!card?.difficulty || card.difficulty === "none") return 0;
+
+    // Преобразуем длинную строку/дробь в число и округляем до ближайшего целого
+    const parsed = Number(card.difficulty);
+    if (isNaN(parsed)) return 0;
+
+    const rounded = Math.round(parsed);
+
+    // Ограничиваем рамками от 1 до 5, чтобы сетка из 5 точек не сломалась
+    return Math.max(1, Math.min(5, rounded));
+  };
+
+  const difficultyLevel = getDifficultyLevel();
+
+  // Определение цвета для активных точек сложности 
+  const getDifficultyColor = (level: number): string => {
+    if (level <= 1) return "#6BC770";
+    if (level === 2) return "#7EE083";
+    if (level === 3) return "#FFDA62";
+    if (level === 4) return "#FFA162";
+    return "#FF5151";
+  };
 
   // Логика появления/исчезновения подсказки
   useEffect(() => {
@@ -48,7 +73,7 @@ export const StudyCardView = ({ card, isFirstCard }: Props) => {
   }, [card?.id]);
 
   const handleFlip = () => {
-    if (!wasFlipped) setWasFlipped(true); // Запоминаем, что пользователь нажал
+    if (!wasFlipped) setWasFlipped(true);
 
     Animated.spring(flipAnim, {
       toValue: isFlipped ? 0 : 1,
@@ -77,6 +102,29 @@ export const StudyCardView = ({ card, isFirstCard }: Props) => {
     outputRange: [0, 1],
   });
 
+  // Функция для отрисовки массива из 5 точек сложности
+  const renderDifficultyDots = () => {
+    const activeColor =
+      difficultyLevel > 0 ? getDifficultyColor(difficultyLevel) : "#BBBBBB";
+
+    return (
+      <View style={styles.dotsContainer}>
+        {[1, 2, 3, 4, 5].map((index) => {
+          const isActive = index <= difficultyLevel;
+          return (
+            <View
+              key={index}
+              style={[
+                styles.dot,
+                { backgroundColor: isActive ? activeColor : "#BBBBBB" },
+              ]}
+            />
+          );
+        })}
+      </View>
+    );
+  };
+
   return (
     <View style={styles.container}>
       <Pressable style={styles.touchArea} onPress={handleFlip}>
@@ -92,16 +140,20 @@ export const StudyCardView = ({ card, isFirstCard }: Props) => {
             },
           ]}
         >
+          {renderDifficultyDots()}
+
           <ScrollView
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
           >
-            <Typography variant="h2" style={[styles.mainText, {fontWeight: 800, fontSize: 21}]}>
+            <Typography
+              variant="h2"
+              style={[styles.mainText, { fontWeight: "800" }]}
+            >
               {card?.front}
             </Typography>
           </ScrollView>
 
-          {/* Анимированная подсказка */}
           <Animated.View style={{ opacity: hintOpacity }}>
             <Typography variant="h3" color="gray" style={styles.hintTextInside}>
               Нажми, чтобы перевернуть
@@ -136,7 +188,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, marginBottom: 24 },
   touchArea: { flex: 1 },
   card: { flex: 1, backfaceVisibility: "hidden", paddingBottom: 20 },
-  cardFront: { backgroundColor: "#EDEEFF" },
+  cardFront: { backgroundColor: "#FFFFFF" },
   cardBack: {
     position: "absolute",
     top: 0,
@@ -145,6 +197,19 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
   },
   scrollContent: { flexGrow: 1, justifyContent: "center", padding: 20 },
-  mainText: { textAlign: "center"},
+  mainText: { textAlign: "center" },
   hintTextInside: { textAlign: "center", paddingBottom: 10 },
+  dotsContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 8,
+    width: "100%",
+    marginTop: 8,
+  },
+  dot: {
+    width: 10,
+    height: 10,
+    borderRadius: 1100,
+  },
 });

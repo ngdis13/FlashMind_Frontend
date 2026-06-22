@@ -8,6 +8,8 @@ export interface StudyCard {
   deck_id: string;
   front: string;
   back: string;
+  difficulty: number;
+  stability: number;
 }
 
 export interface StudyResponse {
@@ -18,50 +20,54 @@ export interface StudyResponse {
   total: number;
 }
 
-
-export async function getStudyCard(deckId: string, total: number): Promise<StudyResponse> {
+export async function getStudyCard(
+  deckId: string,
+  total: number,
+): Promise<StudyResponse> {
   try {
     const accessToken = useAuthStore.getState().accessToken;
 
     const resp = await apiClient.post(
-      getMainServiceApiUrl('/api/v1/study'),
+      getMainServiceApiUrl("/api/v1/study"),
       {
-        deck_id: deckId, 
-        total: total 
+        deck_id: deckId,
+        total: total,
       },
       {
-        headers: { Authorization: `Bearer ${accessToken}` }
-      }
+        headers: { Authorization: `Bearer ${accessToken}` },
+      },
     );
 
     return resp.data;
   } catch (err) {
-    handleApiError(err, 'Не удалось получить карточки для обучения');
+    handleApiError(err, "Не удалось получить карточки для обучения");
   }
 }
 
-
-export async function postCardRating(cardId: string, rating: number, reviewDuration: number) {
+export async function postCardRating(
+  cardId: string,
+  rating: number,
+  reviewDuration: number,
+) {
   try {
     const accessToken = useAuthStore.getState().accessToken;
 
     const resp = await apiClient.patch(
-      getMainServiceApiUrl('/api/v1/study'),
+      getMainServiceApiUrl("/api/v1/study"),
       {
         card_id: cardId,
         rating: rating,
-        review_duration: reviewDuration
+        review_duration: reviewDuration,
       },
       {
-        headers: { Authorization: `Bearer ${accessToken}` }
-      }
+        headers: { Authorization: `Bearer ${accessToken}` },
+      },
     );
 
     // Если статус 200, сервер вернул обновленную карточку (нужно для повтора)
     // Если 204, карточка полностью изучена
-    return resp; 
+    return resp;
   } catch (err) {
-    handleApiError(err, 'Не удалось отправить оценку');
-
+    handleApiError(err, "Не удалось отправить оценку");
   }
 }
