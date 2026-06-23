@@ -65,13 +65,10 @@ export default function StudyDecksScreen() {
   }, [id]);
 
   return (
-    // 1. Внешняя фоновая подложка на весь экран ПК
     <View
       style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}
     >
-      {/* 2. Наш адаптивный контейнер шириной 800px, центрированный по горизонтали */}
       <View style={[commonStyles.container, { flex: 1, paddingBottom: 30 }]}>
-        {/* 3. Оборачиваем верхний контент в общий адаптивный блок */}
         <View
           style={[
             commonStyles.content,

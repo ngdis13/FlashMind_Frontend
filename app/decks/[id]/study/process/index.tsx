@@ -158,12 +158,11 @@ export default function StudyDecksScreen() {
   }, [finishedCount, totalToStudy]);
 
   return (
-    // 1. Внешняя фоновая подложка на весь экран ПК
     <View
       style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}
     >
       <View style={[commonStyles.container, { flex: 1, paddingBottom: 30 }]}>
-        {/* 3. ИСПРАВЛЕНИЕ: Ограничиваем ширину верхней части контента */}
+
         <View
           style={[
             commonStyles.content,

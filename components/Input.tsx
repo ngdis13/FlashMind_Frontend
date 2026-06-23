@@ -1,5 +1,5 @@
-import { colors } from '@/styles/Colors';
-import React from 'react';
+import { colors } from "@/styles/Colors";
+import React from "react";
 import {
   TextInput,
   StyleSheet,
@@ -7,7 +7,7 @@ import {
   TextInputProps,
   StyleProp,
   TextStyle,
-} from 'react-native';
+} from "react-native";
 
 /**
  * Props для компонента Input.
@@ -25,6 +25,7 @@ interface InputProps extends TextInputProps {
    * Позволяет переопределять или расширять базовые стили.
    */
   style?: StyleProp<TextStyle>;
+  placeholderColor?: string;
 }
 
 /**
@@ -43,13 +44,18 @@ interface InputProps extends TextInputProps {
  * />
  * ```
  */
-export const Input = ({ label, style, ...props }: InputProps) => {
+export const Input = ({
+  label,
+  style,
+  placeholderColor,
+  ...props
+}: InputProps) => {
   return (
     <>
       {label && <Text style={styles.label}>{label}</Text>}
       <TextInput
         style={[styles.input, style]}
-        placeholderTextColor="#999"
+        placeholderTextColor={placeholderColor || "#999"}
         {...props}
       />
     </>
@@ -60,22 +66,22 @@ const styles = StyleSheet.create({
   label: {
     marginBottom: 6,
     fontSize: 16,
-    color: '#585858',
-    fontFamily: 'MontserratSemibold',
-    fontWeight: '400',
+    color: "#585858",
+    fontFamily: "MontserratSemibold",
+    fontWeight: "400",
   },
   input: {
     borderWidth: 2,
-    borderColor: '#DBDBDB',
+    borderColor: "#DBDBDB",
     borderRadius: 15,
     paddingVertical: 12,
     paddingHorizontal: 14,
     fontSize: 16,
-    fontFamily: 'MontserratSemibold',
-    color: '#000',
-    textAlign: 'center',
+    fontFamily: "MontserratSemibold",
+    color: "#000",
+    textAlign: "center",
     height: 40,
-    width: '100%',
-    backgroundColor: colors.white
+    width: "100%",
+    backgroundColor: colors.white,
   },
 });

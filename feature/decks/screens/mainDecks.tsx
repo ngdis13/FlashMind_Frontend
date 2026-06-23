@@ -29,7 +29,6 @@ export default function MainDecksScreen() {
 
   const { decks, loading } = useDecks();
 
-
   const modalAnim = useRef(new Animated.Value(0)).current;
   //Настройка экрана
   const { width } = useWindowDimensions();
@@ -170,7 +169,10 @@ export default function MainDecksScreen() {
                   />
                   <MainButton
                     title="Импортировать из облака"
-                    onPress={closeItems}
+                    onPress={() => {
+                      closeItems();
+                      setTimeout(() => router.push("/cloud-decks"), 300);
+                    }}
                     style={{ backgroundColor: "#fff" }}
                     textColor={colors.darkMainColor}
                   />
