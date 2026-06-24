@@ -16,6 +16,7 @@ import { CardItem } from "../components/CardItem";
 import { Card } from "@/storage/types/types";
 import { ColorPalette } from "@/app/create-decks/components/colorPalette";
 import Toast from "react-native-toast-message";
+import { AxiosError } from "axios";
 
 export default function DeckViewById() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -57,15 +58,27 @@ export default function DeckViewById() {
     try {
       await removeCard(deckId || (id as string), cardId);
       setCards((prevCards) => prevCards.filter((card) => card.id !== cardId));
-    } catch (err) {
+
       Toast.show({
-        type: "error",
-        text1: "Ошибка удаления карточки",
-        text2: "Попробуйте снова",
+        type: "success",
+        text1: "Карточка удалена",
         position: "bottom",
         visibilityTime: 3000,
       });
-      console.error("Ошибка при удалении карточки:", err);
+    } catch (error) {
+      const err = error as AxiosError<{ message?: string }>;
+      const serverMessage =
+        err.response?.data?.message || err?.message || "Попробуйте снова";
+
+      Toast.show({
+        type: "error",
+        text1: "Ошибка удаления карточки",
+        text2: serverMessage, 
+        position: "bottom",
+        visibilityTime: 3000,
+      });
+
+      console.error("Ошибка при удалении карточки:", error);
     }
   };
 

@@ -21,6 +21,7 @@ import { colors } from "@/styles/Colors";
 import { useRouter } from "expo-router";
 import { useDecks } from "@/storage/hooks/useDecks";
 import { getPluralCards } from "@/utils/helpers/getPluralCards";
+import { Deck } from "@/storage/types/types";
 
 export default function MainDecksScreen() {
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -30,7 +31,6 @@ export default function MainDecksScreen() {
   const { decks, loading } = useDecks();
 
   const modalAnim = useRef(new Animated.Value(0)).current;
-  //Настройка экрана
   const { width } = useWindowDimensions();
   const currentContentWidth = Math.min(width, 800);
   const numColumns = Math.max(2, Math.floor((currentContentWidth - 20) / 180));
@@ -62,6 +62,11 @@ export default function MainDecksScreen() {
 
   const handleEditDecks = (id: string) => router.push(`/decks/${id}`);
   const handleDeckPress = (id: string) => router.push(`/decks/${id}/study`);
+
+
+  const getDeckColor = (deck: Deck): string => {
+    return deck.settings?.color  || colors.mainColor;
+  };
 
   return (
     <View
@@ -116,13 +121,13 @@ export default function MainDecksScreen() {
                     onEditPress={() => handleEditDecks(item.id)}
                     cardCountRepeat={item.repeat_cards}
                     index={index}
-                    color={item.color || colors.mainColor}
+                  
+                    color={getDeckColor(item)}
                   />
                 </View>
               )}
             />
 
-            {/* Кнопка теперь в самом низу этого контейнера */}
             <MainButton
               style={styles.addDecksButton}
               title="Добавить колоду"

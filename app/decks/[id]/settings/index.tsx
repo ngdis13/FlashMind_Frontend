@@ -102,9 +102,11 @@ export default function settingsDecks() {
       await updateDeckFields(id, {
         name: trimmedName,
         description: description.trim() || "",
-        color: selectedColor,
-        desired_retention: Number((targetRetention * 0.01).toFixed(2)),
-        maximum_interval: maxInterval,
+        settings: {
+          color: selectedColor,
+          desired_retention: Number((targetRetention * 0.01).toFixed(2)),
+          maximum_interval: maxInterval,
+        },
       });
 
       console.log("Колода обновлена");
@@ -198,14 +200,14 @@ export default function settingsDecks() {
     if (deck) {
       setName(deck.name);
       setDescription(deck.description || "");
-      if (deck.color) {
-        setSelectedColor(deck.color);
+      if (deck.settings.color) {
+        setSelectedColor(deck.settings.color);
       }
 
       // 1. Получаем и нормализуем значения из базы данных
       let loadedRetention = 92; // Дефолтное значение
-      if (deck.desired_retention) {
-        const rawRetention = deck.desired_retention;
+      if (deck.settings.desired_retention) {
+        const rawRetention = deck.settings.desired_retention;
         loadedRetention =
           rawRetention <= 1
             ? Math.round(rawRetention * 100)
@@ -213,8 +215,8 @@ export default function settingsDecks() {
       }
 
       let loadedInterval = 365; // Дефолтное значение
-      if (deck.maximum_interval) {
-        const rawInterval = deck.maximum_interval;
+      if (deck.settings.maximum_interval) {
+        const rawInterval = deck.settings.maximum_interval;
         loadedInterval =
           rawInterval < MIN_DAYS
             ? MIN_DAYS

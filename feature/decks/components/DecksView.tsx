@@ -11,17 +11,8 @@ interface DecksViewProps {
   onEditPress: () => void;
   onCardPress: () => void;
   index: number;
-  color: string;
+  color: string; 
 }
-
-const randomColors = [
-  colors.red1,
-  colors.orange1,
-  colors.yellow1,
-  colors.green1,
-  colors.blue1,
-  colors.purple1,
-];
 
 export default function DecksView({
   title,
@@ -55,7 +46,7 @@ export default function DecksView({
         </Typography>
 
         <View style={styles.bottom}>
-          <View style={[[styles.countBadge], { backgroundColor: color }]}>
+          <View style={[styles.countBadge, { backgroundColor: color }]}>
             <Typography
               variant="h3"
               color={colors.white}
@@ -66,15 +57,12 @@ export default function DecksView({
           </View>
           <TouchableOpacity
             onPress={(e) => {
-              e.stopPropagation(); // На всякий случай предотвращаем всплытие
+              e.stopPropagation();
               onEditPress();
             }}
           >
             <View
-              style={[
-                [styles.countBadgeEdit],
-                { backgroundColor: color },
-              ]}
+              style={[styles.countBadgeEdit, { backgroundColor: color }]}
             >
               <Image
                 source={editButton}
@@ -91,11 +79,11 @@ export default function DecksView({
 
 const styles = StyleSheet.create({
   up: {
-    position: "absolute", // Прижимаем к верху карточки
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
-    height: 15, // Высота полоски
+    height: 15,
     width: "100%",
   },
   card: {
@@ -125,7 +113,6 @@ const styles = StyleSheet.create({
     width: "100%",
     justifyContent: "space-between",
   },
-
   countBadge: {
     width: 44,
     height: 18,
