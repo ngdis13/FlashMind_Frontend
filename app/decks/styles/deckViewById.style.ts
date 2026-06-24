@@ -2,26 +2,54 @@ import { colors } from "@/styles/Colors";
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
+  header: {
+    justifyContent: "space-between",
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  noticeBox: {
+    position: "relative", // Контейнер становится опорной точкой для абсолютного элемента
+    alignItems: "center",
+    justifyContent: "center",
+    width: 24,            // Задаем ширину строго по размеру кнопки импорта
+    height: 24,
+    top: -8
+  },
+  headerName: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  importButton: {
+    width: 24,
+    height: 24,
+  },
+  cloudAlertAbsoluteLeft: {
+    position: "absolute",
+    left: -32, // Сдвигаем уведомление влево ровно на 32 пикселя от импорта
+    width: 24,
+    height: 24,
+  },
   mainInfo: {
     gap: 16,
     marginBottom: 16,
-    width: "100%", 
+    width: "100%",
   },
   info: {
-    flexDirection: "row", 
-    alignItems: "stretch", 
-    paddingVertical: 12, 
-    paddingHorizontal: 16, 
+    flexDirection: "row",
+    alignItems: "stretch",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
   },
   purpleLine: {
-    width: 4, 
+    width: 4,
     backgroundColor: colors.mainColor,
-    borderRadius: 2, 
-    marginRight: 12, 
+    borderRadius: 2,
+    marginRight: 12,
   },
   textContainer: {
-    flex: 1, 
-    gap: 4, 
+    flex: 1,
+    gap: 4,
   },
   settingsButton: {
     flexDirection: "row",

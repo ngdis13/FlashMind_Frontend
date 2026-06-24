@@ -17,6 +17,8 @@ import { Card } from "@/storage/types/types";
 import { ColorPalette } from "@/app/create-decks/components/colorPalette";
 import Toast from "react-native-toast-message";
 import { AxiosError } from "axios";
+import InfoIcon from "@/feature-decks/assets/infoIcon.png";
+import ImportButton from "@/feature-decks/assets/importButton.png";
 
 export default function DeckViewById() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -30,6 +32,17 @@ export default function DeckViewById() {
   const [cards, setCards] = useState<Card[]>([]);
 
   const deck = decks.find((d) => d.id === id);
+
+  //проверка на возможность синнхронизации
+  const showCloudAlert = deck?.cloud_info?.needs_sync === true;
+
+  const handleCloudSyncAlert = () => {
+    console.log("Открыть кастомный alert для синхронизации колоды:", id);
+  };
+
+  const handleShareDeck = () => {
+    console.log("Поделиться колодой или экспорт:", id);
+  };
 
   const handleBack = () => {
     router.push("/decks");
@@ -73,7 +86,7 @@ export default function DeckViewById() {
       Toast.show({
         type: "error",
         text1: "Ошибка удаления карточки",
-        text2: serverMessage, 
+        text2: serverMessage,
         position: "bottom",
         visibilityTime: 3000,
       });
@@ -137,17 +150,39 @@ export default function DeckViewById() {
                 { width: "100%", paddingHorizontal: 0 },
               ]}
             >
-              <View style={commonStyles.header}>
-                <Pressable onPress={handleBack}>
-                  <Image
-                    source={ReturnIcon}
-                    style={{ width: 12, height: 22, top: -7 }}
-                  />
-                </Pressable>
+              <View style={[commonStyles.header, styles.header]}>
+                <View style={styles.headerName}>
+                  <Pressable onPress={handleBack}>
+                    <Image
+                      source={ReturnIcon}
+                      style={{ width: 12, height: 22, top: -7 }}
+                    />
+                  </Pressable>
 
-                <Typography variant="h1" style={{ marginBottom: 16 }}>
-                  Вернуться к колодам
-                </Typography>
+                  <Typography variant="h1" style={{ marginBottom: 16 }}>
+                    Вернуться к колодам
+                  </Typography>
+                </View>
+
+                <View style={styles.noticeBox}>
+                  {/* Уведомление рендерится абсолютно СЛЕВА от импорта и никак на него не влияет */}
+                  {showCloudAlert && (
+                    <Pressable
+                      onPress={handleCloudSyncAlert}
+                      style={styles.cloudAlertAbsoluteLeft}
+                    >
+                      <Image
+                        source={InfoIcon}
+                        style={{ width: 24, height: 24 }}
+                      />
+                    </Pressable>
+                  )}
+
+                  {/* Кнопка импорта — это статичный центр noticeBox, она всегда на одном месте */}
+                  <Pressable onPress={handleShareDeck}>
+                    <Image source={ImportButton} style={styles.importButton} />
+                  </Pressable>
+                </View>
               </View>
 
               <View style={styles.mainInfo}>
