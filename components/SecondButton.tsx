@@ -4,6 +4,7 @@ import {
   Text,
   StyleSheet,
   ViewStyle,
+  View,
 } from 'react-native';
 
 /**
@@ -20,36 +21,26 @@ interface ButtonProps {
    */
   style?: ViewStyle | ViewStyle[];
   /**
-   * Обработчик нажатия на кнопку
+   * Обработчик нажатия на кнопку.
    */
   onPress: () => void;
+  /**
+   * Необязательный пропс для передачи иконки или картинки (React-компонент),
+   * которая отобразится слева от текста.
+   */
+  icon?: React.ReactNode;
 }
 
 /**
- * Вторая основная кнопка приложения.
- *
- * Используется для действий, которые не являются главными,
- * но все равно важны для пользователя (например, регистрация, сохранение, отмена).
- * Визуально кнопка отличается от основной кнопки, имеет рамку и другой цвет текста.
- *
- * Пример использования:
- * ```tsx
- * <SecondButton
- *   title="Зарегистрироваться"
- *   onPress={handleRegister}
- * />
- * ```
- *
- * **Отличия от основной кнопки**:
- * - Основной цвет текста: #6E75D9
- * - Фон: белый
- * - Рамка: #6E75D9
- *
- * Это помогает пользователю различать ключевые действия от второстепенных.
+ * Вторая основная кнопка приложения с поддержкой иконки слева.
  */
-export const SecondButton = ({ title, onPress }: ButtonProps) => (
-  <TouchableOpacity style={styles.btn} onPress={onPress}>
-    <Text style={styles.text}>{title}</Text>
+export const SecondButton = ({ title, onPress, style, icon }: ButtonProps) => (
+  <TouchableOpacity style={[styles.btn, style]} onPress={onPress}>
+    <View style={styles.contentContainer}>
+      {/* Рендерим иконку только если она передана */}
+      {icon && <View style={styles.iconWrapper}>{icon}</View>}
+      <Text style={styles.text}>{title}</Text>
+    </View>
   </TouchableOpacity>
 );
 
@@ -62,8 +53,19 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 2,
     alignItems: 'center',
+    justifyContent: 'center', // Центрируем контент по вертикали
     width: '100%',
     height: 46,
+  },
+  contentContainer: {
+    flexDirection: 'row',     // Выстраиваем иконку и текст в ряд
+    alignItems: 'center',     // Центрируем иконку и текст по одной оси
+    justifyContent: 'center', // Центрируем всю группу внутри кнопки
+  },
+  iconWrapper: {
+    marginRight: 8,           // Отступ между иконкой и текстом
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   text: {
     color: '#6E75D9',

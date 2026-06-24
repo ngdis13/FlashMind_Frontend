@@ -1,7 +1,7 @@
 import { commonStyles } from "@/styles/Common";
 import { Typography } from "@/styles/Typography";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
-import { ScrollView, View, Image, Pressable, FlatList } from "react-native";
+import { ScrollView, View, Image, Pressable } from "react-native";
 import ReturnIcon from "@/assets/icons/ReturnIcon.png";
 import { styles } from "../styles/deckViewById.style";
 import { Input } from "@/components/Input";
@@ -14,11 +14,13 @@ import { Logo } from "@/components/Logo";
 import { useDecks } from "@/storage/hooks/useDecks";
 import { CardItem } from "../components/CardItem";
 import { Card } from "@/storage/types/types";
-import { ColorPalette } from "@/app/create-decks/components/colorPalette";
 import Toast from "react-native-toast-message";
 import { AxiosError } from "axios";
 import InfoIcon from "@/feature-decks/assets/infoIcon.png";
 import ImportButton from "@/feature-decks/assets/importButton.png";
+// 1. Импортируем ваш кастомный алерт
+import { CustomAlert } from "@/components/CustomAlert";
+import { ShareDeckModal } from "../components/ShareDeckModal";
 
 export default function DeckViewById() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -31,17 +33,46 @@ export default function DeckViewById() {
   const [search, setSearch] = useState("");
   const [cards, setCards] = useState<Card[]>([]);
 
-  const deck = decks.find((d) => d.id === id);
+  // 2. Стейты для управления кастомным алертом
+  const [isAlertVisible, setIsAlertVisible] = useState(false);
+  const [alertConfig, setAlertConfig] = useState<{
+    message: string;
+    confirmText: string;
+    cancelText: string;
+    onConfirm: () => void;
+    icon?: React.ReactNode;
+  }>({
+    message: "",
+    confirmText: "",
+    cancelText: "",
+    onConfirm: () => {},
+  });
 
-  //проверка на возможность синнхронизации
+  const deck = decks.find((d) => d.id === id);
   const showCloudAlert = deck?.cloud_info?.needs_sync === true;
 
-  const handleCloudSyncAlert = () => {
-    console.log("Открыть кастомный alert для синхронизации колоды:", id);
+  const [isShareModalVisible, setIsShareModalVisible] = useState(false);
+
+  // Обработчик нажатия на кнопку импорта/поделиться
+  const handleShareDeck = () => {
+    setIsShareModalVisible(true);
   };
 
-  const handleShareDeck = () => {
-    console.log("Поделиться колодой или экспорт:", id);
+  // Функция копирования ссылки в буфер обмена
+  const handleCopyLink = () => {
+    // Например: Clipboard.setString(`https://yourapp.com{id}`);
+    Toast.show({
+      type: "success",
+      text1: "Ссылка скопирована в буфер обмена",
+      position: "bottom",
+    });
+  };
+
+  // Функция отправки запроса на публикацию колоды
+  const handleMakePublic = async () => {
+    // Тут ваш запрос к API, например:
+    // await axios.post(`/decks/${id}/public`);
+    console.log("Колода отправлена на публикацию");
   };
 
   const handleBack = () => {
@@ -53,6 +84,34 @@ export default function DeckViewById() {
   const handleAddCard = () => {
     router.push(`/decks/${id}/create-card?deckId=${id}`);
   };
+
+  // 3. Логика для алерта СИНХРОНИЗАЦИИ (красный значок)
+  const handleCloudSyncAlert = () => {
+    setAlertConfig({
+      message:
+        "Доступна новая версия колоды в облаке. Синхронизировать изменения?",
+      confirmText: "Синхронизировать",
+      cancelText: "Отмена",
+      icon: <Logo size={64} />, // Можете заменить на любую иконку/звездочку
+      onConfirm: async () => {
+        try {
+          setIsAlertVisible(false);
+          // Тут в будущем вызовите ваш метод синхронизации, например:
+          // await syncDeckWithCloud(id);
+          Toast.show({
+            type: "success",
+            text1: "Колода успешно обновлена",
+            position: "bottom",
+            visibilityTime: 3000,
+          });
+        } catch (error) {
+          console.error(error);
+        }
+      },
+    });
+    setIsAlertVisible(true);
+  };
+
 
   const loadCards = async () => {
     try {
@@ -95,7 +154,6 @@ export default function DeckViewById() {
     }
   };
 
-  // ФИЛЬТРАЦИЯ (Логика поиска)
   const filteredCards = useMemo(() => {
     return cards.filter((card) =>
       card.front.toLowerCase().includes(search.toLowerCase()),
@@ -155,19 +213,18 @@ export default function DeckViewById() {
                   <Pressable onPress={handleBack}>
                     <Image
                       source={ReturnIcon}
-                      style={{ width: 12, height: 22, top: -7 }}
+                      style={{ width: 12, height: 22 }}
                     />
                   </Pressable>
 
-                  <Typography variant="h1" style={{ marginBottom: 16 }}>
+                  <Typography variant="h1" style={{ marginBottom: 0 }}>
                     Вернуться к колодам
                   </Typography>
                 </View>
 
                 <View style={styles.noticeBox}>
-                  {/* Уведомление рендерится абсолютно СЛЕВА от импорта и никак на него не влияет */}
                   {showCloudAlert && (
-                    <Pressable
+                    <Pressable 
                       onPress={handleCloudSyncAlert}
                       style={styles.cloudAlertAbsoluteLeft}
                     >
@@ -178,9 +235,11 @@ export default function DeckViewById() {
                     </Pressable>
                   )}
 
-                  {/* Кнопка импорта — это статичный центр noticeBox, она всегда на одном месте */}
                   <Pressable onPress={handleShareDeck}>
-                    <Image source={ImportButton} style={styles.importButton} />
+                    <Image
+                      source={ImportButton}
+                      style={styles.importButton}
+                    />
                   </Pressable>
                 </View>
               </View>
@@ -279,6 +338,26 @@ export default function DeckViewById() {
           </View>
         </ScrollView>
       </View>
+
+      {/* Алерт для красного уведомления о синхронизации */}
+      <CustomAlert 
+        visible={isAlertVisible}
+        message={alertConfig.message}
+        confirmText={alertConfig.confirmText}
+        cancelText={alertConfig.cancelText}
+        onConfirm={alertConfig.onConfirm}
+        onCancel={() => setIsAlertVisible(false)}
+        icon={alertConfig.icon}
+      />
+
+      {/* Модал шаринга/публикации колоды */}
+      <ShareDeckModal
+        visible={isShareModalVisible}
+        onClose={() => setIsShareModalVisible(false)}
+        onCopyLink={handleCopyLink}
+        onMakePublic={handleMakePublic}
+      />
     </View>
   );
+
 }
