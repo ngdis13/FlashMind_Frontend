@@ -18,9 +18,9 @@ import Toast from "react-native-toast-message";
 import { AxiosError } from "axios";
 import InfoIcon from "@/feature-decks/assets/infoIcon.png";
 import ImportButton from "@/feature-decks/assets/importButton.png";
-import { CustomAlert } from "@/components/CustomAlert";
 import { ShareDeckModal } from "../components/ShareDeckModal";
 import * as Clipboard from "expo-clipboard";
+import { SyncDeckModal } from "../components/SyncDeckModal";
 
 export default function DeckViewById() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -33,24 +33,9 @@ export default function DeckViewById() {
   const [search, setSearch] = useState("");
   const [cards, setCards] = useState<Card[]>([]);
 
-  // 2. Стейты для управления кастомным алертом
-  const [isAlertVisible, setIsAlertVisible] = useState(false);
-  const [alertConfig, setAlertConfig] = useState<{
-    message: string;
-    confirmText: string;
-    cancelText: string;
-    onConfirm: () => void;
-    icon?: React.ReactNode;
-  }>({
-    message: "",
-    confirmText: "",
-    cancelText: "",
-    onConfirm: () => {},
-  });
 
   const deck = decks.find((d) => d.id === id);
-  // const showCloudAlert = deck?.cloud_info?.needs_sync === true;
-  const showCloudAlert = true;
+  const showCloudAlert = deck?.cloud_info?.needs_sync === true;
 
   const [isShareModalVisible, setIsShareModalVisible] = useState(false);
 
@@ -119,7 +104,7 @@ export default function DeckViewById() {
     const shareUrl = `https://flashmind.ru/${cloudUuid}`;
 
     try {
-      // 🌐 Проверяем: если приложение запущено в БРАУЗЕРЕ (Web)
+      // Проверяем: если приложение запущено в БРАУЗЕРЕ (Web)
       if (Platform.OS === "web") {
         if (navigator.clipboard && navigator.clipboard.writeText) {
           await navigator.clipboard.writeText(shareUrl);
@@ -133,7 +118,7 @@ export default function DeckViewById() {
           document.body.removeChild(textArea);
         }
       } else {
-        // 📱 Если запущено на мобилке (iOS / Android)
+        // Если запущено на мобилке (iOS / Android)
         await Clipboard.setStringAsync(shareUrl);
       }
 
@@ -165,8 +150,6 @@ export default function DeckViewById() {
         position: "bottom",
       });
 
-      // Так как колода уже стала приватной облачной при открытии модалки,
-      // повторный вызов makeDeckPublic (если ваше API поддерживает это) обновит её тип на "PUBLIC"
       await makeDeckPublic(id);
 
       Toast.show({
@@ -191,30 +174,39 @@ export default function DeckViewById() {
     router.push(`/decks/${id}/create-card?deckId=${id}`);
   };
 
-  // 3. Логика для алерта СИНХРОНИЗАЦИИ (красный значок)
-  const handleCloudSyncAlert = () => {
-    setAlertConfig({
-      message:
-        "Доступна новая версия колоды в облаке. Синхронизировать изменения?",
-      confirmText: "Синхронизировать",
-      cancelText: "Отмена",
-      icon: <Logo size={64} />,
-      onConfirm: async () => {
-        try {
-          setIsAlertVisible(false);
+  // Добавляем стейт видимости модалки синхронизации
+  const [isSyncModalVisible, setIsSyncModalVisible] = useState(false);
 
-          Toast.show({
-            type: "success",
-            text1: "Колода успешно обновлена",
-            position: "bottom",
-            visibilityTime: 3000,
-          });
-        } catch (error) {
-          console.error(error);
-        }
-      },
-    });
-    setIsAlertVisible(true);
+  // Определяем, является ли текущий пользователь автором этой облачной колоды
+  const isUserAuthor = deck?.cloud_info?.is_author === true;
+
+  // 2. Функция, которая открывает новый модал при клике на КРАСНОЕ уведомление (InfoIcon)
+  const handleCloudSyncAlert = () => {
+    setIsSyncModalVisible(true);
+  };
+
+  // 3. Логика выполнения синхронизации при нажатии на синюю кнопку в модалке
+  const handleSyncConfirm = async () => {
+    try {
+      setIsSyncModalVisible(false);
+
+      Toast.show({
+        type: "info",
+        text1: "Синхронизация данных...",
+        position: "bottom",
+      });
+
+      // Тут будет ваш запрос к API на обновление/получение изменений, например:
+      // await syncDeckCardsData(id);
+
+      Toast.show({
+        type: "success",
+        text1: "Колода успешно синхронизирована!",
+        position: "bottom",
+      });
+    } catch (error) {
+      console.error("Ошибка синхронизации:", error);
+    }
   };
 
   const loadCards = async () => {
@@ -441,14 +433,11 @@ export default function DeckViewById() {
       </View>
 
       {/* Алерт для красного уведомления о синхронизации */}
-      <CustomAlert
-        visible={isAlertVisible}
-        message={alertConfig.message}
-        confirmText={alertConfig.confirmText}
-        cancelText={alertConfig.cancelText}
-        onConfirm={alertConfig.onConfirm}
-        onCancel={() => setIsAlertVisible(false)}
-        icon={alertConfig.icon}
+      <SyncDeckModal
+        visible={isSyncModalVisible}
+        onClose={() => setIsSyncModalVisible(false)}
+        onSync={handleSyncConfirm}
+        type={isUserAuthor ? "user_updated" : "author_updated"}
       />
 
       {/* Модал шаринга/публикации колоды */}

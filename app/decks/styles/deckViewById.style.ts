@@ -13,7 +13,6 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
     width: 24,            // Задаем ширину строго по размеру кнопки импорта
     height: 24,
-    top: -8
   },
   headerName: {
     flexDirection: "row",
