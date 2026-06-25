@@ -33,7 +33,6 @@ export default function DeckViewById() {
   const [search, setSearch] = useState("");
   const [cards, setCards] = useState<Card[]>([]);
 
-
   const deck = decks.find((d) => d.id === id);
   const showCloudAlert = deck?.cloud_info?.needs_sync === true;
 
@@ -42,105 +41,188 @@ export default function DeckViewById() {
   // Стейт для мгновенного сохранения UUID, полученного от сервера
   const [cachedCloudUuid, setCachedCloudUuid] = useState<string | null>(null);
 
-  // 1. ОБНОВЛЕННЫЙ ОБРАБОТЧИК: Нажатие на кнопку импорта/поделиться в шапке
-  const handleShareDeck = async () => {
+  // ✅ НОВОЕ: Автоматически генерируем ссылку при открытии колоды (если её нет)
+  useEffect(() => {
+    const generateLinkOnLoad = async () => {
+      if (!id) return;
+      
+      // Проверяем, есть ли уже cloud_deck_id
+      const existingCloudId = deck?.cloud_info?.cloud_deck_id;
+      
+      // Если уже есть - сохраняем в кеш
+      if (existingCloudId) {
+        setCachedCloudUuid(existingCloudId);
+        console.log("✅ Ссылка уже существует:", existingCloudId);
+        return;
+      }
+
+      // Если колода локальная - создаём ссылку автоматически
+      const isCloudDeck = deck?.cloud_info?.is_cloud_deck === true;
+      if (!isCloudDeck && id) {
+        try {
+          console.log("🔄 Автоматическая генерация ссылки при открытии колоды...");
+          const response = await makeDeckPublic(id);
+          
+          if (response?.cloud_uid) {
+            setCachedCloudUuid(response.cloud_uid);
+            console.log("✅ Ссылка сгенерирована автоматически:", response.cloud_uid);
+          }
+        } catch (error) {
+          console.error("❌ Не удалось автоматически создать ссылку:", error);
+        }
+      }
+    };
+
+    generateLinkOnLoad();
+  }, [id, deck?.cloud_info?.cloud_deck_id, deck?.cloud_info?.is_cloud_deck]);
+
+  // ГЛАВНЫЙ ОБРАБОТЧИК: Нажатие на иконку шеринга в шапке
+  const handleSharePress = async () => {
+    // 1. Достаем актуальные флаги из cloud_info текущей колоды
+    const isCloudDeck = deck?.cloud_info?.is_cloud_deck === true;
+    const needsSync = deck?.cloud_info?.needs_sync === true;
     const existingCloudId = deck?.cloud_info?.cloud_deck_id;
 
-    // Если у колоды уже есть облачный ID, просто сразу открываем модалку
-    if (existingCloudId) {
-      setCachedCloudUuid(existingCloudId);
+    // === СЦЕНАРИЙ 1: Колода ОБЛАЧНАЯ и НЕ НУЖНА синхронизация ===
+    if (isCloudDeck && !needsSync) {
+      console.log("Сценарий 1: Колода в облаке, синхра не нужна. Берём готовый ID.");
+      if (existingCloudId) {
+        setCachedCloudUuid(existingCloudId);
+      }
       setIsShareModalVisible(true);
       return;
     }
 
-    // Если колода была чисто локальной, автоматически превращаем её в приватную облачную при открытии
+    // === СЦЕНАРИЙ 2 и 3: Колода либо ЛОКАЛЬНАЯ, либо ОБЛАЧНАЯ, но НУЖНА синхронизация ===
     if (id) {
       try {
         Toast.show({
           type: "info",
-          text1: "Генерация ссылки доступа...",
+          text1: !isCloudDeck ? "Генерация ссылки доступа..." : "Синхронизация с облаком...",
           position: "bottom",
         });
 
-        // Дергаем ваш метод из хука, который отправляет POST на /share
-        // По умолчанию бэкенд сделает её PRIVATE, сгенерирует UUID и вернет его
         const response = await makeDeckPublic(id);
 
-        if (response && response.cloud_uid) {
-          setCachedCloudUuid(response.cloud_uid); // Сохраняем сгенерированный сервером UUID
-          setIsShareModalVisible(true); // Открываем модалку, где ссылка уже будет работать!
+        const cloudUuid = response?.cloud_uid || (response as any)?.data?.cloud_uid;
+
+        if (cloudUuid) {
+          setCachedCloudUuid(cloudUuid);
+          setIsShareModalVisible(true);
+
+          Toast.show({
+            type: "success",
+            text1: !isCloudDeck ? "Ссылка успешно создана" : "Данные синхронизированы",
+            position: "bottom",
+            visibilityTime: 1500,
+          });
+        } else {
+          throw new Error("Сервер не вернул cloud_uid");
         }
       } catch (error) {
+        console.error("Ошибка в handleSharePress:", error);
         Toast.show({
           type: "error",
-          text1: "Не удалось создать ссылку",
-          text2: "Проверьте подключение к сети или Nginx",
+          text1: "Ошибка соединения",
+          text2: "Не удалось связаться с сервером",
           position: "bottom",
         });
       }
     }
   };
 
+  // ✅ ИСПРАВЛЕННАЯ ФУНКЦИЯ КОПИРОВАНИЯ
   const handleCopyLink = async () => {
-    console.log("🔍 cachedCloudUuid:", cachedCloudUuid);
-    console.log(
-      "🔍 deck?.cloud_info?.cloud_deck_id:",
-      deck?.cloud_info?.cloud_deck_id,
-    );
-
+    // Сначала проверяем кеш, потом cloud_info
     const cloudUuid = cachedCloudUuid || deck?.cloud_info?.cloud_deck_id;
+    
+    console.log("🔍 Копирование: cachedCloudUuid =", cachedCloudUuid);
+    console.log("🔍 Копирование: deck.cloud_info.cloud_deck_id =", deck?.cloud_info?.cloud_deck_id);
     console.log("🔍 Итоговый cloudUuid:", cloudUuid);
 
     if (!cloudUuid) {
       Toast.show({
         type: "error",
         text1: "Ошибка",
-        text2: "Ссылка еще не сгенерирована сервером",
+        text2: "Ссылка еще не сгенерирована",
         position: "bottom",
       });
       return;
     }
 
+    // ✅ ИСПРАВЛЕНО: используем ${} вместо {}
     const shareUrl = `https://flashmind.ru/${cloudUuid}`;
+    console.log("Копируем ссылку:", shareUrl);
 
     try {
-      // Проверяем: если приложение запущено в БРАУЗЕРЕ (Web)
+      let copySuccess = false;
+
       if (Platform.OS === "web") {
         if (navigator.clipboard && navigator.clipboard.writeText) {
           await navigator.clipboard.writeText(shareUrl);
+          copySuccess = true;
+          console.log("Скопировано через navigator.clipboard");
         } else {
-          // Старый резервный метод для совсем вредных браузеров
-          const textArea = document.createElement("textarea");
+          // Fallback для небезопасных контекстов (HTTP)
+          console.warn("⚠️ navigator.clipboard недоступен, используем fallback");
+          
+          // Создаем временный input
+          const textArea = document.createElement("input");
           textArea.value = shareUrl;
+          textArea.style.position = "fixed";
+          textArea.style.left = "-9999px";
+          textArea.style.top = "-9999px";
+          textArea.style.opacity = "0";
           document.body.appendChild(textArea);
+          
           textArea.select();
-          document.execCommand("copy");
+          textArea.setSelectionRange(0, 99999);
+          
+          try {
+            const successful = document.execCommand("copy");
+            if (successful) {
+              copySuccess = true;
+              console.log("Скопировано через execCommand");
+            }
+          } catch (err) {
+            console.error("execCommand failed:", err);
+          }
+          
           document.body.removeChild(textArea);
         }
       } else {
-        // Если запущено на мобилке (iOS / Android)
+        // Мобильные платформы
         await Clipboard.setStringAsync(shareUrl);
+        copySuccess = true;
+        console.log("Скопировано через expo-clipboard");
       }
 
-      Toast.show({
-        type: "success",
-        text1: "Ссылка скопирована в буфер обмена",
-        text2: shareUrl, // Показываем какую ссылку скопировали (для отладки)
-        position: "bottom",
-        visibilityTime: 2000,
-      });
+      if (copySuccess) {
+        Toast.show({
+          type: "success",
+          text1: "Ссылка скопирована!",
+          text2: shareUrl,
+          position: "bottom",
+          visibilityTime: 3000,
+        });
+      } else {
+        throw new Error("Не удалось скопировать");
+      }
     } catch (error) {
-      console.error("Ошибка при записи в буфер обмена:", error);
+      console.error("Ошибка при копировании:", error);
+      
+      // Показываем ссылку для ручного копирования
       Toast.show({
-        type: "error",
-        text1: "Не удалось скопировать",
-        text2: "Попробуйте вручную",
+        type: "info",
+        text1: "Ссылка для копирования",
+        text2: shareUrl,
         position: "bottom",
+        visibilityTime: 5000,
       });
     }
   };
 
-  // 3. ФУНКЦИЯ: Сделать публичной (кнопка внутри модалки)
+  // Функция: Сделать публичной (кнопка внутри модалки)
   const handleMakePublic = async () => {
     if (!id) return false;
     try {
@@ -160,6 +242,7 @@ export default function DeckViewById() {
 
       return true;
     } catch (error) {
+      console.error("Ошибка публикации:", error);
       return false;
     }
   };
@@ -174,18 +257,13 @@ export default function DeckViewById() {
     router.push(`/decks/${id}/create-card?deckId=${id}`);
   };
 
-  // Добавляем стейт видимости модалки синхронизации
   const [isSyncModalVisible, setIsSyncModalVisible] = useState(false);
-
-  // Определяем, является ли текущий пользователь автором этой облачной колоды
   const isUserAuthor = deck?.cloud_info?.is_author === true;
 
-  // 2. Функция, которая открывает новый модал при клике на КРАСНОЕ уведомление (InfoIcon)
   const handleCloudSyncAlert = () => {
     setIsSyncModalVisible(true);
   };
 
-  // 3. Логика выполнения синхронизации при нажатии на синюю кнопку в модалке
   const handleSyncConfirm = async () => {
     try {
       setIsSyncModalVisible(false);
@@ -196,7 +274,7 @@ export default function DeckViewById() {
         position: "bottom",
       });
 
-      // Тут будет ваш запрос к API на обновление/получение изменений, например:
+      // Тут будет ваш запрос к API на обновление
       // await syncDeckCardsData(id);
 
       Toast.show({
@@ -260,8 +338,6 @@ export default function DeckViewById() {
     if (id) {
       loadCards();
     }
-    console.log("Карточки");
-    console.log(cards);
   }, [id]);
 
   useEffect(() => {
@@ -331,7 +407,7 @@ export default function DeckViewById() {
                     </Pressable>
                   )}
 
-                  <Pressable onPress={handleShareDeck}>
+                  <Pressable onPress={handleSharePress}>
                     <Image source={ImportButton} style={styles.importButton} />
                   </Pressable>
                 </View>
@@ -432,7 +508,6 @@ export default function DeckViewById() {
         </ScrollView>
       </View>
 
-      {/* Алерт для красного уведомления о синхронизации */}
       <SyncDeckModal
         visible={isSyncModalVisible}
         onClose={() => setIsSyncModalVisible(false)}
@@ -440,7 +515,6 @@ export default function DeckViewById() {
         type={isUserAuthor ? "user_updated" : "author_updated"}
       />
 
-      {/* Модал шаринга/публикации колоды */}
       <ShareDeckModal
         visible={isShareModalVisible}
         onClose={() => setIsShareModalVisible(false)}

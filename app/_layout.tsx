@@ -22,7 +22,7 @@ const toastConfig: ToastConfig = {
   success: ({ text1 }) => (
     <View
       style={{
-        height: 40,
+        minHeight: 40,
         maxWidth: 750,
         width: "95%",
         backgroundColor: "#22C775",
