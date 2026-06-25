@@ -1,7 +1,7 @@
 // hooks/useDecks.ts (исправленная версия с поддержкой новой структуры)
 
 import { useState, useEffect, useCallback } from "react";
-import { Deck, Card } from "../types/types";
+import { Deck, Card, CloudDeckShareResponse } from "../types/types";
 import {
   loadDecks,
   saveDecks,
@@ -17,6 +17,7 @@ import {
   updateCardOnServer,
   updateDeck,
   deleteDeckOnServer,
+  makeDeckPublicApi,
 } from "../api/api";
 import { colors } from "@/styles/Colors";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -658,6 +659,58 @@ export const useDecks = () => {
     [decks],
   );
 
+  /**
+   * Отправить колоду на публикацию и обновить локальный статус
+   */
+  const makeDeckPublic = useCallback(
+    async (deckId: string): Promise<CloudDeckShareResponse> => {
+      try {
+        console.log(`Отправляем колоду ${deckId} в хуке на публикацию...`);
+
+        const serverResponse: CloudDeckShareResponse =
+          await makeDeckPublicApi(deckId);
+
+        setDecks((prevDecks) => {
+          const updatedDecks = prevDecks.map((deck) => {
+            if (deck.id === deckId) {
+              return {
+                ...deck,
+                // Приводим поля в соответствие с вашим интерфейсом Deck и CloudInfo
+                cloud_info: {
+                  ...deck.cloud_info,
+                  is_cloud_deck: true,
+                  cloud_type: serverResponse.type as "PUBLIC" | "PRIVATE",
+                  is_approved: false,
+                  needs_sync: false,
+                
+                  cloud_deck_id: serverResponse.cloud_uid, 
+      
+                  ...((deck.cloud_info as any).sync_stats && {
+                    sync_stats: serverResponse.sync_stats,
+                  }),
+                },
+              };
+            }
+            return deck;
+          });
+
+          saveDecks(updatedDecks).catch((err) =>
+            console.error("Ошибка сохранения колод в локальную память:", err),
+          );
+
+          return updatedDecks;
+        });
+
+        console.log(`Локальный статус колоды ${deckId} изменен на PUBLIC`);
+        return serverResponse;
+      } catch (error) {
+        console.error("Ошибка при收публикации колоды в хуке:", error);
+        throw error;
+      }
+    },
+    [saveDecks],
+  );
+
   useEffect(() => {
     loadDecksData();
   }, [loadDecksData]);
@@ -679,5 +732,6 @@ export const useDecks = () => {
     getCardById,
     updateCard,
     syncCardsCount,
+    makeDeckPublic,
   };
 };

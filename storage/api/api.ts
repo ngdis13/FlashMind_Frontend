@@ -3,7 +3,7 @@ import apiClient from "@/api/client";
 import { getMainServiceApiUrl } from "@/api/getMainServiceApiUrl";
 import { handleApiError } from "@/api/interceptors/error.interceptor";
 import { useAuthStore } from "@/store/auth.store";
-import { Deck, Card } from "../types/types";
+import { Deck, Card, CloudDeckShareResponse } from "../types/types";
 import { AxiosError } from "axios";
 
 interface DecksResponse {
@@ -310,6 +310,41 @@ export const deleteCard = async (cardId: string): Promise<void> => {
     console.log(`Карточка ${cardId} удалена`);
   } catch (err) {
     handleApiError(err, "Не удалось удалить карточку");
+    throw err;
+  }
+};
+
+//ОБЛАЧНЫЕ КОЛОДЫ
+
+/**
+ * Отправить колоду на публикацию (сделать публичной)
+ */
+export const makeDeckPublicApi = async (deckId: string): Promise<CloudDeckShareResponse> => {
+  try {
+    const accessToken = useAuthStore.getState().accessToken;
+
+    if (!accessToken) {
+      console.log("Токен доступа отсутствует");
+      throw new Error("Нет токена авторизации");
+    }
+
+    console.log("Отправка колоды на публикацию...");
+
+    const response = await apiClient.post<CloudDeckShareResponse>(
+      getMainServiceApiUrl("/api/v1/cloud_decks/share"),
+      {
+        deck_id: deckId,
+        type: "PUBLIC",
+      },
+      { 
+        headers: { Authorization: `Bearer ${accessToken}` } 
+      }
+    );
+
+    console.log(`Колода ${deckId} успешно отправлена на публикацию`);
+    return response.data;
+  } catch (err) {
+    handleApiError(err, "Не удалось опубликовать колоду");
     throw err;
   }
 };

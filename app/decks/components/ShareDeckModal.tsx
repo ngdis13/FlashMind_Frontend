@@ -12,14 +12,14 @@ import { MainButton } from "@/components/MainButton";
 import { SecondButton } from "@/components/SecondButton";
 import { Logo } from "@/components/Logo"; // Ваша звездочка
 import { colors } from "@/styles/Colors";
-import { LogoHappyStar } from "@/components/LogoHappyStar";
 import { LogoCuteStar } from "@/components/LogoCuteStar";
 
 interface ShareDeckModalProps {
   visible: boolean;
   onClose: () => void;
   onCopyLink: () => void;
-  onMakePublic: () => Promise<void> | void;
+  // Меняем тип возвращаемого значения на Promise<boolean>, так как экран возвращает true/false
+  onMakePublic: () => Promise<boolean> | boolean ; 
 }
 
 export const ShareDeckModal = ({
@@ -32,10 +32,15 @@ export const ShareDeckModal = ({
 
   const handleMakePublicPress = async () => {
     try {
-      await onMakePublic();
-      setStep("moderation"); // Переключаем на экран модерации после успешного запроса
+      // Дожидаемся ответа от функции на экране
+      const isSuccess = await onMakePublic();
+      
+      // Переключаем шаг ТОЛЬКО если запрос прошел успешно (сервер ответил 200)
+      if (isSuccess === true ) {
+        setStep("moderation");
+      }
     } catch (error) {
-      console.error("Ошибка при публикации колоды:", error);
+      console.error("Ошибка при публикации колоды внутри модалки:", error);
     }
   };
 
@@ -57,7 +62,6 @@ export const ShareDeckModal = ({
             <View style={styles.container}>
               {step === "private" ? (
                 // --- ШАГ 1: ПРИВАТНЫЙ ДОСТУП ---
-
                 <View style={{ width: "100%" }}>
                   {/* Анимация/Звездочка */}
                   <View style={styles.logoContainer}>
@@ -70,11 +74,15 @@ export const ShareDeckModal = ({
                   <SecondButton
                     title="Скопировать ссылку"
                     onPress={onCopyLink}
-                    icon={<Image source={require("@/feature-decks/assets/IconLink.png")} style={{ width: 20, height: 20}} />}
+                    icon={
+                      <Image 
+                        source={require("@/feature-decks/assets/IconLink.png")} 
+                        style={{ width: 20, height: 20 }} 
+                      />
+                    }
                   />
                   <Typography color={colors.darkGray} style={styles.hint}>
-                    Сейчас колоду видишь только ты и те, с кем ты поделишься
-                    ссылкой
+                    Сейчас колоду видишь только ты и те, с кем ты поделишься ссылкой
                   </Typography>
 
                   {/* Кнопка "Сделать публичной" */}
@@ -82,12 +90,16 @@ export const ShareDeckModal = ({
                     <MainButton
                       title="Сделать публичной"
                       onPress={handleMakePublicPress}
-                      icon={<Image source={require("@/feature-decks/assets/IconPlanet.png")} style={{ width: 16, height: 16}} />}
+                      icon={
+                        <Image 
+                          source={require("@/feature-decks/assets/IconPlanet.png")} 
+                          style={{ width: 16, height: 16 }} 
+                        />
+                      }
                     />
                   </View>
                   <Typography color={colors.darkGray} style={styles.hint}>
-                    Колода появится в общем каталоге и будет доступна для поиска
-                    всем пользователям
+                    Колода появится в общем каталоге и будет доступна для поиска всем пользователям
                   </Typography>
 
                   {/* Кнопка "Отмена" */}
@@ -140,10 +152,12 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: "center",
+    marginBottom: 8, // Добавили фиксированный отступ под логотип, чтобы заголовки не прилипали
   },
   title: {
     textAlign: "center",
     marginBottom: 24,
+    fontWeight: "700",
   },
   hint: {
     fontSize: 12,
@@ -154,7 +168,9 @@ const styles = StyleSheet.create({
   },
   moderationText: {
     textAlign: "center",
-    marginBottom: 16,
+    marginBottom: 24, // Увеличили отступ перед синей кнопкой "Отлично" по макету
+    lineHeight: 22,
+    fontWeight: "500",
   },
   cancelButton: {
     alignSelf: "center",

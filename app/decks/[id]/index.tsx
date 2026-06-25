@@ -1,7 +1,7 @@
 import { commonStyles } from "@/styles/Common";
 import { Typography } from "@/styles/Typography";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
-import { ScrollView, View, Image, Pressable } from "react-native";
+import { ScrollView, View, Image, Pressable, Platform } from "react-native";
 import ReturnIcon from "@/assets/icons/ReturnIcon.png";
 import { styles } from "../styles/deckViewById.style";
 import { Input } from "@/components/Input";
@@ -18,15 +18,15 @@ import Toast from "react-native-toast-message";
 import { AxiosError } from "axios";
 import InfoIcon from "@/feature-decks/assets/infoIcon.png";
 import ImportButton from "@/feature-decks/assets/importButton.png";
-// 1. Импортируем ваш кастомный алерт
 import { CustomAlert } from "@/components/CustomAlert";
 import { ShareDeckModal } from "../components/ShareDeckModal";
+import * as Clipboard from "expo-clipboard";
 
 export default function DeckViewById() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
 
-  const { decks, getDeckCards, removeCard } = useDecks();
+  const { decks, getDeckCards, removeCard, makeDeckPublic } = useDecks();
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -49,30 +49,136 @@ export default function DeckViewById() {
   });
 
   const deck = decks.find((d) => d.id === id);
-  const showCloudAlert = deck?.cloud_info?.needs_sync === true;
+  // const showCloudAlert = deck?.cloud_info?.needs_sync === true;
+  const showCloudAlert = true;
 
   const [isShareModalVisible, setIsShareModalVisible] = useState(false);
 
-  // Обработчик нажатия на кнопку импорта/поделиться
-  const handleShareDeck = () => {
-    setIsShareModalVisible(true);
+  // Стейт для мгновенного сохранения UUID, полученного от сервера
+  const [cachedCloudUuid, setCachedCloudUuid] = useState<string | null>(null);
+
+  // 1. ОБНОВЛЕННЫЙ ОБРАБОТЧИК: Нажатие на кнопку импорта/поделиться в шапке
+  const handleShareDeck = async () => {
+    const existingCloudId = deck?.cloud_info?.cloud_deck_id;
+
+    // Если у колоды уже есть облачный ID, просто сразу открываем модалку
+    if (existingCloudId) {
+      setCachedCloudUuid(existingCloudId);
+      setIsShareModalVisible(true);
+      return;
+    }
+
+    // Если колода была чисто локальной, автоматически превращаем её в приватную облачную при открытии
+    if (id) {
+      try {
+        Toast.show({
+          type: "info",
+          text1: "Генерация ссылки доступа...",
+          position: "bottom",
+        });
+
+        // Дергаем ваш метод из хука, который отправляет POST на /share
+        // По умолчанию бэкенд сделает её PRIVATE, сгенерирует UUID и вернет его
+        const response = await makeDeckPublic(id);
+
+        if (response && response.cloud_uid) {
+          setCachedCloudUuid(response.cloud_uid); // Сохраняем сгенерированный сервером UUID
+          setIsShareModalVisible(true); // Открываем модалку, где ссылка уже будет работать!
+        }
+      } catch (error) {
+        Toast.show({
+          type: "error",
+          text1: "Не удалось создать ссылку",
+          text2: "Проверьте подключение к сети или Nginx",
+          position: "bottom",
+        });
+      }
+    }
   };
 
-  // Функция копирования ссылки в буфер обмена
-  const handleCopyLink = () => {
-    // Например: Clipboard.setString(`https://yourapp.com{id}`);
-    Toast.show({
-      type: "success",
-      text1: "Ссылка скопирована в буфер обмена",
-      position: "bottom",
-    });
+  const handleCopyLink = async () => {
+    console.log("🔍 cachedCloudUuid:", cachedCloudUuid);
+    console.log(
+      "🔍 deck?.cloud_info?.cloud_deck_id:",
+      deck?.cloud_info?.cloud_deck_id,
+    );
+
+    const cloudUuid = cachedCloudUuid || deck?.cloud_info?.cloud_deck_id;
+    console.log("🔍 Итоговый cloudUuid:", cloudUuid);
+
+    if (!cloudUuid) {
+      Toast.show({
+        type: "error",
+        text1: "Ошибка",
+        text2: "Ссылка еще не сгенерирована сервером",
+        position: "bottom",
+      });
+      return;
+    }
+
+    const shareUrl = `https://flashmind.ru/${cloudUuid}`;
+
+    try {
+      // 🌐 Проверяем: если приложение запущено в БРАУЗЕРЕ (Web)
+      if (Platform.OS === "web") {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(shareUrl);
+        } else {
+          // Старый резервный метод для совсем вредных браузеров
+          const textArea = document.createElement("textarea");
+          textArea.value = shareUrl;
+          document.body.appendChild(textArea);
+          textArea.select();
+          document.execCommand("copy");
+          document.body.removeChild(textArea);
+        }
+      } else {
+        // 📱 Если запущено на мобилке (iOS / Android)
+        await Clipboard.setStringAsync(shareUrl);
+      }
+
+      Toast.show({
+        type: "success",
+        text1: "Ссылка скопирована в буфер обмена",
+        text2: shareUrl, // Показываем какую ссылку скопировали (для отладки)
+        position: "bottom",
+        visibilityTime: 2000,
+      });
+    } catch (error) {
+      console.error("Ошибка при записи в буфер обмена:", error);
+      Toast.show({
+        type: "error",
+        text1: "Не удалось скопировать",
+        text2: "Попробуйте вручную",
+        position: "bottom",
+      });
+    }
   };
 
-  // Функция отправки запроса на публикацию колоды
+  // 3. ФУНКЦИЯ: Сделать публичной (кнопка внутри модалки)
   const handleMakePublic = async () => {
-    // Тут ваш запрос к API, например:
-    // await axios.post(`/decks/${id}/public`);
-    console.log("Колода отправлена на публикацию");
+    if (!id) return false;
+    try {
+      Toast.show({
+        type: "info",
+        text1: "Отправка на модерацию...",
+        position: "bottom",
+      });
+
+      // Так как колода уже стала приватной облачной при открытии модалки,
+      // повторный вызов makeDeckPublic (если ваше API поддерживает это) обновит её тип на "PUBLIC"
+      await makeDeckPublic(id);
+
+      Toast.show({
+        type: "success",
+        text1: "Колода успешно отправлена в каталог",
+        position: "bottom",
+      });
+
+      return true;
+    } catch (error) {
+      return false;
+    }
   };
 
   const handleBack = () => {
@@ -92,12 +198,11 @@ export default function DeckViewById() {
         "Доступна новая версия колоды в облаке. Синхронизировать изменения?",
       confirmText: "Синхронизировать",
       cancelText: "Отмена",
-      icon: <Logo size={64} />, // Можете заменить на любую иконку/звездочку
+      icon: <Logo size={64} />,
       onConfirm: async () => {
         try {
           setIsAlertVisible(false);
-          // Тут в будущем вызовите ваш метод синхронизации, например:
-          // await syncDeckWithCloud(id);
+
           Toast.show({
             type: "success",
             text1: "Колода успешно обновлена",
@@ -111,7 +216,6 @@ export default function DeckViewById() {
     });
     setIsAlertVisible(true);
   };
-
 
   const loadCards = async () => {
     try {
@@ -224,7 +328,7 @@ export default function DeckViewById() {
 
                 <View style={styles.noticeBox}>
                   {showCloudAlert && (
-                    <Pressable 
+                    <Pressable
                       onPress={handleCloudSyncAlert}
                       style={styles.cloudAlertAbsoluteLeft}
                     >
@@ -236,10 +340,7 @@ export default function DeckViewById() {
                   )}
 
                   <Pressable onPress={handleShareDeck}>
-                    <Image
-                      source={ImportButton}
-                      style={styles.importButton}
-                    />
+                    <Image source={ImportButton} style={styles.importButton} />
                   </Pressable>
                 </View>
               </View>
@@ -340,7 +441,7 @@ export default function DeckViewById() {
       </View>
 
       {/* Алерт для красного уведомления о синхронизации */}
-      <CustomAlert 
+      <CustomAlert
         visible={isAlertVisible}
         message={alertConfig.message}
         confirmText={alertConfig.confirmText}
@@ -359,5 +460,4 @@ export default function DeckViewById() {
       />
     </View>
   );
-
 }
