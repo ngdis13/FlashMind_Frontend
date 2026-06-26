@@ -176,7 +176,7 @@ export default function MainDecksScreen() {
                     title="Импортировать из облака"
                     onPress={() => {
                       closeItems();
-                      setTimeout(() => router.push("/cloud-decks"), 300);
+                      setTimeout(() => router.push("/decks/cloud-decks"), 300);
                     }}
                     style={{ backgroundColor: "#fff" }}
                     textColor={colors.darkMainColor}
