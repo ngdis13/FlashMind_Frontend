@@ -77,6 +77,7 @@ export const styles = StyleSheet.create({
     gap: 12,
   },
   authorBioBox: {
+    flex: 1,
     gap: 4,
   },
   avatarImage: {
