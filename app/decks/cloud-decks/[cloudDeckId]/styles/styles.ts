@@ -33,13 +33,9 @@ export const styles = StyleSheet.create({
   },
   deckInfo: {
     flex: 1,
-    gap: 6,
+    gap: 4,
   },
-  deckTitle: {
-    fontWeight: "800",
-    fontSize: 18,
-    lineHeight: 24,
-  },
+
   deckDescription: {
     fontSize: 14,
     lineHeight: 20,
