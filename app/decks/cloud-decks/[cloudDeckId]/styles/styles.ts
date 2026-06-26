@@ -112,11 +112,9 @@ export const styles = StyleSheet.create({
     transform: [{ translateY: -9 }],
   },
   
-
   cardsList: {
     width: "100%",
   },
-
   cardItem: {
     minHeight: 40,
     padding: 16,
@@ -136,7 +134,7 @@ export const styles = StyleSheet.create({
     marginLeft: 12,
   },
   
-  // Пустое состояние
+
   emptyDeck: {
     alignItems: "center",
     justifyContent: "center",

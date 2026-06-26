@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Pressable, ScrollView, View, Image, FlatList } from "react-native";
+import { Pressable, View, Image, FlatList } from "react-native";
 import { fetchCloudDeckPreview } from "../../api/api";
 import { CloudDeckPreviewResponse } from "../../types/types";
 import { Typography } from "@/styles/Typography";
@@ -17,7 +17,6 @@ import { Input } from "@/components/Input";
 import searchButton from "@/feature/decks/assets/searchButton.png";
 import { Logo } from "@/components/Logo";
 
-//flashmind.ru/c60a21c7-13c6-41de-a273-ff46ed24092f
 export default function CloudDecksPreview() {
   const router = useRouter();
   const { cloudDeckId } = useLocalSearchParams<{ cloudDeckId: string }>();
@@ -34,6 +33,7 @@ export default function CloudDecksPreview() {
       try {
         setIsLoading(true);
         const data = await fetchCloudDeckPreview(cloudDeckId);
+        console.log('данные о колоде', data)
         setDeckPreview(data);
       } catch (error) {
         console.error("Ошибка при загрузке превью с сервера:", error);
@@ -49,7 +49,6 @@ export default function CloudDecksPreview() {
     };
 
     loadData();
-    console.log('аватарка', deckPreview?.author.avatar_key)
   }, [cloudDeckId]);
 
   const handleBack = () => {
@@ -67,11 +66,11 @@ export default function CloudDecksPreview() {
     deckPreview?.cards?.filter((card) =>
       card.front.toLowerCase().includes(search.toLowerCase()),
     ) || [];
+  
   const handleCardPress = (cardId: string) => {
-    // Переход на детальный просмотр карточки
-    //router.push(`/decks/cloud-decks/preview/card/${cardId}`);
     console.log("переход к карточке", cardId);
   };
+
   // Компонент для отрисовки одной карточки
   const renderCardItem = ({ item }: { item: any }) => (
     <Pressable onPress={() => handleCardPress(item.id)}>
@@ -82,175 +81,201 @@ export default function CloudDecksPreview() {
       </View>
     </Pressable>
   );
+
+  // Компонент для верхней части (хедер, инфо, автор)
+  const renderHeader = () => (
+    <>
+      {/* Хедер */}
+      <View style={[commonStyles.header, styles.header]}>
+        <View style={styles.headerName}>
+          <Pressable onPress={handleBack}>
+            <Image
+              source={ReturnIcon}
+              style={{ width: 12, height: 22 }}
+            />
+          </Pressable>
+
+          <Typography variant="h1" style={{ marginBottom: 0 }}>
+            Вернуться к колодам
+          </Typography>
+        </View>
+      </View>
+
+      {/* Информация о колоде */}
+      <View style={[commonStyles.mainBox, styles.deckCard]}>
+        <View style={styles.deckCardContent}>
+          <View style={styles.purpleLine} />
+
+          <View style={styles.deckInfo}>
+            <Typography variant="h2" style={{fontWeight: 700}}>
+              {deckPreview?.name}
+            </Typography>
+
+            {deckPreview?.description?.trim() && (
+              <Typography variant="h3">
+                {deckPreview.description}
+              </Typography>
+            )}
+
+            <View style={styles.deckMeta}>
+              <Typography
+                style={{fontSize: 10}}
+                color={colors.darkGray}
+              >
+                Обновлено: {updatedTime}
+              </Typography>
+
+              <View style={styles.downloadBox}>
+                <Image
+                  source={IconDownloadPreview}
+                  style={{ width: 8, height: 10 }}
+                />
+                <Typography
+                  style={{fontSize: 10}}
+                  color={colors.mainColor}
+                >
+                  {formattedDownloads}
+                </Typography>
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
+
+      {/* Секция "Об авторе" */}
+      <View style={styles.authorSection}>
+        <View style={styles.authorHeader}>
+          <Typography variant="h2">Об авторе</Typography>
+        </View>
+        <View style={[commonStyles.mainBox, styles.authorBio]}>
+          {deckPreview?.author?.avatar_url ? (
+            <Image
+              source={{ uri: deckPreview.author.avatar_url }}
+              style={styles.avatarImage}
+            />
+          ) : (
+            <UserAvatar size={60} />
+          )}
+
+          <View style={styles.authorBioBox}>
+            <Typography variant="h2">
+              {authorFullName}
+            </Typography>
+            {deckPreview?.author?.bio && (
+              <Typography 
+                variant="h3" 
+                style={{color: colors.darkGray}}
+                numberOfLines={3}
+                ellipsizeMode="tail"
+              >
+                {deckPreview.author.bio}
+              </Typography>
+            )}
+          </View>
+        </View>
+      </View>
+
+      {/* Заголовок карточек */}
+      <View style={styles.cardsHeader}>
+        <Typography variant="h2">
+          Карточки ({deckPreview?.total_cards || 0})
+        </Typography>
+      </View>
+
+      {/* Поиск */}
+      <View style={styles.searchBox}>
+        <View style={{ flex: 1, width: "100%" }}>
+          <Input
+            style={{ textAlign: "left", width: "100%" }}
+            placeholder={"Поиск"}
+            value={search}
+            onChangeText={setSearch}
+          />
+        </View>
+        <View style={styles.searchButton}>
+          <Image
+            source={searchButton}
+            style={{ width: 18, height: 18 }}
+          />
+        </View>
+      </View>
+    </>
+  );
+
+  // Компонент для пустого состояния
+  const renderEmptyComponent = () => (
+    <View style={styles.emptyDeck}>
+      <Logo size={144} style={{ marginBottom: 16 }} />
+      <Typography
+        color={colors.darkGray}
+        style={{ textAlign: "center" }}
+      >
+        Пока что колода пуста...
+      </Typography>
+    </View>
+  );
+
+  // Компонент для отсутствия результатов поиска
+  const renderEmptySearch = () => (
+    <View style={styles.emptyDeck}>
+      <Typography
+        color={colors.darkGray}
+        style={{ textAlign: "center" }}
+      >
+        По вашему запросу ничего не найдено
+      </Typography>
+    </View>
+  );
+
   return (
     <View
       style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}
     >
       <View style={[commonStyles.container, { flex: 1, paddingBottom: 30 }]}>
-        <ScrollView
-          keyboardShouldPersistTaps="handled"
-          style={{ width: "100%" }}
-          contentContainerStyle={{ alignItems: "center", width: "100%" }}
-          showsVerticalScrollIndicator={false}
+        <View
+          style={[
+            commonStyles.content,
+            { width: "100%", paddingHorizontal: 16, flex: 1 },
+          ]}
         >
           <View
             style={[
-              commonStyles.content,
-              { width: "100%", paddingHorizontal: 16 },
+              commonStyles.mainContent,
+              { width: "100%", paddingHorizontal: 0, flex: 1 },
             ]}
           >
-            <View
-              style={[
-                commonStyles.mainContent,
-                { width: "100%", paddingHorizontal: 0 },
-              ]}
-            >
-              {/* Хедер */}
-              <View style={[commonStyles.header, styles.header]}>
-                <View style={styles.headerName}>
-                  <Pressable onPress={handleBack}>
-                    <Image
-                      source={ReturnIcon}
-                      style={{ width: 12, height: 22 }}
-                    />
-                  </Pressable>
-
-                  <Typography variant="h1" style={{ marginBottom: 0 }}>
-                    Вернуться к колодам
-                  </Typography>
-                </View>
-              </View>
-
-              {/* Информация о колоде */}
-              <View style={[commonStyles.mainBox, styles.deckCard]}>
-                <View style={styles.deckCardContent}>
-                  <View style={styles.purpleLine} />
-
-                  <View style={styles.deckInfo}>
-                    <Typography variant="h2" style={styles.deckTitle}>
-                      {deckPreview?.name}
-                    </Typography>
-
-                    {deckPreview?.description?.trim() && (
-                      <Typography variant="h3" style={styles.deckDescription}>
-                        {deckPreview.description}
-                      </Typography>
-                    )}
-
-                    <View style={styles.deckMeta}>
-                      <Typography
-                        style={styles.metaText}
-                        color={colors.darkGray}
-                      >
-                        Обновлено: {updatedTime}
-                      </Typography>
-
-                      <View style={styles.downloadBox}>
-                        <Image
-                          source={IconDownloadPreview}
-                          style={{ width: 8, height: 10 }}
-                        />
-                        <Typography
-                          style={styles.metaText}
-                          color={colors.mainColor}
-                        >
-                          {formattedDownloads}
-                        </Typography>
-                      </View>
-                    </View>
-                  </View>
-                </View>
-              </View>
-
-              {/* Секция "Об авторе" */}
-              <View style={styles.authorSection}>
-                <View style={styles.authorHeader}>
-                  <Typography variant="h2">Об авторе</Typography>
-                </View>
-                <View style={[commonStyles.mainBox, styles.authorBio]}>
-                  {deckPreview?.author?.avatar_key ? (
-                    <Image
-                      source={{ uri: deckPreview.author.avatar_key }}
-                      style={styles.avatarImage}
-                    />
-                  ) : (
-                    <UserAvatar size={60} />
-                  )}
-
-                  <View style={styles.authorBioBox}>
-                    <Typography variant="h2">
-                      {authorFullName}
-                    </Typography>
-                    {deckPreview?.author?.bio && (
-                      <Typography variant="h3" style={{color: colors.darkGray}}>
-                        {deckPreview.author.bio}
-                      </Typography>
-                    )}
-                  </View>
-                </View>
-              </View>
-
-              {/* Секция карточек */}
-              <View style={styles.cardsSection}>
-                <View style={styles.cardsHeader}>
-                  <Typography variant="h2">
-                    Карточки ({deckPreview?.total_cards || 0})
-                  </Typography>
-                </View>
-
-                {/* Поиск */}
-                <View style={styles.searchBox}>
-                  <View style={{ flex: 1, width: "100%" }}>
-                    <Input
-                      style={{ textAlign: "left", width: "100%" }}
-                      placeholder={"Поиск"}
-                      value={search}
-                      onChangeText={setSearch}
-                    />
-                  </View>
-                  <View style={styles.searchButton}>
-                    <Image
-                      source={searchButton}
-                      style={{ width: 18, height: 18 }}
-                    />
-                  </View>
-                </View>
-
-                {/* Список карточек или пустое состояние */}
-                {!hasCards ? (
-                  <View style={styles.emptyDeck}>
-                    <Logo size={144} style={{ marginBottom: 16 }} />
-                    <Typography
-                      color={colors.darkGray}
-                      style={{ textAlign: "center" }}
-                    >
-                      Пока что колода пуста...
-                    </Typography>
-                  </View>
-                ) : filteredCards.length === 0 ? (
-                  <View style={styles.emptyDeck}>
-                    <Typography
-                      color={colors.darkGray}
-                      style={{ textAlign: "center" }}
-                    >
-                      По вашему запросу ничего не найдено
-                    </Typography>
-                  </View>
-                ) : (
-                  <View style={styles.cardsList}>
-                    <FlatList
-                      data={filteredCards}
-                      renderItem={renderCardItem}
-                      keyExtractor={(item) => item.id}
-                      scrollEnabled={false}
-                      contentContainerStyle={{ gap: 8 }}
-                    />
-                  </View>
-                )}
-              </View>
-            </View>
+            {!hasCards ? (
+              <FlatList
+                data={[]}
+                renderItem={() => null}
+                ListHeaderComponent={renderHeader}
+                ListEmptyComponent={renderEmptyComponent}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ paddingBottom: 20 }}
+              />
+            ) : filteredCards.length === 0 ? (
+              <FlatList
+                data={[]}
+                renderItem={() => null}
+                ListHeaderComponent={renderHeader}
+                ListEmptyComponent={renderEmptySearch}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ paddingBottom: 20 }}
+              />
+            ) : (
+              <FlatList
+                data={filteredCards}
+                renderItem={renderCardItem}
+                keyExtractor={(item) => item.id}
+                ListHeaderComponent={renderHeader}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ paddingBottom: 20, gap: 8 }}
+                // Отключаем вложенный скролл
+                keyboardShouldPersistTaps="handled"
+              />
+            )}
           </View>
-        </ScrollView>
+        </View>
       </View>
     </View>
   );

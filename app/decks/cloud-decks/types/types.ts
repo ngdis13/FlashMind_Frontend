@@ -1,5 +1,5 @@
 export interface CloudAuthor {
-  avatar_key: string;
+  avatar_url: string;
   bio: string;
   first_name: string;
   last_name: string;
