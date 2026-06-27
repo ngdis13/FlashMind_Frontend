@@ -25,7 +25,15 @@
       "package": "com.anonymous.Flashmind"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "head": [
+        {
+          "meta": {
+            "name": "mailru-domain",
+            "content": "3wGqRypDV6YJnMj0"
+          }
+        }
+      ]
     },
     "plugins": [
       "expo-router",
