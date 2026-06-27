@@ -68,24 +68,29 @@ export default function CloudDecksPreview() {
         position: "bottom",
       });
 
-      await importDeck(cloudDeckId);
+      const result = await importDeck(cloudDeckId);
+
+      console.log("Результат импорта:", result);
 
       Toast.show({
         type: "success",
-        text1: "Колода добавлена",
+        text1: `Колода добавлена! (${result.added} карточек)`,
+        text2: "Теперь она доступна в ваших колодах",
         position: "bottom",
         visibilityTime: 3000,
       });
 
+      // Небольшая задержка перед переходом
       setTimeout(() => {
         router.push("/decks");
-      }, 1500);
+      }, 2000);
     } catch (error) {
       console.error("Ошибка при добавлении колоды:", error);
       Toast.show({
         type: "error",
         text1: "Ошибка",
-        text2: "Не удалось добавить колоду",
+        text2:
+          error instanceof Error ? error.message : "Не удалось добавить колоду",
         position: "bottom",
       });
     } finally {

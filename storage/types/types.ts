@@ -26,6 +26,8 @@ export interface CloudDeckShareResponse {
 }
 
 export interface CloudDeckImportResponse {
+    added: number; // Количество добавленных карточек
+  deck_id: string; // ID созданной/обновленной колоды
   cloud_uid: string;
   deck_name: string;
   deck_description?: string;

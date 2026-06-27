@@ -353,14 +353,35 @@ export const makeDeckPublicApi = async (deckId: string): Promise<CloudDeckShareR
  * Импорт облачной колоды для ПОЛЬЗОВАТЕЛЯ
  * POST /api/v1/cloud_decks/import
  */
-export const importDeckApi = async (deckId: string): Promise<CloudDeckImportResponse> => {
+export const importDeckApi = async (cloudUuid: string): Promise<CloudDeckImportResponse> => {
   try {
-    const response = await apiClient.post('/api/v1/cloud_decks/import', {
-      cloud_uuid: deckId
-    });
+    const accessToken = useAuthStore.getState().accessToken;
+
+    if (!accessToken) {
+      console.log("Токен доступа отсутствует");
+      throw new Error("Нет токена авторизации");
+    }
+
+    console.log(`Импортируем облачную колоду ${cloudUuid}...`);
+
+    const response = await apiClient.post<CloudDeckImportResponse>(
+      getMainServiceApiUrl("/api/v1/cloud_decks/import"),
+      {
+        cloud_uid: cloudUuid
+      },
+      { 
+        headers: { 
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        } 
+      }
+    );
+
+    console.log(" Колода успешно импортирована:", response.data);
     return response.data;
   } catch (error) {
-    console.error("Ошибка при импорте облачной колоды:", error);
+    console.error(" Ошибка при импорте облачной колоды:", error);
+    handleApiError(error, "Не удалось импортировать колоду");
     throw error;
   }
 };
