@@ -26,14 +26,9 @@
     },
     "web": {
       "favicon": "./assets/favicon.png",
-      "head": [
-        {
-          "meta": {
-            "name": "mailru-domain",
-            "content": "3wGqRypDV6YJnMj0"
-          }
-        }
-      ]
+      "html": {
+        "template": "./web/index.html"  
+      }
     },
     "plugins": [
       "expo-router",
