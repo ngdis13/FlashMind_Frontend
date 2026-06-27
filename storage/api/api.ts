@@ -3,7 +3,7 @@ import apiClient from "@/api/client";
 import { getMainServiceApiUrl } from "@/api/getMainServiceApiUrl";
 import { handleApiError } from "@/api/interceptors/error.interceptor";
 import { useAuthStore } from "@/store/auth.store";
-import { Deck, Card, CloudDeckShareResponse } from "../types/types";
+import { Deck, Card, CloudDeckShareResponse, CloudDeckImportResponse } from "../types/types";
 import { AxiosError } from "axios";
 
 interface DecksResponse {
@@ -317,7 +317,7 @@ export const deleteCard = async (cardId: string): Promise<void> => {
 //ОБЛАЧНЫЕ КОЛОДЫ
 
 /**
- * Отправить колоду на публикацию (сделать публичной)
+ * Отправить колоду на публикацию (сделать публичной) или синхронизировать 
  */
 export const makeDeckPublicApi = async (deckId: string): Promise<CloudDeckShareResponse> => {
   try {
@@ -328,7 +328,7 @@ export const makeDeckPublicApi = async (deckId: string): Promise<CloudDeckShareR
       throw new Error("Нет токена авторизации");
     }
 
-    console.log("Отправка колоды на публикацию...");
+    console.log("Отправка колоды на публикацию или синхронизацию...");
 
     const response = await apiClient.post<CloudDeckShareResponse>(
       getMainServiceApiUrl("/api/v1/cloud_decks/share"),
@@ -341,10 +341,26 @@ export const makeDeckPublicApi = async (deckId: string): Promise<CloudDeckShareR
       }
     );
 
-    console.log(`Колода ${deckId} успешно отправлена на публикацию`);
+    console.log(`Колода ${deckId} успешно отправлена на публикацию или синхронизацию`);
     return response.data;
   } catch (err) {
-    handleApiError(err, "Не удалось опубликовать колоду");
+    handleApiError(err, "Не удалось опубликовать колоду или синхронизировать");
     throw err;
+  }
+};
+
+/**
+ * Импорт облачной колоды для ПОЛЬЗОВАТЕЛЯ
+ * POST /api/v1/cloud_decks/import
+ */
+export const importDeckApi = async (deckId: string): Promise<CloudDeckImportResponse> => {
+  try {
+    const response = await apiClient.post('/api/v1/cloud_decks/import', {
+      deck_id: deckId
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Ошибка при импорте облачной колоды:", error);
+    throw error;
   }
 };

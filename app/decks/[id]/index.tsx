@@ -26,7 +26,7 @@ export default function DeckViewById() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
 
-  const { decks, getDeckCards, removeCard, makeDeckPublic } = useDecks();
+  const { decks, getDeckCards, removeCard, makeDeckPublic, importDeck } = useDecks();
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -41,14 +41,13 @@ export default function DeckViewById() {
   // Стейт для мгновенного сохранения UUID, полученного от сервера
   const [cachedCloudUuid, setCachedCloudUuid] = useState<string | null>(null);
 
-  // ✅ НОВОЕ: Автоматически генерируем ссылку при открытии колоды (если её нет)
   useEffect(() => {
     const generateLinkOnLoad = async () => {
       if (!id) return;
-      
+
       // Проверяем, есть ли уже cloud_deck_id
       const existingCloudId = deck?.cloud_info?.cloud_deck_id;
-      
+
       // Если уже есть - сохраняем в кеш
       if (existingCloudId) {
         setCachedCloudUuid(existingCloudId);
@@ -60,12 +59,17 @@ export default function DeckViewById() {
       const isCloudDeck = deck?.cloud_info?.is_cloud_deck === true;
       if (!isCloudDeck && id) {
         try {
-          console.log("🔄 Автоматическая генерация ссылки при открытии колоды...");
+          console.log(
+            "🔄 Автоматическая генерация ссылки при открытии колоды...",
+          );
           const response = await makeDeckPublic(id);
-          
+
           if (response?.cloud_uid) {
             setCachedCloudUuid(response.cloud_uid);
-            console.log("✅ Ссылка сгенерирована автоматически:", response.cloud_uid);
+            console.log(
+              "✅ Ссылка сгенерирована автоматически:",
+              response.cloud_uid,
+            );
           }
         } catch (error) {
           console.error("❌ Не удалось автоматически создать ссылку:", error);
@@ -85,7 +89,9 @@ export default function DeckViewById() {
 
     // === СЦЕНАРИЙ 1: Колода ОБЛАЧНАЯ и НЕ НУЖНА синхронизация ===
     if (isCloudDeck && !needsSync) {
-      console.log("Сценарий 1: Колода в облаке, синхра не нужна. Берём готовый ID.");
+      console.log(
+        "Сценарий 1: Колода в облаке, синхра не нужна. Берём готовый ID.",
+      );
       if (existingCloudId) {
         setCachedCloudUuid(existingCloudId);
       }
@@ -98,13 +104,16 @@ export default function DeckViewById() {
       try {
         Toast.show({
           type: "info",
-          text1: !isCloudDeck ? "Генерация ссылки доступа..." : "Синхронизация с облаком...",
+          text1: !isCloudDeck
+            ? "Генерация ссылки доступа..."
+            : "Синхронизация с облаком...",
           position: "bottom",
         });
 
         const response = await makeDeckPublic(id);
 
-        const cloudUuid = response?.cloud_uid || (response as any)?.data?.cloud_uid;
+        const cloudUuid =
+          response?.cloud_uid || (response as any)?.data?.cloud_uid;
 
         if (cloudUuid) {
           setCachedCloudUuid(cloudUuid);
@@ -112,7 +121,9 @@ export default function DeckViewById() {
 
           Toast.show({
             type: "success",
-            text1: !isCloudDeck ? "Ссылка успешно создана" : "Данные синхронизированы",
+            text1: !isCloudDeck
+              ? "Ссылка успешно создана"
+              : "Данные синхронизированы",
             position: "bottom",
             visibilityTime: 1500,
           });
@@ -131,13 +142,15 @@ export default function DeckViewById() {
     }
   };
 
-  // ✅ ИСПРАВЛЕННАЯ ФУНКЦИЯ КОПИРОВАНИЯ
   const handleCopyLink = async () => {
     // Сначала проверяем кеш, потом cloud_info
     const cloudUuid = cachedCloudUuid || deck?.cloud_info?.cloud_deck_id;
-    
+
     console.log("🔍 Копирование: cachedCloudUuid =", cachedCloudUuid);
-    console.log("🔍 Копирование: deck.cloud_info.cloud_deck_id =", deck?.cloud_info?.cloud_deck_id);
+    console.log(
+      "🔍 Копирование: deck.cloud_info.cloud_deck_id =",
+      deck?.cloud_info?.cloud_deck_id,
+    );
     console.log("🔍 Итоговый cloudUuid:", cloudUuid);
 
     if (!cloudUuid) {
@@ -150,8 +163,7 @@ export default function DeckViewById() {
       return;
     }
 
-    // ✅ ИСПРАВЛЕНО: используем ${} вместо {}
-    const shareUrl = `https://flashmind.ru/${cloudUuid}`;
+    const shareUrl = `https://flashmind.ru/decks/cloud-decks/${cloudUuid}`;
     console.log("Копируем ссылку:", shareUrl);
 
     try {
@@ -164,8 +176,10 @@ export default function DeckViewById() {
           console.log("Скопировано через navigator.clipboard");
         } else {
           // Fallback для небезопасных контекстов (HTTP)
-          console.warn("⚠️ navigator.clipboard недоступен, используем fallback");
-          
+          console.warn(
+            "⚠️ navigator.clipboard недоступен, используем fallback",
+          );
+
           // Создаем временный input
           const textArea = document.createElement("input");
           textArea.value = shareUrl;
@@ -174,10 +188,10 @@ export default function DeckViewById() {
           textArea.style.top = "-9999px";
           textArea.style.opacity = "0";
           document.body.appendChild(textArea);
-          
+
           textArea.select();
           textArea.setSelectionRange(0, 99999);
-          
+
           try {
             const successful = document.execCommand("copy");
             if (successful) {
@@ -187,7 +201,7 @@ export default function DeckViewById() {
           } catch (err) {
             console.error("execCommand failed:", err);
           }
-          
+
           document.body.removeChild(textArea);
         }
       } else {
@@ -210,7 +224,7 @@ export default function DeckViewById() {
       }
     } catch (error) {
       console.error("Ошибка при копировании:", error);
-      
+
       // Показываем ссылку для ручного копирования
       Toast.show({
         type: "info",
@@ -264,28 +278,76 @@ export default function DeckViewById() {
     setIsSyncModalVisible(true);
   };
 
-  const handleSyncConfirm = async () => {
+  const handleSync = async () => {
+    if (!id) return false;
+
     try {
-      setIsSyncModalVisible(false);
+      const isAuthor = deck?.cloud_info?.is_author === true;
+      const isCloudDeck = deck?.cloud_info?.is_cloud_deck === true;
+      const cloudDeckId = deck?.cloud_info?.cloud_deck_id;
 
-      Toast.show({
-        type: "info",
-        text1: "Синхронизация данных...",
-        position: "bottom",
-      });
+      // Если это авторская колода или локальная - используем share
+      if (isAuthor || !isCloudDeck) {
+        console.log("Синхронизация через /share (АВТОР)");
+        Toast.show({
+          type: "info",
+          text1: "Публикация изменений...",
+          position: "bottom",
+        });
 
-      // Тут будет ваш запрос к API на обновление
-      // await syncDeckCardsData(id);
+        await makeDeckPublic(id);
 
-      Toast.show({
-        type: "success",
-        text1: "Колода успешно синхронизирована!",
-        position: "bottom",
-      });
+        Toast.show({
+          type: "success",
+          text1: "Изменения опубликованы",
+          position: "bottom",
+        });
+      } else {
+        // Если это колода другого пользователя - используем import
+        console.log("Синхронизация через /import (ПОЛЬЗОВАТЕЛЬ)");
+        Toast.show({
+          type: "info",
+          text1: "Загрузка обновлений...",
+          position: "bottom",
+        });
+
+        // Импортируем актуальную версию колоды
+        const importedDeck = await importDeck(id);
+
+        // Обновляем локальные карточки
+        if (importedDeck.cards) {
+          setCards(importedDeck.cards);
+        }
+
+        Toast.show({
+          type: "success",
+          text1: "Колода обновлена",
+          position: "bottom",
+        });
+      }
+
+      // Перезагружаем карточки после синхронизации
+      await loadCards();
+
+      return true;
     } catch (error) {
       console.error("Ошибка синхронизации:", error);
+      Toast.show({
+        type: "error",
+        text1: "Ошибка синхронизации",
+        text2: "Попробуйте позже",
+        position: "bottom",
+      });
+      return false;
     }
   };
+
+  // Обновляем обработчик для модалки синхронизации
+  const handleSyncConfirm = async () => {
+    setIsSyncModalVisible(false);
+    return await handleSync();
+  };
+
 
   const loadCards = async () => {
     try {

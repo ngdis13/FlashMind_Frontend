@@ -25,6 +25,17 @@ export interface CloudDeckShareResponse {
   type: string;
 }
 
+export interface CloudDeckImportResponse {
+  cloud_uid: string;
+  deck_name: string;
+  deck_description?: string;
+  cards: Card[];
+  sync_stats?: {
+    last_synced_at: string;
+    version: number;
+  };
+}
+
 /**
  * Настройки колоды
  */

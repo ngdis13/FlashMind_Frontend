@@ -93,7 +93,7 @@ export const styles = StyleSheet.create({
     marginBottom: 8,
     width: "100%",
   },
-  
+
   // Поиск
   searchBox: {
     flexDirection: "row",
@@ -108,7 +108,7 @@ export const styles = StyleSheet.create({
     top: "50%",
     transform: [{ translateY: -9 }],
   },
-  
+
   cardsList: {
     width: "100%",
   },
@@ -130,12 +130,17 @@ export const styles = StyleSheet.create({
   cardArrow: {
     marginLeft: 12,
   },
-  
 
   emptyDeck: {
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 40,
+    width: "100%",
+  },
+
+  addButton: {
+    position: "absolute",
+    bottom: 40,
     width: "100%",
   },
 });

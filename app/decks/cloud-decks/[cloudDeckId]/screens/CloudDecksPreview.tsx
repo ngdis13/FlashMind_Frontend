@@ -16,11 +16,15 @@ import { UserAvatar } from "@/feature-profile/assets/UserAvatar";
 import { Input } from "@/components/Input";
 import searchButton from "@/feature/decks/assets/searchButton.png";
 import { Logo } from "@/components/Logo";
+import { MainButton } from "@/components/MainButton";
+import { useDecks } from "@/storage/hooks/useDecks";
 
 export default function CloudDecksPreview() {
   const router = useRouter();
   const { cloudDeckId } = useLocalSearchParams<{ cloudDeckId: string }>();
   const [search, setSearch] = useState("");
+  const [isImporting, setIsImporting] = useState(false);
+  const { importDeck } = useDecks();
 
   const [deckPreview, setDeckPreview] =
     useState<CloudDeckPreviewResponse | null>(null);
@@ -33,7 +37,7 @@ export default function CloudDecksPreview() {
       try {
         setIsLoading(true);
         const data = await fetchCloudDeckPreview(cloudDeckId);
-        console.log('данные о колоде', data)
+        console.log("данные о колоде", data);
         setDeckPreview(data);
       } catch (error) {
         console.error("Ошибка при загрузке превью с сервера:", error);
@@ -51,6 +55,44 @@ export default function CloudDecksPreview() {
     loadData();
   }, [cloudDeckId]);
 
+  // Обработчик добавления колоды
+  const handleAddToMyDecks = async () => {
+    if (!cloudDeckId) return;
+
+    try {
+      setIsImporting(true);
+
+      Toast.show({
+        type: "info",
+        text1: "Добавление колоды...",
+        position: "bottom",
+      });
+
+      await importDeck(cloudDeckId);
+
+      Toast.show({
+        type: "success",
+        text1: "Колода добавлена",
+        position: "bottom",
+        visibilityTime: 3000,
+      });
+
+      setTimeout(() => {
+        router.push("/decks");
+      }, 1500);
+    } catch (error) {
+      console.error("Ошибка при добавлении колоды:", error);
+      Toast.show({
+        type: "error",
+        text1: "Ошибка",
+        text2: "Не удалось добавить колоду",
+        position: "bottom",
+      });
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
   const handleBack = () => {
     router.push("/decks/cloud-decks");
   };
@@ -66,7 +108,7 @@ export default function CloudDecksPreview() {
     deckPreview?.cards?.filter((card) =>
       card.front.toLowerCase().includes(search.toLowerCase()),
     ) || [];
-  
+
   const handleCardPress = (cardId: string) => {
     console.log("переход к карточке", cardId);
   };
@@ -89,10 +131,7 @@ export default function CloudDecksPreview() {
       <View style={[commonStyles.header, styles.header]}>
         <View style={styles.headerName}>
           <Pressable onPress={handleBack}>
-            <Image
-              source={ReturnIcon}
-              style={{ width: 12, height: 22 }}
-            />
+            <Image source={ReturnIcon} style={{ width: 12, height: 22 }} />
           </Pressable>
 
           <Typography variant="h1" style={{ marginBottom: 0 }}>
@@ -107,21 +146,16 @@ export default function CloudDecksPreview() {
           <View style={styles.purpleLine} />
 
           <View style={styles.deckInfo}>
-            <Typography variant="h2" style={{fontWeight: 700}}>
+            <Typography variant="h2" style={{ fontWeight: 700 }}>
               {deckPreview?.name}
             </Typography>
 
             {deckPreview?.description?.trim() && (
-              <Typography variant="h3">
-                {deckPreview.description}
-              </Typography>
+              <Typography variant="h3">{deckPreview.description}</Typography>
             )}
 
             <View style={styles.deckMeta}>
-              <Typography
-                style={{fontSize: 10}}
-                color={colors.darkGray}
-              >
+              <Typography style={{ fontSize: 10 }} color={colors.darkGray}>
                 Обновлено: {updatedTime}
               </Typography>
 
@@ -130,10 +164,7 @@ export default function CloudDecksPreview() {
                   source={IconDownloadPreview}
                   style={{ width: 8, height: 10 }}
                 />
-                <Typography
-                  style={{fontSize: 10}}
-                  color={colors.mainColor}
-                >
+                <Typography style={{ fontSize: 10 }} color={colors.mainColor}>
                   {formattedDownloads}
                 </Typography>
               </View>
@@ -158,13 +189,11 @@ export default function CloudDecksPreview() {
           )}
 
           <View style={styles.authorBioBox}>
-            <Typography variant="h2">
-              {authorFullName}
-            </Typography>
+            <Typography variant="h2">{authorFullName}</Typography>
             {deckPreview?.author?.bio && (
-              <Typography 
-                variant="h3" 
-                style={{color: colors.darkGray}}
+              <Typography
+                variant="h3"
+                style={{ color: colors.darkGray }}
                 numberOfLines={3}
                 ellipsizeMode="tail"
               >
@@ -193,10 +222,7 @@ export default function CloudDecksPreview() {
           />
         </View>
         <View style={styles.searchButton}>
-          <Image
-            source={searchButton}
-            style={{ width: 18, height: 18 }}
-          />
+          <Image source={searchButton} style={{ width: 18, height: 18 }} />
         </View>
       </View>
     </>
@@ -206,10 +232,7 @@ export default function CloudDecksPreview() {
   const renderEmptyComponent = () => (
     <View style={styles.emptyDeck}>
       <Logo size={144} style={{ marginBottom: 16 }} />
-      <Typography
-        color={colors.darkGray}
-        style={{ textAlign: "center" }}
-      >
+      <Typography color={colors.darkGray} style={{ textAlign: "center" }}>
         Пока что колода пуста...
       </Typography>
     </View>
@@ -218,10 +241,7 @@ export default function CloudDecksPreview() {
   // Компонент для отсутствия результатов поиска
   const renderEmptySearch = () => (
     <View style={styles.emptyDeck}>
-      <Typography
-        color={colors.darkGray}
-        style={{ textAlign: "center" }}
-      >
+      <Typography color={colors.darkGray} style={{ textAlign: "center" }}>
         По вашему запросу ничего не найдено
       </Typography>
     </View>
@@ -251,7 +271,7 @@ export default function CloudDecksPreview() {
                 ListHeaderComponent={renderHeader}
                 ListEmptyComponent={renderEmptyComponent}
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: 20 }}
+                contentContainerStyle={{ paddingBottom: 120 }}
               />
             ) : filteredCards.length === 0 ? (
               <FlatList
@@ -260,7 +280,7 @@ export default function CloudDecksPreview() {
                 ListHeaderComponent={renderHeader}
                 ListEmptyComponent={renderEmptySearch}
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: 20 }}
+                contentContainerStyle={{ paddingBottom: 120 }}
               />
             ) : (
               <FlatList
@@ -269,13 +289,19 @@ export default function CloudDecksPreview() {
                 keyExtractor={(item) => item.id}
                 ListHeaderComponent={renderHeader}
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: 20, gap: 8 }}
-                // Отключаем вложенный скролл
+                contentContainerStyle={{ paddingBottom: 120, gap: 8 }}
                 keyboardShouldPersistTaps="handled"
               />
             )}
           </View>
         </View>
+        {/* Кнопка "Добавить к моим колодам" поверх всего контента */}
+        <MainButton
+          title={isImporting ? "Добавление..." : "Добавить к моим колодам"}
+          onPress={handleAddToMyDecks}
+          disabled={isImporting || !deckPreview || isLoading}
+          style={styles.addButton}
+        />
       </View>
     </View>
   );
