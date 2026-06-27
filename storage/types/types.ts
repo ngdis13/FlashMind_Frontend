@@ -15,7 +15,7 @@ export interface CloudInfo {
 
 // Добавьте этот тип в начало файла или в types.ts
 export interface CloudDeckShareResponse {
-  cloud_uid: string;
+  cloud_uuid: string;
   status: string;
   sync_stats: {
     added: number;

@@ -71,7 +71,6 @@ export default function DeckViewById() {
         setCachedCloudUuid(cloudDeckId);
         setIsShareModalVisible(true);
       } else {
-        // Если почему-то нет cloud_deck_id, но колода облачная - пробуем получить
         Toast.show({
           type: "error",
           text1: "Ошибка",
@@ -95,12 +94,11 @@ export default function DeckViewById() {
             position: "bottom",
           });
 
-          // makeDeckPublic уже обновляет локальное состояние и возвращает ответ
           const response = await makeDeckPublic(id);
           console.log("📦 Ответ от makeDeckPublic:", response);
 
-          // Получаем cloud_uid из ответа
-          const cloudUuid = response?.cloud_uid;
+          // ✅ Правильное поле - cloud_uuid (с подчеркиванием)
+          const cloudUuid = response?.cloud_uuid;
 
           if (cloudUuid) {
             setCachedCloudUuid(cloudUuid);
@@ -113,21 +111,7 @@ export default function DeckViewById() {
               visibilityTime: 1500,
             });
           } else {
-            // Если cloud_uid не пришел, но колода обновилась - берем из обновленного состояния
-            const updatedDeck = decks.find((d) => d.id === id);
-            if (updatedDeck?.cloud_info?.cloud_deck_id) {
-              setCachedCloudUuid(updatedDeck.cloud_info.cloud_deck_id);
-              setIsShareModalVisible(true);
-
-              Toast.show({
-                type: "success",
-                text1: "Синхронизация выполнена",
-                position: "bottom",
-                visibilityTime: 1500,
-              });
-            } else {
-              throw new Error("Сервер не вернул cloud_uid");
-            }
+            throw new Error("Сервер не вернул cloud_uuid");
           }
         } catch (error) {
           console.error("❌ Ошибка синхронизации:", error);
@@ -156,12 +140,11 @@ export default function DeckViewById() {
           position: "bottom",
         });
 
-        // makeDeckPublic уже обновляет локальное состояние и возвращает ответ
         const response = await makeDeckPublic(id);
         console.log("📦 Ответ от makeDeckPublic (локальная):", response);
 
-        // Получаем cloud_uid из ответа
-        const cloudUuid = response?.cloud_uid;
+        // ✅ Правильное поле - cloud_uuid (с подчеркиванием)
+        const cloudUuid = response?.cloud_uuid;
 
         if (cloudUuid) {
           setCachedCloudUuid(cloudUuid);
@@ -174,26 +157,7 @@ export default function DeckViewById() {
             visibilityTime: 1500,
           });
         } else {
-          // Если cloud_uid не пришел, но колода обновилась - берем из обновленного состояния
-          // Ждем небольшой таймаут чтобы состояние успело обновиться
-          await new Promise((resolve) => setTimeout(resolve, 100));
-
-          const updatedDeck = decks.find((d) => d.id === id);
-          console.log("🔄 Обновленная колода после запроса:", updatedDeck);
-
-          if (updatedDeck?.cloud_info?.cloud_deck_id) {
-            setCachedCloudUuid(updatedDeck.cloud_info.cloud_deck_id);
-            setIsShareModalVisible(true);
-
-            Toast.show({
-              type: "success",
-              text1: "Ссылка создана!",
-              position: "bottom",
-              visibilityTime: 1500,
-            });
-          } else {
-            throw new Error("Сервер не вернул cloud_uid");
-          }
+          throw new Error("Сервер не вернул cloud_uuid");
         }
       } catch (error) {
         console.error("❌ Ошибка создания ссылки:", error);
