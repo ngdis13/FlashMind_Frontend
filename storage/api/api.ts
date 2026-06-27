@@ -367,7 +367,7 @@ export const importDeckApi = async (cloudUuid: string): Promise<CloudDeckImportR
     const response = await apiClient.post<CloudDeckImportResponse>(
       getMainServiceApiUrl("/api/v1/cloud_decks/import"),
       {
-        cloud_uid: cloudUuid
+        cloud_uuid: cloudUuid
       },
       { 
         headers: { 
