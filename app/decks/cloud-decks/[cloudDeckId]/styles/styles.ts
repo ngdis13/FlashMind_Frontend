@@ -140,7 +140,7 @@ export const styles = StyleSheet.create({
 
   addButton: {
     position: "absolute",
-    bottom: 40,
-    width: "100%",
+    bottom: 30,
+    width: "90%",
   },
 });

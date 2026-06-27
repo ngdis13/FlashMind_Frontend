@@ -722,7 +722,7 @@ export const useDecks = () => {
     async (deckId: string): Promise<CloudDeckImportResponse> => {
       try {
         console.log(
-          `📥 Импортируем облачную колоду ${deckId} для пользователя...`,
+          `Импортируем облачную колоду ${deckId} для пользователя...`,
         );
 
         const serverResponse: CloudDeckImportResponse =

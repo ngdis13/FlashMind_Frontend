@@ -143,7 +143,6 @@ export default function DeckViewById() {
   };
 
   const handleCopyLink = async () => {
-    // Сначала проверяем кеш, потом cloud_info
     const cloudUuid = cachedCloudUuid || deck?.cloud_info?.cloud_deck_id;
 
     console.log("🔍 Копирование: cachedCloudUuid =", cachedCloudUuid);

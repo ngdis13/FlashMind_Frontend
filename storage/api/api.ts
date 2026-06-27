@@ -356,7 +356,7 @@ export const makeDeckPublicApi = async (deckId: string): Promise<CloudDeckShareR
 export const importDeckApi = async (deckId: string): Promise<CloudDeckImportResponse> => {
   try {
     const response = await apiClient.post('/api/v1/cloud_decks/import', {
-      deck_id: deckId
+      cloud_uuid: deckId
     });
     return response.data;
   } catch (error) {
