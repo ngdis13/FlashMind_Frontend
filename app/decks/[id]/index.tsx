@@ -27,7 +27,8 @@ export default function DeckViewById() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
 
-  const { decks, getDeckCards, removeCard, makeDeckPublic, importDeck } = useDecks();
+  const { decks, getDeckCards, removeCard, makeDeckPublic, importDeck } =
+    useDecks();
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -35,7 +36,7 @@ export default function DeckViewById() {
   const [cards, setCards] = useState<Card[]>([]);
 
   const deck = decks.find((d) => d.id === id);
-  
+
   // Проверяем статус колоды
   const isCloudDeck = deck?.cloud_info?.is_cloud_deck === true;
   const needsSync = deck?.cloud_info?.needs_sync === true;
@@ -51,7 +52,6 @@ export default function DeckViewById() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSyncModalVisible, setIsSyncModalVisible] = useState(false);
 
-
   useEffect(() => {
     if (cloudDeckId) {
       setCachedCloudUuid(cloudDeckId);
@@ -60,6 +60,7 @@ export default function DeckViewById() {
     }
   }, [cloudDeckId]);
 
+  // ✅ ГЛАВНЫЙ ОБРАБОТЧИК: только при нажатии на кнопку
   const handleSharePress = async () => {
     if (isGenerating) return;
 
@@ -69,6 +70,14 @@ export default function DeckViewById() {
       if (cloudDeckId) {
         setCachedCloudUuid(cloudDeckId);
         setIsShareModalVisible(true);
+      } else {
+        // Если почему-то нет cloud_deck_id, но колода облачная - пробуем получить
+        Toast.show({
+          type: "error",
+          text1: "Ошибка",
+          text2: "Не найден идентификатор колоды",
+          position: "bottom",
+        });
       }
       return;
     }
@@ -79,20 +88,24 @@ export default function DeckViewById() {
       if (id) {
         try {
           setIsGenerating(true);
-          
+
           Toast.show({
             type: "info",
             text1: "Синхронизация с облаком...",
             position: "bottom",
           });
 
+          // makeDeckPublic уже обновляет локальное состояние и возвращает ответ
           const response = await makeDeckPublic(id);
-          const cloudUuid = response?.cloud_uid || response?.data?.cloud_uid;
+          console.log("📦 Ответ от makeDeckPublic:", response);
+
+          // Получаем cloud_uid из ответа
+          const cloudUuid = response?.cloud_uid;
 
           if (cloudUuid) {
             setCachedCloudUuid(cloudUuid);
             setIsShareModalVisible(true);
-            
+
             Toast.show({
               type: "success",
               text1: "Синхронизация выполнена",
@@ -100,7 +113,21 @@ export default function DeckViewById() {
               visibilityTime: 1500,
             });
           } else {
-            throw new Error("Сервер не вернул cloud_uid");
+            // Если cloud_uid не пришел, но колода обновилась - берем из обновленного состояния
+            const updatedDeck = decks.find((d) => d.id === id);
+            if (updatedDeck?.cloud_info?.cloud_deck_id) {
+              setCachedCloudUuid(updatedDeck.cloud_info.cloud_deck_id);
+              setIsShareModalVisible(true);
+
+              Toast.show({
+                type: "success",
+                text1: "Синхронизация выполнена",
+                position: "bottom",
+                visibilityTime: 1500,
+              });
+            } else {
+              throw new Error("Сервер не вернул cloud_uid");
+            }
           }
         } catch (error) {
           console.error("❌ Ошибка синхронизации:", error);
@@ -122,21 +149,24 @@ export default function DeckViewById() {
       console.log("🆕 Локальная колода, создаем ссылку");
       try {
         setIsGenerating(true);
-        
+
         Toast.show({
           type: "info",
           text1: "Создание ссылки доступа...",
           position: "bottom",
         });
 
-        // Создаем ссылку (колода становится облачной)
+        // makeDeckPublic уже обновляет локальное состояние и возвращает ответ
         const response = await makeDeckPublic(id);
-        const cloudUuid = response?.cloud_uid || response?.data?.cloud_uid;
+        console.log("📦 Ответ от makeDeckPublic (локальная):", response);
+
+        // Получаем cloud_uid из ответа
+        const cloudUuid = response?.cloud_uid;
 
         if (cloudUuid) {
           setCachedCloudUuid(cloudUuid);
           setIsShareModalVisible(true);
-          
+
           Toast.show({
             type: "success",
             text1: "Ссылка создана!",
@@ -144,7 +174,26 @@ export default function DeckViewById() {
             visibilityTime: 1500,
           });
         } else {
-          throw new Error("Сервер не вернул cloud_uid");
+          // Если cloud_uid не пришел, но колода обновилась - берем из обновленного состояния
+          // Ждем небольшой таймаут чтобы состояние успело обновиться
+          await new Promise((resolve) => setTimeout(resolve, 100));
+
+          const updatedDeck = decks.find((d) => d.id === id);
+          console.log("🔄 Обновленная колода после запроса:", updatedDeck);
+
+          if (updatedDeck?.cloud_info?.cloud_deck_id) {
+            setCachedCloudUuid(updatedDeck.cloud_info.cloud_deck_id);
+            setIsShareModalVisible(true);
+
+            Toast.show({
+              type: "success",
+              text1: "Ссылка создана!",
+              position: "bottom",
+              visibilityTime: 1500,
+            });
+          } else {
+            throw new Error("Сервер не вернул cloud_uid");
+          }
         }
       } catch (error) {
         console.error("❌ Ошибка создания ссылки:", error);
@@ -159,6 +208,14 @@ export default function DeckViewById() {
       }
       return;
     }
+
+    // Если ничего не подошло
+    Toast.show({
+      type: "error",
+      text1: "Ошибка",
+      text2: "Неизвестный статус колоды",
+      position: "bottom",
+    });
   };
 
   const handleCopyLink = async () => {
@@ -268,11 +325,11 @@ export default function DeckViewById() {
   const handleBack = () => {
     router.push("/decks");
   };
-  
+
   const handleSettings = () => {
     router.push(`/decks/${id}/settings`);
   };
-  
+
   const handleAddCard = () => {
     router.push(`/decks/${id}/create-card?deckId=${id}`);
   };
