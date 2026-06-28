@@ -12,7 +12,7 @@ import { Typography } from "@/styles/Typography";
 import ReturnIcon from "@/assets/icons/ReturnIcon.png";
 import IconGo from "../assets/IconGo.png";
 import { useRouter } from "expo-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Input } from "@/components/Input";
 
 import searchButton from "@/feature-decks/assets/searchButton.png";
@@ -20,8 +20,6 @@ import CloudDeckView from "../components/CloudDecksView";
 import Toast from "react-native-toast-message";
 import { CloudDeckItem } from "../types/types";
 import { fetchCloudDecks } from "../api/api";
-
-
 
 // Хелпер извлечения ID приватной колоды
 const extractCloudDeckId = (input: string): string | null => {
@@ -89,13 +87,31 @@ export default function CloudDecksScreen() {
     router.push(`/decks/cloud-decks/${cloudDeckId}`);
   };
 
-  const handleSearch = () => {
-    console.log("Поиск вызван для строки:", search);
+  // Фильтрация с учетом регистра и поиском по имени и автору
+  const filteredDecks = useMemo(() => {
+    const trimmedSearch = search.trim().toLowerCase();
+    
+    if (!trimmedSearch) {
+      return decks; 
+    }
+
+    return decks.filter((deck) => {
+
+      const nameMatch = deck.name.toLowerCase().includes(trimmedSearch);
+      const authorName = `${deck.author?.first_name || ""} ${deck.author?.last_name || ""}`.trim().toLowerCase();
+      const authorMatch = authorName.includes(trimmedSearch);
+      
+      return nameMatch || authorMatch;
+    });
+  }, [decks, search]);
+
+  const handleSearchChange = (text: string) => {
+    setSearch(text);
   };
 
-  const filteredDecks = decks.filter((deck) =>
-    deck.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const clearSearch = () => {
+    setSearch("");
+  };
 
   return (
     <View
@@ -155,17 +171,26 @@ export default function CloudDecksScreen() {
               {/* Заголовок доступных колод */}
               <View style={styles.availableDecksSection}>
                 <View style={styles.searchHeader}>
-                  <Typography variant="h2">Доступные колоды</Typography>
+                  <Typography variant="h2">
+                    Доступные колоды 
+                    {search.trim() && (
+                      <Typography variant="h2" color={colors.darkGray}>
+                        {" "}
+                        (найдено: {filteredDecks.length})
+                      </Typography>
+                    )}
+                  </Typography>
+                  
                   <View style={styles.searchBox}>
                     <Input
                       style={{ textAlign: "left" }}
-                      placeholder={"Поиск"}
+                      placeholder={"Поиск по названию или автору"}
                       value={search}
-                      onChangeText={setSearch}
+                      onChangeText={handleSearchChange} 
                     />
                     <Pressable
                       style={styles.searchButton}
-                      onPress={handleSearch}
+                      onPress={handleSearchChange} 
                     >
                       <Image
                         source={searchButton}
@@ -181,16 +206,30 @@ export default function CloudDecksScreen() {
                 {loading ? (
                   <ActivityIndicator
                     size="large"
-                    color={colors.mainColor }
+                    color={colors.mainColor}
                     style={{ marginTop: 40 }}
                   />
                 ) : filteredDecks.length === 0 ? (
-                  <Typography
-                    variant="h3"
-                    style={{ textAlign: "center", marginTop: 40, color: "#999" }}
-                  >
-                    Колоды не найдены
-                  </Typography>
+                  <View style={{ marginTop: 40, alignItems: "center" }}>
+                    <Typography
+                      variant="h3"
+                      style={{ textAlign: "center", color: "#999" }}
+                    >
+                      {search.trim() 
+                        ? "По вашему запросу ничего не найдено" 
+                        : "Колоды не найдены"}
+                    </Typography>
+                    {search.trim() && (
+                      <Pressable onPress={clearSearch} style={{ marginTop: 12 }}>
+                        <Typography
+                          variant="h3"
+                          style={{ color: colors.mainColor }}
+                        >
+                          Очистить поиск
+                        </Typography>
+                      </Pressable>
+                    )}
+                  </View>
                 ) : (
                   filteredDecks.map((deck) => {
                     const avatar = deck.author?.avatar_url;

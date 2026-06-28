@@ -139,7 +139,7 @@ export const useUserStore = create<UserState>((set, get) => ({
     try {
       const response = await getUserProfile();
       const mappedUserProfile: UserProfile = {
-        id: response.id, // если есть в ответе
+        id: response.user_id, // если есть в ответе
         firstName: response.first_name || "Star",
         lastName: response.last_name || "1234",
         bio: response.bio || "О себе",
