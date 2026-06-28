@@ -58,7 +58,16 @@ const getStarColor = (count: number) => {
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { user, setAvatarFile, isLoading, updateAvatar } = useUserStore();
+  const {
+    user,
+    setAvatarFile,
+    isLoading,
+    updateAvatar,
+    fetchUser, // Добавляем метод fetchUser из стора
+  } = useUserStore();
+
+  // Состояние для отслеживания первой загрузки
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
 
   // Локальные состояния для загрузки аватара и ошибок
   const [isAvatarUploading, setIsAvatarUploading] = useState(false);
@@ -67,6 +76,31 @@ export default function ProfileScreen() {
   // Новое состояние для контроля ОДНОЙ активной подсказки звёздочки
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null); // Хранит dateStr активной звезды
   const globalTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // ✅ ЗАГРУЖАЕМ ДАННЫЕ ПРИ ПЕРВОМ ЗАХОДЕ НА ЭКРАН
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        // Если данных нет в сторе, загружаем с сервера
+        if (!user) {
+          await fetchUser();
+        }
+      } catch (error) {
+        console.error("Ошибка загрузки профиля:", error);
+        Toast.show({
+          type: "error",
+          text1: "Ошибка загрузки",
+          text2: "Не удалось загрузить данные профиля",
+          position: "bottom",
+          visibilityTime: 3000,
+        });
+      } finally {
+        setIsInitialLoading(false);
+      }
+    };
+
+    loadUserData();
+  }, []); // Пустой массив зависимостей - выполняется только при монтировании
 
   // Автоматическое закрытие подсказки через 5 секунд
   useEffect(() => {
@@ -86,9 +120,52 @@ export default function ProfileScreen() {
     };
   }, [activeTooltip]);
 
-  // Глобальный лоадер оставляем ТОЛЬКО для первой загрузки всего профиля
-  if (isLoading && !isAvatarUploading) {
-    return <LoadingScreen textLoad="Загружаем профиль" />;
+  if (isInitialLoading || (isLoading && !user)) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: colors.background,
+        }}
+      >
+        <ActivityIndicator
+          size="large"
+          color={colors.mainColor}
+          style={{ marginTop: 40 }}
+        />
+      </View>
+    );
+  }
+
+  // ✅ Если user все еще null после загрузки - показываем ошибку
+  if (!user) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          padding: 20,
+        }}
+      >
+        <Typography variant="h2" color={colors.errorColor}>
+          Не удалось загрузить профиль
+        </Typography>
+        <Pressable
+          onPress={() => {
+            setIsInitialLoading(true);
+            fetchUser().finally(() => setIsInitialLoading(false));
+          }}
+          style={{ marginTop: 20, padding: 10 }}
+        >
+          <Typography variant="h3" color={colors.mainColor}>
+            Попробовать снова
+          </Typography>
+        </Pressable>
+      </View>
+    );
   }
 
   // Функция отвечает за выбор аватара из галереи устройства
@@ -115,7 +192,7 @@ export default function ProfileScreen() {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],
         allowsEditing: true,
-        aspect:[1,1],
+        aspect: [1, 1],
         quality: 0.9, // Исходное качество перед сжатием
       });
 
@@ -149,7 +226,7 @@ export default function ProfileScreen() {
 
         console.log("Отправляем аватар на сервер...");
         await updateAvatar(selectedUri);
-        
+
         Toast.show({
           type: "success",
           text1: "Аватар успешно обновлен",
@@ -160,15 +237,18 @@ export default function ProfileScreen() {
       }
     } catch (error) {
       console.error("Ошибка при обновлении аватара:", error);
-      
+
       let displayMessage = "Попробуйте другую картинку";
 
       // Проверка на ошибку Axios (как в создании колоды)
       const err = error as AxiosError<{ message?: string }>;
       if (err?.response?.data?.message || err?.message) {
         const serverMessage = err.response?.data?.message || err.message;
-        
-        if (serverMessage.includes("Network") || serverMessage.includes("413")) {
+
+        if (
+          serverMessage.includes("Network") ||
+          serverMessage.includes("413")
+        ) {
           displayMessage = "Файл слишком большой или проблема с сетью.";
         } else if (serverMessage.includes("401")) {
           displayMessage = "Сессия истекла. Пожалуйста, перезайдите в аккаунт.";
@@ -244,8 +324,12 @@ export default function ProfileScreen() {
 
               <View style={styles.aboutBox}>
                 <View style={styles.nameBox}>
-                  <Typography variant="h2">{user?.firstName}</Typography>
-                  <Typography variant="h2">{user?.lastName}</Typography>
+                  <Typography variant="h2">
+                    {user?.firstName || "Имя"}
+                  </Typography>
+                  <Typography variant="h2">
+                    {user?.lastName || "Фамилия"}
+                  </Typography>
                 </View>
                 <Typography
                   variant="h3"
