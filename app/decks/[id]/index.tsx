@@ -22,6 +22,7 @@ import ImportButton from "@/feature-decks/assets/importButton.png";
 import { ShareDeckModal } from "../components/ShareDeckModal";
 import * as Clipboard from "expo-clipboard";
 import { SyncDeckModal } from "../components/SyncDeckModal";
+import { CustomAlertCloud } from "../components/CustomAlertCloud";
 
 export default function DeckViewById() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -51,6 +52,7 @@ export default function DeckViewById() {
   const [cachedCloudUuid, setCachedCloudUuid] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSyncModalVisible, setIsSyncModalVisible] = useState(false);
+  const [isAccessModalVisible, setIsAccessModalVisible] = useState(false)
 
   useEffect(() => {
     if (cloudDeckId) {
@@ -302,6 +304,10 @@ export default function DeckViewById() {
     setIsSyncModalVisible(true);
   };
 
+  const handleAccessSync = () => {
+    setIsAccessModalVisible(true)
+  }
+
   // ✅ Синхронизация по уведомлению (ручной режим)
   const handleSync = async () => {
     if (!id) return false;
@@ -470,7 +476,6 @@ export default function DeckViewById() {
                 </View>
 
                 <View style={styles.noticeBox}>
-                  {/* 🔴 Красный восклицательный знак - нужна синхронизация */}
                   {showCloudAlert && (
                     <Pressable
                       onPress={handleCloudSyncAlert}
@@ -483,14 +488,16 @@ export default function DeckViewById() {
                     </Pressable>
                   )}
 
-                  {/* 🟢 Зеленая галочка - все ок, синхронизация не нужна */}
                   {showCloudOk && (
-                    <View style={styles.cloudAlertAbsoluteLeft}>
+                    <Pressable
+                      onPress={handleAccessSync}
+                      style={styles.cloudAlertAbsoluteLeft}
+                    >
                       <Image
                         source={GreatIcon}
                         style={{ width: 24, height: 24 }}
                       />
-                    </View>
+                    </Pressable>
                   )}
 
                   {/* Кнопка импорта/шаринга всегда видна */}
@@ -608,6 +615,17 @@ export default function DeckViewById() {
         onCopyLink={handleCopyLink}
         onMakePublic={handleMakePublic}
       />
+      <CustomAlertCloud
+      visible = {isAccessModalVisible}
+      onCancel={() => setIsAccessModalVisible(false)}
+      message={'Колода синхронизирована'}
+      metaMessage={'На этой колоде установлена самая свежая версия. Обновления не требуются.'}
+      confirmText={'Понятно'}
+      onConfirm={() => setIsAccessModalVisible(false)}
+      
+      />
+      
+      
     </View>
   );
 }
