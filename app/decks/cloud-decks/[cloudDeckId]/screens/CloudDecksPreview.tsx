@@ -18,6 +18,8 @@ import searchButton from "@/feature/decks/assets/searchButton.png";
 import { Logo } from "@/components/Logo";
 import { MainButton } from "@/components/MainButton";
 import { useDecks } from "@/storage/hooks/useDecks";
+import { useAuthStore } from "@/store/auth.store";
+import { getUserIdFromToken } from "@/utils/helpers/getUserIdFromToken";
 
 export default function CloudDecksPreview() {
   const router = useRouter();
@@ -27,9 +29,17 @@ export default function CloudDecksPreview() {
   const { importDeck } = useDecks();
   
 
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const currentUserId = getUserIdFromToken(accessToken);
+
   const [deckPreview, setDeckPreview] =
     useState<CloudDeckPreviewResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  // Проверяем, является ли текущий пользователь автором
+  const isAuthor = deckPreview?.author?.user_id 
+    ? currentUserId === deckPreview.author.user_id 
+    : false;
 
   useEffect(() => {
     const loadData = async () => {
@@ -81,7 +91,6 @@ export default function CloudDecksPreview() {
         visibilityTime: 3000,
       });
 
-      // Небольшая задержка перед переходом
       setTimeout(() => {
         router.push("/decks");
       }, 2000);
@@ -108,7 +117,7 @@ export default function CloudDecksPreview() {
   const authorFullName =
     `${deckPreview?.author.first_name} ${deckPreview?.author.last_name}`.trim() ||
     "Пользователь FlashMind";
-  const hasCards = deckPreview?.total_cards > 0;
+  const hasCards = deckPreview?.total_cards > 0 ;
 
   const filteredCards =
     deckPreview?.cards?.filter((card) =>
@@ -301,13 +310,16 @@ export default function CloudDecksPreview() {
             )}
           </View>
         </View>
-        {/* Кнопка "Добавить к моим колодам" поверх всего контента */}
-        <MainButton
-          title={isImporting ? "Добавление..." : "Добавить к моим колодам"}
-          onPress={handleAddToMyDecks}
-          disabled={isImporting || !deckPreview || isLoading}
-          style={styles.addButton}
-        />
+        
+        {/* Кнопка "Добавить к моим колодам" - показываем только если не автор */}
+        {!isAuthor && !isLoading && deckPreview && (
+          <MainButton
+            title={isImporting ? "Добавление..." : "Добавить к моим колодам"}
+            onPress={handleAddToMyDecks}
+            disabled={isImporting || !deckPreview || isLoading}
+            style={styles.addButton}
+          />
+        )}
       </View>
     </View>
   );

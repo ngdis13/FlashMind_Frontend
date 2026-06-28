@@ -25,7 +25,22 @@
       "package": "com.anonymous.Flashmind"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro",
+      "origin": "https://flashmind.ru",
+      "meta": {
+        "apple-mobile-web-app-capable": "yes",
+        "apple-mobile-web-app-status-bar-style": "default"
+      },
+      "manifest": {
+        "name": "Flashmind",
+        "short_name": "Flashmind",
+        "start_url": "/",
+        "scope": "/",
+        "display": "standalone",
+        "background_color": "#ffffff",
+        "theme_color": "#ffffff"
+      }
     },
     "plugins": [
       "expo-router",
