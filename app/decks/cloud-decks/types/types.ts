@@ -21,3 +21,24 @@ export interface CloudDeckPreviewResponse {
   name: string;
   total_cards: number;
 }
+
+
+export interface CloudDeckItem {
+  id: string;
+  name: string;
+  description: string;
+  total_cards: number;
+  downloaded: number;
+  last_synced_at: string;
+  author: {
+    user_id: string;
+    first_name: string;
+    last_name: string;
+    avatar_url: string;
+  };
+}
+
+export interface FetchCloudDecksResponse {
+  decks: CloudDeckItem[];
+}
+

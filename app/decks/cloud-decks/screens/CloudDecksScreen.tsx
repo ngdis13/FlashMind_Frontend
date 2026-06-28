@@ -5,81 +5,37 @@ import {
   Image,
   ScrollView,
   useWindowDimensions,
+  ActivityIndicator,
 } from "react-native";
 import { styles } from "../styles/CloudDecksScreen.style";
 import { Typography } from "@/styles/Typography";
 import ReturnIcon from "@/assets/icons/ReturnIcon.png";
 import IconGo from "../assets/IconGo.png";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/Input";
 
 import searchButton from "@/feature-decks/assets/searchButton.png";
 import CloudDeckView from "../components/CloudDecksView";
 import Toast from "react-native-toast-message";
+import { CloudDeckItem } from "../types/types";
+import { fetchCloudDecks } from "../api/api";
 
-const MOCK_DECKS = [
-  {
-    id: "1",
-    title: "Дискретная математика",
-    author: "Кочерова Анастасия",
-    updatedAt: "2 дня назад",
-    cardsCount: 65,
-    downloadsCount: "5к",
-  },
-  {
-    id: "2",
-    title: "Инфокоммуникационные системы и технологии",
-    author: "Иванов Александр",
-    updatedAt: "3 дня назад",
-    cardsCount: 120,
-    downloadsCount: "3.5к",
-  },
-  {
-    id: "3",
-    title: "Линейная алгебра",
-    author: "Петров Сергей",
-    updatedAt: "1 неделю назад",
-    cardsCount: 45,
-    downloadsCount: "1.2к",
-  },
-  {
-    id: "4",
-    title: "Линейная алгебра",
-    author: "Петров Сергей",
-    updatedAt: "1 неделю назад",
-    cardsCount: 45,
-    downloadsCount: "1.2к",
-  },
-  {
-    id: "5",
-    title: "Линейная алгебра",
-    author: "Петров Сергей",
-    updatedAt: "1 неделю назад",
-    cardsCount: 45,
-    downloadsCount: "1.2к",
-  },
-  {
-    id: "6",
-    title: "Линейная алгебра",
-    author: "Петров Сергей",
-    updatedAt: "1 неделю назад",
-    cardsCount: 45,
-    downloadsCount: "1.2к",
-  },
-];
 
-// Функция для очистки и извлечения ID из ссылки
+
+// Хелпер извлечения ID приватной колоды
 const extractCloudDeckId = (input: string): string | null => {
   const trimmed = input.trim();
   if (!trimmed) return null;
-
-  // Регулярное выражение вытаскивает всё, что идет после последнего слэша,
-  // либо берет саму строку, если слэша нет. Подходит под:
-  // flashmind.ru/sdk2jbn432jh34, https://flashmind.ru или просто sdk2jbn432jh34
   const match = trimmed.match(/(?:[a-zA-Z0-9.-]+\/)?([a-zA-Z0-9_-]+)$/i);
-
   return match ? match[1] : null;
+};
+
+// Хелпер форматирования даты
+const formatDate = (isoString: string) => {
+  if (!isoString) return "";
+  const date = new Date(isoString);
+  return date.toLocaleDateString("ru-RU", { day: "numeric", month: "long" });
 };
 
 export default function CloudDecksScreen() {
@@ -88,6 +44,31 @@ export default function CloudDecksScreen() {
   const [search, setSearch] = useState("");
   const { width } = useWindowDimensions();
   const currentContentWidth = Math.min(width, 800);
+
+  const [decks, setDecks] = useState<CloudDeckItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadDecks = async () => {
+      try {
+        setLoading(true);
+        const data = await fetchCloudDecks();
+        setDecks(data.decks || []);
+      } catch (error) {
+        console.error("Ошибка загрузки публичных колод:", error);
+        Toast.show({
+          type: "error",
+          text1: "Ошибка загрузки",
+          text2: "Не удалось получить список облачных колод",
+          position: "bottom",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDecks();
+  }, []);
 
   const handleBack = () => {
     router.push("/decks");
@@ -104,14 +85,17 @@ export default function CloudDecksScreen() {
       });
       return;
     }
-    console.log("Успешно распарсили ID колоды:", cloudDeckId);
     setLink("");
     router.push(`/decks/cloud-decks/${cloudDeckId}`);
   };
 
   const handleSearch = () => {
-    console.log("поиск по колоде");
+    console.log("Поиск вызван для строки:", search);
   };
+
+  const filteredDecks = decks.filter((deck) =>
+    deck.name.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <View
@@ -133,7 +117,7 @@ export default function CloudDecksScreen() {
         <View style={[styles.container, { width: currentContentWidth }]}>
           <View style={styles.content}>
             <View style={styles.mainContent}>
-              {/* Шапка экрана */}
+              {/* Шапка */}
               <View style={styles.header}>
                 <Pressable
                   onPress={handleBack}
@@ -148,7 +132,7 @@ export default function CloudDecksScreen() {
                 <Typography variant="h1">Облачные колоды</Typography>
               </View>
 
-              {/* Добавление приватной колоды */}
+              {/* Приватная ссылка */}
               <View style={styles.privateLinkBox}>
                 <Typography variant="h2">Добавить приватную колоду</Typography>
                 <View style={styles.privateLinkLine}>
@@ -159,7 +143,6 @@ export default function CloudDecksScreen() {
                     value={link}
                     onChangeText={setLink}
                   />
-
                   <Pressable
                     onPress={handlePrivateLink}
                     style={styles.arrowButton}
@@ -169,7 +152,7 @@ export default function CloudDecksScreen() {
                 </View>
               </View>
 
-              {/* Доступные колоды */}
+              {/* Заголовок доступных колод */}
               <View style={styles.availableDecksSection}>
                 <View style={styles.searchHeader}>
                   <Typography variant="h2">Доступные колоды</Typography>
@@ -193,21 +176,41 @@ export default function CloudDecksScreen() {
                 </View>
               </View>
 
-              {/* Список доступных колод */}
+              {/* Список */}
               <View style={styles.decksList}>
-                {MOCK_DECKS.map((deck) => (
-                  <CloudDeckView
-                    key={deck.id}
-                    title={deck.title}
-                    author={deck.author}
-                    updatedAt={deck.updatedAt}
-                    cardsCount={deck.cardsCount}
-                    downloadsCount={deck.downloadsCount}
-                    onPress={() =>
-                      console.log("Кликнули на колоду:", deck.title)
-                    }
+                {loading ? (
+                  <ActivityIndicator
+                    size="large"
+                    color={colors.mainColor }
+                    style={{ marginTop: 40 }}
                   />
-                ))}
+                ) : filteredDecks.length === 0 ? (
+                  <Typography
+                    variant="h3"
+                    style={{ textAlign: "center", marginTop: 40, color: "#999" }}
+                  >
+                    Колоды не найдены
+                  </Typography>
+                ) : (
+                  filteredDecks.map((deck) => {
+                    const avatar = deck.author?.avatar_url;
+
+                    return (
+                      <CloudDeckView
+                        key={deck.id}
+                        title={deck.name}
+                        author={`${deck.author?.first_name || ""} ${deck.author?.last_name || ""}`.trim() || "Неизвестный автор"}
+                        updatedAt={formatDate(deck.last_synced_at)}
+                        cardsCount={deck.total_cards}
+                        downloadsCount={String(deck.downloaded)}
+                        avatarUrl={avatar}
+                        onPress={() =>
+                          router.push(`/decks/cloud-decks/${deck.id}`)
+                        }
+                      />
+                    );
+                  })
+                )}
               </View>
             </View>
           </View>
