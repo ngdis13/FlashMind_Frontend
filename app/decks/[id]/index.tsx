@@ -35,6 +35,7 @@ export default function DeckViewById() {
   const [description, setDescription] = useState("");
   const [search, setSearch] = useState("");
   const [cards, setCards] = useState<Card[]>([]);
+  const [addedCardsCount, setAddedCardsCount] = useState(0);
 
   const deck = decks.find((d) => d.id === id);
 
@@ -53,6 +54,8 @@ export default function DeckViewById() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSyncModalVisible, setIsSyncModalVisible] = useState(false);
   const [isAccessModalVisible, setIsAccessModalVisible] = useState(false);
+  const [isAddedAccessModalVisible, setIsAddedAccessModalVisible] =
+    useState(false);
 
   useEffect(() => {
     if (cloudDeckId) {
@@ -331,6 +334,9 @@ export default function DeckViewById() {
           text1: "Изменения опубликованы",
           position: "bottom",
         });
+
+        await loadCards();
+        return true;
       } else {
         console.log("📥 Синхронизация через /import (ПОЛЬЗОВАТЕЛЬ)");
 
@@ -359,26 +365,24 @@ export default function DeckViewById() {
           position: "bottom",
         });
 
-        // ✅ Передаем cloud_deck_id вместо локального id
         const importedDeck = await importDeck(cloudDeckId);
         console.log("📥 Результат импорта:", importedDeck);
+
+        const addedCount = importedDeck.added || 0;
+        setAddedCardsCount(addedCount);
 
         if (importedDeck.cards) {
           setCards(importedDeck.cards);
         }
 
-        Toast.show({
-          type: "success",
-          text1: "Колода обновлена",
-          text2: `Загружено ${importedDeck.cards?.length || 0} карточек`,
-          position: "bottom",
-        });
-      }
+        setIsSyncModalVisible(false);
+        setIsAddedAccessModalVisible(true);
+        await loadCards();
 
-      await loadCards();
-      return true;
+        return true;
+      }
     } catch (error) {
-      console.error("❌ Ошибка синхронизации:", error);
+      console.error(" Ошибка синхронизации:", error);
 
       let errorMessage = "Попробуйте позже";
       if (error instanceof Error) {
@@ -445,6 +449,20 @@ export default function DeckViewById() {
 
       console.error("Ошибка при удалении карточки:", error);
     }
+  };
+
+  // Обработчик для кнопки "Отлично" в модалке успеха
+  const handleSuccessConfirm = async () => {
+    setIsAddedAccessModalVisible(false);
+
+    await loadCards();
+
+    Toast.show({
+      type: "success",
+      text1: "Колода обновлена!",
+      position: "bottom",
+      visibilityTime: 2000,
+    });
   };
 
   const filteredCards = useMemo(() => {
@@ -662,6 +680,18 @@ export default function DeckViewById() {
         }
         confirmText={"Понятно"}
         onConfirm={() => setIsAccessModalVisible(false)}
+      />
+      <CustomAlertCloud
+        visible={isAddedAccessModalVisible}
+        onCancel={() => setIsAddedAccessModalVisible(false)}
+        message="Супер!"
+        metaMessage={
+          addedCardsCount > 0
+            ? `Теперь у тебя +${addedCardsCount} карточ${addedCardsCount === 1 ? "ка" : addedCardsCount < 5 ? "ки" : "ек"} в колоде`
+            : "На этой колоде установлена самая свежая версия. Обновления не требуются."
+        }
+        confirmText="Отлично"
+        onConfirm={handleSuccessConfirm}
       />
     </View>
   );
