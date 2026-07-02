@@ -22,6 +22,26 @@ export const fetchCloudDeckPreview = async (cloudDeckId: string) => {
 
 /**
  * 
+ * @returns Шаблон карточки облачной колоды
+ */
+export const fetchCloudDeckCard = async (cloudCardId: string) => {
+  try {
+    const accessToken = useAuthStore.getState().accessToken;
+
+    const response = await apiClient.get(
+      getMainServiceApiUrl(`/api/v1/cloud_decks/cards/${cloudCardId}`),
+      { headers: { Authorization: `Bearer ${accessToken}` } }
+    );
+    
+    return response.data; // Возвращает инфо о карточке
+  } catch (error) {
+    console.error("Ошибка при получении карточки облачной колоды:", error);
+    throw error;
+  }
+};
+
+/**
+ * 
  * @returns Все публичные колоды 
  */
 export const fetchCloudDecks = async (): Promise<FetchCloudDecksResponse> => {

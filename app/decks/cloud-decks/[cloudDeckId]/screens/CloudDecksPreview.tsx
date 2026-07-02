@@ -85,8 +85,7 @@ export default function CloudDecksPreview() {
 
       Toast.show({
         type: "success",
-        text1: `Колода добавлена! (${result.added} карточек)`,
-        text2: "Теперь она доступна в ваших колодах",
+        text1: `Колода добавлена!`,
         position: "bottom",
         visibilityTime: 3000,
       });
@@ -124,9 +123,10 @@ export default function CloudDecksPreview() {
       card.front.toLowerCase().includes(search.toLowerCase()),
     ) || [];
 
-  const handleCardPress = (cardId: string) => {
-    console.log("переход к карточке", cardId);
-  };
+const handleCardPress = (cardId: string) => {
+  router.push(`/decks/cloud-decks/card/${cardId}?cloudDeckId=${cloudDeckId}`);
+};
+
 
   // Компонент для отрисовки одной карточки
   const renderCardItem = ({ item }: { item: any }) => (
