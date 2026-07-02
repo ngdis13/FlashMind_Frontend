@@ -28,7 +28,7 @@ export default function DeckViewById() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
 
-  const { decks, getDeckCards, removeCard, makeDeckPublic, importDeck } =
+  const { decks, getDeckCards, removeCard, makeDeckPublic, importDeck, refreshDecks } =
     useDecks();
 
   const [name, setName] = useState("");
@@ -311,7 +311,6 @@ export default function DeckViewById() {
     setIsAccessModalVisible(true);
   };
 
-
   const handleSync = async () => {
     if (!id) return false;
 
@@ -359,7 +358,6 @@ export default function DeckViewById() {
         console.log(`Cloud UUID для импорта: ${cloudDeckId}`);
         console.log(`Локальный ID (не используется для импорта): ${id}`);
 
-
         const importedDeck = await importDeck(cloudDeckId);
         console.log("Результат импорта:", importedDeck);
 
@@ -372,7 +370,6 @@ export default function DeckViewById() {
 
         setIsSyncModalVisible(false);
         setIsAddedAccessModalVisible(true);
-        await loadCards();
 
         return true;
       }
@@ -445,19 +442,41 @@ export default function DeckViewById() {
       console.error("Ошибка при удалении карточки:", error);
     }
   };
-
   // Обработчик для кнопки "Отлично" в модалке успеха
   const handleSuccessConfirm = async () => {
     setIsAddedAccessModalVisible(false);
 
-    await loadCards();
+    try {
+      console.log("🔄 Перезагружаем данные после синхронизации...");
 
-    Toast.show({
-      type: "success",
-      text1: "Колода обновлена!",
-      position: "bottom",
-      visibilityTime: 2000,
-    });
+
+      await refreshDecks();
+
+      const fetchedCards = await getDeckCards(id as string);
+      setCards(fetchedCards);
+      console.log(`✅ Загружено ${fetchedCards.length} карточек`);
+
+      const updatedDeck = decks.find((d) => d.id === id);
+      if (updatedDeck) {
+        setName(updatedDeck.name);
+        setDescription(updatedDeck.description || "");
+      }
+
+      Toast.show({
+        type: "success",
+        text1: "Колода обновлена!",
+        position: "bottom",
+        visibilityTime: 2000,
+      });
+    } catch (error) {
+      console.error("Ошибка при обновлении:", error);
+      Toast.show({
+        type: "error",
+        text1: "Ошибка",
+        text2: "Не удалось обновить данные",
+        position: "bottom",
+      });
+    }
   };
 
   const filteredCards = useMemo(() => {
@@ -472,19 +491,31 @@ export default function DeckViewById() {
     }
   }, [id]);
 
+  // Следим за изменениями в сторе и обновляем компонент
   useEffect(() => {
     if (deck) {
       setName(deck.name);
       setDescription(deck.description || "");
+
+      if (deck.cards && deck.cards.length > 0) {
+        const currentCardIds = cards.map((c) => c.id).sort();
+        const newCardIds = deck.cards.map((c) => c.id).sort();
+
+        if (JSON.stringify(currentCardIds) !== JSON.stringify(newCardIds)) {
+          console.log("🔄 Обновляем карточки из стора");
+          setCards(deck.cards);
+        }
+      }
     }
-  }, [deck]);
+  }, [deck]); // ✅ Добавляем deck как зависимость
 
   useFocusEffect(
     useCallback(() => {
       if (id) {
         loadCards();
+              refreshDecks();
       }
-    }, [id]),
+    }, [id, refreshDecks]),
   );
 
   const hasCards = cards.length > 0;

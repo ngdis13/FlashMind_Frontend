@@ -8,7 +8,6 @@ import {
 } from "react-native";
 import { Typography } from "@/styles/Typography";
 import { MainButton } from "@/components/MainButton";
-import { LogoCuteStar } from "@/components/LogoCuteStar"; // Замените на иконку испуганной звездочки, если она отличается
 import { LogoSurprisedStar } from "@/components/LogoSurprised";
 import { colors } from "@/styles/Colors";
 
