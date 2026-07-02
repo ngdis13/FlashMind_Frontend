@@ -1,7 +1,12 @@
 // hooks/useDecks.ts (исправленная версия с поддержкой новой структуры)
 
 import { useState, useEffect, useCallback } from "react";
-import { Deck, Card, CloudDeckShareResponse, CloudDeckImportResponse } from "../types/types";
+import {
+  Deck,
+  Card,
+  CloudDeckShareResponse,
+  CloudDeckImportResponse,
+} from "../types/types";
 import {
   loadDecks,
   saveDecks,
@@ -660,83 +665,82 @@ export const useDecks = () => {
     [decks],
   );
 
-/**
- * Отправить колоду на публикацию или синхронизацию и обновить локальный статус
- */
-const makeDeckPublic = useCallback(
-  async (deckId: string): Promise<CloudDeckShareResponse> => {
-    try {
-      console.log(
-        `Отправляем колоду ${deckId} в хуке на публикацию или синхронизацию...`,
-      );
-
-      const serverResponse: CloudDeckShareResponse =
-        await makeDeckPublicApi(deckId);
-
-      console.log("📥 Ответ сервера для обновления:", serverResponse);
-
-      setDecks((prevDecks) => {
-        const updatedDecks = prevDecks.map((deck) => {
-          if (deck.id === deckId) {
-            // ✅ Правильно обновляем cloud_info
-            const updatedDeck = {
-              ...deck,
-              cloud_info: {
-                ...deck.cloud_info,
-                is_cloud_deck: true,
-                cloud_deck_id: serverResponse.cloud_uuid, // ✅ cloud_uuid с подчеркиванием
-                cloud_type: serverResponse.type as "PUBLIC" | "PRIVATE",
-                is_approved: serverResponse.status === "ACTIVE",
-                needs_sync: false,
-                is_author: true,
-                sync_stats: serverResponse.sync_stats || {
-                  added: 0,
-                  updated: 0,
-                  deleted: 0
-                }
-              },
-            };
-            console.log("🔄 Обновленная колода:", updatedDeck);
-            return updatedDeck;
-          }
-          return deck;
-        });
-
-        saveDecks(updatedDecks).catch((err) =>
-          console.error("Ошибка сохранения колод в локальную память:", err),
+  /**
+   * Отправить колоду на публикацию или синхронизацию и обновить локальный статус
+   */
+  const makeDeckPublic = useCallback(
+    async (deckId: string): Promise<CloudDeckShareResponse> => {
+      try {
+        console.log(
+          `Отправляем колоду ${deckId} в хуке на публикацию или синхронизацию...`,
         );
 
-        return updatedDecks;
-      });
+        const serverResponse: CloudDeckShareResponse =
+          await makeDeckPublicApi(deckId);
 
-      console.log(`Локальный статус колоды ${deckId} изменен на PUBLIC`);
-      return serverResponse;
-    } catch (error) {
-      console.error("Ошибка при публикации колоды в хуке:", error);
-      throw error;
-    }
-  },
-  [saveDecks],
-);
+        console.log("📥 Ответ сервера для обновления:", serverResponse);
+
+        setDecks((prevDecks) => {
+          const updatedDecks = prevDecks.map((deck) => {
+            if (deck.id === deckId) {
+              // ✅ Правильно обновляем cloud_info
+              const updatedDeck = {
+                ...deck,
+                cloud_info: {
+                  ...deck.cloud_info,
+                  is_cloud_deck: true,
+                  cloud_deck_id: serverResponse.cloud_uuid, // ✅ cloud_uuid с подчеркиванием
+                  cloud_type: serverResponse.type as "PUBLIC" | "PRIVATE",
+                  is_approved: serverResponse.status === "ACTIVE",
+                  needs_sync: false,
+                  is_author: true,
+                  sync_stats: serverResponse.sync_stats || {
+                    added: 0,
+                    updated: 0,
+                    deleted: 0,
+                  },
+                },
+              };
+              console.log("🔄 Обновленная колода:", updatedDeck);
+              return updatedDeck;
+            }
+            return deck;
+          });
+
+          saveDecks(updatedDecks).catch((err) =>
+            console.error("Ошибка сохранения колод в локальную память:", err),
+          );
+
+          return updatedDecks;
+        });
+
+        console.log(`Локальный статус колоды ${deckId} изменен на PUBLIC`);
+        return serverResponse;
+      } catch (error) {
+        console.error("Ошибка при публикации колоды в хуке:", error);
+        throw error;
+      }
+    },
+    [saveDecks],
+  );
 
   /**
    * Импорт облачной колоды для ПОЛЬЗОВАТЕЛЯ
    * Использует эндпоинт /import
    */
   const importDeck = useCallback(
-    async (deckId: string): Promise<CloudDeckImportResponse> => {
+    async (cloudUuid: string): Promise<CloudDeckImportResponse> => {
       try {
         console.log(
-          `Импортируем облачную колоду ${deckId} для пользователя...`,
+          `Импортируем облачную колоду ${cloudUuid} для пользователя...`,
         );
 
         const serverResponse: CloudDeckImportResponse =
-          await importDeckApi(deckId);
+          await importDeckApi(cloudUuid);
 
         setDecks((prevDecks) => {
           const updatedDecks = prevDecks.map((deck) => {
-            if (deck.id === deckId) {
-              // Если колода уже существует, обновляем её данными с сервера
+            if (deck.cloud_info?.cloud_deck_id === cloudUuid) {
               return {
                 ...deck,
                 name: serverResponse.deck_name || deck.name,
@@ -747,8 +751,8 @@ const makeDeckPublic = useCallback(
                   ...deck.cloud_info,
                   is_cloud_deck: true,
                   needs_sync: false,
-                  cloud_deck_id: serverResponse.cloud_uid,
-                  is_author: false, // Не автор
+                  cloud_deck_id: serverResponse.cloud_uuid,
+                  is_author: false,
                   last_imported_at: new Date().toISOString(),
                   ...(serverResponse.sync_stats && {
                     sync_stats: serverResponse.sync_stats,
@@ -767,7 +771,7 @@ const makeDeckPublic = useCallback(
         });
 
         console.log(
-          `Колода ${deckId} успешно импортирована для пользователя`,
+          `Колода ${cloudUuid} успешно импортирована для пользователя`,
         );
         return serverResponse;
       } catch (error) {
@@ -800,6 +804,6 @@ const makeDeckPublic = useCallback(
     updateCard,
     syncCardsCount,
     makeDeckPublic,
-    importDeck
+    importDeck,
   };
 };

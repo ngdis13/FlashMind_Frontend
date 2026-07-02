@@ -16,8 +16,6 @@ interface SyncDeckModalProps {
   visible: boolean;
   onClose: () => void;
   onSync: () => Promise<void> | void;
-  // 'author_updated' — автор внес изменения (левый макет)
-  // 'user_updated' — пользователь обновил свою колоду (правый макет)
   type: "author_updated" | "user_updated";
 }
 
