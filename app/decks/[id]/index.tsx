@@ -442,6 +442,7 @@ export default function DeckViewById() {
       console.error("Ошибка при удалении карточки:", error);
     }
   };
+  
   // Обработчик для кнопки "Отлично" в модалке успеха
   const handleSuccessConfirm = async () => {
     setIsAddedAccessModalVisible(false);
@@ -491,7 +492,6 @@ export default function DeckViewById() {
     }
   }, [id]);
 
-  // Следим за изменениями в сторе и обновляем компонент
   useEffect(() => {
     if (deck) {
       setName(deck.name);
@@ -507,7 +507,7 @@ export default function DeckViewById() {
         }
       }
     }
-  }, [deck]); // ✅ Добавляем deck как зависимость
+  }, [deck]); 
 
   useFocusEffect(
     useCallback(() => {

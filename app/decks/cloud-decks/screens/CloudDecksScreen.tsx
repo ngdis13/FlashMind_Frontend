@@ -46,27 +46,30 @@ export default function CloudDecksScreen() {
   const [decks, setDecks] = useState<CloudDeckItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const loadDecks = async () => {
-      try {
-        setLoading(true);
-        const data = await fetchCloudDecks();
-        setDecks(data.decks || []);
-      } catch (error) {
-        console.error("Ошибка загрузки публичных колод:", error);
-        Toast.show({
-          type: "error",
-          text1: "Ошибка загрузки",
-          text2: "Не удалось получить список облачных колод",
-          position: "bottom",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
+useEffect(() => {
+  const loadDecks = async () => {
+    try {
+      setLoading(true);
+      const data = await fetchCloudDecks();
+      const sortedDecks = (data.decks || []).sort((a, b) => 
+        (b.downloaded || 0) - (a.downloaded || 0)
+      );
+      setDecks(sortedDecks);
+    } catch (error) {
+      console.error("Ошибка загрузки публичных колод:", error);
+      Toast.show({
+        type: "error",
+        text1: "Ошибка загрузки",
+        text2: "Не удалось получить список облачных колод",
+        position: "bottom",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    loadDecks();
-  }, []);
+  loadDecks();
+}, []);
 
   const handleBack = () => {
     router.push("/decks");

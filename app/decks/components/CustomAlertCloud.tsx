@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
   },
   alertContainer: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 20, 
+    borderRadius: 28, 
     paddingHorizontal: 16, 
     paddingTop: 45,
     paddingBottom: 45,
