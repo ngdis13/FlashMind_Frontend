@@ -29,6 +29,13 @@ const extractCloudDeckId = (input: string): string | null => {
   return match ? match[1] : null;
 };
 
+// ✅ Функция валидации UUID
+const isValidUUID = (uuid: string): boolean => {
+  const uuidRegex =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(uuid);
+};
+
 // Хелпер форматирования даты
 const formatDate = (isoString: string) => {
   if (!isoString) return "";
@@ -46,46 +53,72 @@ export default function CloudDecksScreen() {
   const [decks, setDecks] = useState<CloudDeckItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-useEffect(() => {
-  const loadDecks = async () => {
-    try {
-      setLoading(true);
-      const data = await fetchCloudDecks();
-      const sortedDecks = (data.decks || []).sort((a, b) => 
-        (b.downloaded || 0) - (a.downloaded || 0)
-      );
-      setDecks(sortedDecks);
-    } catch (error) {
-      console.error("Ошибка загрузки публичных колод:", error);
-      Toast.show({
-        type: "error",
-        text1: "Ошибка загрузки",
-        text2: "Не удалось получить список облачных колод",
-        position: "bottom",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    const loadDecks = async () => {
+      try {
+        setLoading(true);
+        const data = await fetchCloudDecks();
+        const sortedDecks = (data.decks || []).sort(
+          (a, b) => (b.downloaded || 0) - (a.downloaded || 0),
+        );
+        setDecks(sortedDecks);
+      } catch (error) {
+        console.error("Ошибка загрузки публичных колод:", error);
+        Toast.show({
+          type: "error",
+          text1: "Ошибка загрузки",
+          text2: "Не удалось получить список облачных колод",
+          position: "bottom",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  loadDecks();
-}, []);
+    loadDecks();
+  }, []);
 
   const handleBack = () => {
     router.push("/decks");
   };
 
+  const validateAndExtractId = (input: string): string | null => {
+    const extractedId = extractCloudDeckId(input);
+    if (!extractedId) return null;
+
+    if (isValidUUID(extractedId)) {
+      return extractedId;
+    }
+
+    return null;
+  };
+
+  const isValidLink = useMemo(() => {
+    if (!link.trim()) return false;
+    const extractedId = extractCloudDeckId(link);
+
+    Toast.show({
+      type: "error",
+      text1: "Ошибка",
+      text2: "Пожалуйста, введите корректную ссылку",
+      position: "bottom",
+    });
+    return extractedId ? isValidUUID(extractedId) : false;
+  }, [link]);
+
   const handlePrivateLink = () => {
-    const cloudDeckId = extractCloudDeckId(link);
+    const cloudDeckId = validateAndExtractId(link);
+
     if (!cloudDeckId) {
       Toast.show({
         type: "error",
         text1: "Ошибка",
-        text2: "Пожалуйста, введите корректную ссылку или ID",
+        text2: "Пожалуйста, введите корректную ссылку или ID колоды",
         position: "bottom",
       });
       return;
     }
+
     setLink("");
     router.push(`/decks/cloud-decks/${cloudDeckId}`);
   };
@@ -93,17 +126,18 @@ useEffect(() => {
   // Фильтрация с учетом регистра и поиском по имени и автору
   const filteredDecks = useMemo(() => {
     const trimmedSearch = search.trim().toLowerCase();
-    
+
     if (!trimmedSearch) {
-      return decks; 
+      return decks;
     }
 
     return decks.filter((deck) => {
-
       const nameMatch = deck.name.toLowerCase().includes(trimmedSearch);
-      const authorName = `${deck.author?.first_name || ""} ${deck.author?.last_name || ""}`.trim().toLowerCase();
+      const authorName =
+        `${deck.author?.first_name || ""} ${deck.author?.last_name || ""}`
+          .trim()
+          .toLowerCase();
       const authorMatch = authorName.includes(trimmedSearch);
-      
       return nameMatch || authorMatch;
     });
   }, [decks, search]);
@@ -156,7 +190,11 @@ useEffect(() => {
                 <Typography variant="h2">Добавить приватную колоду</Typography>
                 <View style={styles.privateLinkLine}>
                   <Input
-                    style={styles.privateLink}
+                    style={[
+                      styles.privateLink,
+                      link.trim() && isValidLink && styles.privateLinkValid,
+                      link.trim() && !isValidLink && styles.privateLinkInvalid,
+                    ]}
                     placeholder={"Ссылка"}
                     placeholderColor={"#999EE4"}
                     value={link}
@@ -164,9 +202,20 @@ useEffect(() => {
                   />
                   <Pressable
                     onPress={handlePrivateLink}
-                    style={styles.arrowButton}
+                    style={[
+                      styles.arrowButton,
+                      isValidLink && styles.arrowButtonActive,
+                      !isValidLink && styles.arrowButtonDisabled,
+                    ]}
+                    disabled={!isValidLink}
                   >
-                    <Image source={IconGo} style={{ width: 12, height: 22 }} />
+                    <Image
+                      source={IconGo}
+                      style={{
+                        width: 12,
+                        height: 22,
+                      }}
+                    />
                   </Pressable>
                 </View>
               </View>
@@ -175,7 +224,7 @@ useEffect(() => {
               <View style={styles.availableDecksSection}>
                 <View style={styles.searchHeader}>
                   <Typography variant="h2">
-                    Доступные колоды 
+                    Доступные колоды
                     {search.trim() && (
                       <Typography variant="h2" color={colors.darkGray}>
                         {" "}
@@ -183,17 +232,17 @@ useEffect(() => {
                       </Typography>
                     )}
                   </Typography>
-                  
+
                   <View style={styles.searchBox}>
                     <Input
                       style={{ textAlign: "left" }}
                       placeholder={"Поиск по названию или автору"}
                       value={search}
-                      onChangeText={handleSearchChange} 
+                      onChangeText={handleSearchChange}
                     />
                     <Pressable
                       style={styles.searchButton}
-                      onPress={handleSearchChange} 
+                      onPress={handleSearchChange}
                     >
                       <Image
                         source={searchButton}
@@ -218,12 +267,15 @@ useEffect(() => {
                       variant="h3"
                       style={{ textAlign: "center", color: "#999" }}
                     >
-                      {search.trim() 
-                        ? "По вашему запросу ничего не найдено" 
+                      {search.trim()
+                        ? "По вашему запросу ничего не найдено"
                         : "Колоды не найдены"}
                     </Typography>
                     {search.trim() && (
-                      <Pressable onPress={clearSearch} style={{ marginTop: 12 }}>
+                      <Pressable
+                        onPress={clearSearch}
+                        style={{ marginTop: 12 }}
+                      >
                         <Typography
                           variant="h3"
                           style={{ color: colors.mainColor }}
@@ -241,7 +293,10 @@ useEffect(() => {
                       <CloudDeckView
                         key={deck.id}
                         title={deck.name}
-                        author={`${deck.author?.first_name || ""} ${deck.author?.last_name || ""}`.trim() || "Неизвестный автор"}
+                        author={
+                          `${deck.author?.first_name || ""} ${deck.author?.last_name || ""}`.trim() ||
+                          "Неизвестный автор"
+                        }
                         updatedAt={formatDate(deck.last_synced_at)}
                         cardsCount={deck.total_cards}
                         downloadsCount={String(deck.downloaded)}

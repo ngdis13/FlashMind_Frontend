@@ -4,7 +4,7 @@ import { StyleSheet } from "react-native";
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 10, // 10px слева и справа
+    paddingHorizontal: 10,
     backgroundColor: colors.background,
   },
   content: {
@@ -32,13 +32,23 @@ export const styles = StyleSheet.create({
   },
   privateLinkLine: {
     flexDirection: "row",
-    gap: 8,
+    gap: 4,
     alignItems: "center",
   },
   privateLink: {
     flex: 1,
     textAlign: "left",
     borderColor: "#999EE4",
+  },
+
+  privateLinkValid: {
+    borderColor: colors.mainColor,
+    borderWidth: 2,
+  },
+
+  privateLinkInvalid: {
+    borderColor: colors.errorColor,
+    borderWidth: 2,
   },
   arrowButton: {
     width: 40,
@@ -48,6 +58,15 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     flexShrink: 0,
+  },
+
+  arrowButtonActive: {
+    backgroundColor: colors.mainColor,
+  },
+
+  arrowButtonDisabled: {
+    backgroundColor: "#999EE4",
+    opacity: 0.5,
   },
   searchHeader: {
     gap: 8,
@@ -68,5 +87,20 @@ export const styles = StyleSheet.create({
   },
   availableDecksSection: {
     width: "100%",
+  },
+   hintContainer: {
+    height: 8, 
+    justifyContent: "center",
+  },
+  hintText: {
+    marginTop: 4,
+    fontSize: 12,
+  },
+
+  hintSuccess: {
+    color: colors.mainColor,
+  },
+  hintError: {
+    color: colors.errorColor,
   },
 });
