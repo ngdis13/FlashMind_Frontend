@@ -52,7 +52,7 @@ export default function DeckViewById() {
   const [cachedCloudUuid, setCachedCloudUuid] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSyncModalVisible, setIsSyncModalVisible] = useState(false);
-  const [isAccessModalVisible, setIsAccessModalVisible] = useState(false)
+  const [isAccessModalVisible, setIsAccessModalVisible] = useState(false);
 
   useEffect(() => {
     if (cloudDeckId) {
@@ -305,8 +305,8 @@ export default function DeckViewById() {
   };
 
   const handleAccessSync = () => {
-    setIsAccessModalVisible(true)
-  }
+    setIsAccessModalVisible(true);
+  };
 
   // ✅ Синхронизация по уведомлению (ручной режим)
   const handleSync = async () => {
@@ -315,13 +315,16 @@ export default function DeckViewById() {
     try {
       if (isAuthor || !isCloudDeck) {
         console.log("📤 Синхронизация через /share (АВТОР)");
+        console.log(`📤 Локальный ID колоды: ${id}`);
+
         Toast.show({
           type: "info",
           text1: "Публикация изменений...",
           position: "bottom",
         });
 
-        await makeDeckPublic(id);
+        const response = await makeDeckPublic(id);
+        console.log("📤 Ответ от makeDeckPublic:", response);
 
         Toast.show({
           type: "success",
@@ -330,13 +333,35 @@ export default function DeckViewById() {
         });
       } else {
         console.log("📥 Синхронизация через /import (ПОЛЬЗОВАТЕЛЬ)");
+
+        if (!cloudDeckId) {
+          console.error("❌ cloudDeckId не найден:", {
+            localId: id,
+            deck: deck,
+            cloudInfo: deck?.cloud_info,
+          });
+
+          Toast.show({
+            type: "error",
+            text1: "Ошибка",
+            text2: "Не найден идентификатор облачной колоды",
+            position: "bottom",
+          });
+          return false;
+        }
+
+        console.log(`📥 Cloud UUID для импорта: ${cloudDeckId}`);
+        console.log(`📥 Локальный ID (не используется для импорта): ${id}`);
+
         Toast.show({
           type: "info",
           text1: "Загрузка обновлений...",
           position: "bottom",
         });
 
-        const importedDeck = await importDeck(id);
+        // ✅ Передаем cloud_deck_id вместо локального id
+        const importedDeck = await importDeck(cloudDeckId);
+        console.log("📥 Результат импорта:", importedDeck);
 
         if (importedDeck.cards) {
           setCards(importedDeck.cards);
@@ -345,6 +370,7 @@ export default function DeckViewById() {
         Toast.show({
           type: "success",
           text1: "Колода обновлена",
+          text2: `Загружено ${importedDeck.cards?.length || 0} карточек`,
           position: "bottom",
         });
       }
@@ -352,11 +378,23 @@ export default function DeckViewById() {
       await loadCards();
       return true;
     } catch (error) {
-      console.error("Ошибка синхронизации:", error);
+      console.error("❌ Ошибка синхронизации:", error);
+
+      let errorMessage = "Попробуйте позже";
+      if (error instanceof Error) {
+        if (error.message.includes("404")) {
+          errorMessage = "Колода не найдена на сервере";
+        } else if (error.message.includes("403")) {
+          errorMessage = "Нет доступа к колоде";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+
       Toast.show({
         type: "error",
         text1: "Ошибка синхронизации",
-        text2: "Попробуйте позже",
+        text2: errorMessage,
         position: "bottom",
       });
       return false;
@@ -616,16 +654,15 @@ export default function DeckViewById() {
         onMakePublic={handleMakePublic}
       />
       <CustomAlertCloud
-      visible = {isAccessModalVisible}
-      onCancel={() => setIsAccessModalVisible(false)}
-      message={'Колода синхронизирована'}
-      metaMessage={'На этой колоде установлена самая свежая версия. Обновления не требуются.'}
-      confirmText={'Понятно'}
-      onConfirm={() => setIsAccessModalVisible(false)}
-      
+        visible={isAccessModalVisible}
+        onCancel={() => setIsAccessModalVisible(false)}
+        message={"Колода синхронизирована"}
+        metaMessage={
+          "На этой колоде установлена самая свежая версия. Обновления не требуются."
+        }
+        confirmText={"Понятно"}
+        onConfirm={() => setIsAccessModalVisible(false)}
       />
-      
-      
     </View>
   );
 }
