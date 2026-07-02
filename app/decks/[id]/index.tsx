@@ -338,10 +338,10 @@ export default function DeckViewById() {
         await loadCards();
         return true;
       } else {
-        console.log("📥 Синхронизация через /import (ПОЛЬЗОВАТЕЛЬ)");
+        console.log("Синхронизация через /import (ПОЛЬЗОВАТЕЛЬ)");
 
         if (!cloudDeckId) {
-          console.error("❌ cloudDeckId не найден:", {
+          console.error("cloudDeckId не найден:", {
             localId: id,
             deck: deck,
             cloudInfo: deck?.cloud_info,
@@ -356,17 +356,12 @@ export default function DeckViewById() {
           return false;
         }
 
-        console.log(`📥 Cloud UUID для импорта: ${cloudDeckId}`);
-        console.log(`📥 Локальный ID (не используется для импорта): ${id}`);
+        console.log(`Cloud UUID для импорта: ${cloudDeckId}`);
+        console.log(`Локальный ID (не используется для импорта): ${id}`);
 
-        Toast.show({
-          type: "info",
-          text1: "Загрузка обновлений...",
-          position: "bottom",
-        });
 
         const importedDeck = await importDeck(cloudDeckId);
-        console.log("📥 Результат импорта:", importedDeck);
+        console.log("Результат импорта:", importedDeck);
 
         const addedCount = importedDeck.added || 0;
         setAddedCardsCount(addedCount);

@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10, 
     paddingTop: 45,
     paddingBottom: 45,
-    maxWidth: 370, 
+    minWidth: 370, 
   },
   iconContainer: {
     alignItems: "center",
