@@ -311,7 +311,7 @@ export default function DeckViewById() {
     setIsAccessModalVisible(true);
   };
 
-  // ✅ Синхронизация по уведомлению (ручной режим)
+
   const handleSync = async () => {
     if (!id) return false;
 
@@ -665,6 +665,7 @@ export default function DeckViewById() {
         onClose={() => setIsShareModalVisible(false)}
         onCopyLink={handleCopyLink}
         onMakePublic={handleMakePublic}
+        isAuthor={isAuthor}
       />
       <CustomAlertCloud
         visible={isAccessModalVisible}

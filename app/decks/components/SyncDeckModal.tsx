@@ -46,9 +46,11 @@ export const SyncDeckModal = ({
               {isAuthorUpdated ? (
                 // === ЛЕВЫЙ МАКЕТ: АВТОР ВНЕС ИЗМЕНЕНИЯ ===
                 <View style={{ width: "100%", alignItems: "center" }}>
+                  <Typography variant="h2" style={[styles.title, {marginBottom: 2, width: 348}]}>
+                    Кажется, автор колоды внес изменения!
+                  </Typography>
                   <Typography variant="h2" style={styles.title}>
-                    Кажется, автор колоды внес изменения! Хочешь добавить их к
-                    себе?
+                    Хочешь добавить их к себе?
                   </Typography>
 
                   <View style={styles.bulletContainer}>
@@ -80,7 +82,8 @@ export const SyncDeckModal = ({
                 // === ПРАВЫЙ МАКЕТ: ПОЛЬЗОВАТЕЛЬ ОБНОВИЛ ГЛОБАЛЬНУЮ КОЛОДУ ===
                 <View style={{ width: "100%", alignItems: "center" }}>
                   <Typography variant="h2" style={styles.title}>
-                    Ты обновил свою колоду!{"\n"}Хочешь сохранить изменения в облаке?
+                    Ты обновил свою колоду!{"\n"}Хочешь сохранить изменения в
+                    облаке?
                   </Typography>
 
                   <Typography
@@ -118,7 +121,7 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: "#FFFFFF",
     borderRadius: 20,
-    padding: 10,
+    padding: 12,
     width: "100%",
     minHeight: 490,
     maxWidth: 373,
@@ -130,7 +133,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 5,
-    justifyContent: "center"
+    justifyContent: "center",
   },
   logoContainer: {
     marginBottom: 16,

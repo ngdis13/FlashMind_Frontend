@@ -73,12 +73,11 @@ const styles = StyleSheet.create({
   alertContainer: {
     backgroundColor: "#FFFFFF",
     borderRadius: 20, 
-    borderColor: colors.lightGray,
-    borderWidth: 2,
-    paddingHorizontal: 10, 
+    paddingHorizontal: 16, 
     paddingTop: 45,
     paddingBottom: 45,
-    minWidth: 370, 
+    width: 370
+  
   },
   iconContainer: {
     alignItems: "center",
