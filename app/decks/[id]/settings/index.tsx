@@ -99,17 +99,22 @@ export default function settingsDecks() {
 
     try {
       setIsLoading(true);
-      await updateDeckFields(id, {
+
+      // ✅ Формируем payload ТОЧНО по структуре API
+      const payload = {
         name: trimmedName,
         description: description.trim() || "",
-        settings: {
-          color: selectedColor,
-          desired_retention: Number((targetRetention * 0.01).toFixed(2)),
-          maximum_interval: maxInterval,
-        },
-      });
+        desired_retention: Number((targetRetention / 100).toFixed(2)), // 0.85 - 0.95
+        maximum_interval: Number(maxInterval), // число
+        color: selectedColor, // строка с цветом
+      };
 
-      console.log("Колода обновлена");
+      console.log("📤 Отправляем на сервер:", JSON.stringify(payload, null, 2));
+
+      // ✅ Вызываем updateDeckFields с правильным payload
+      await updateDeckFields(id, payload);
+
+      console.log("✅ Колода обновлена");
 
       Toast.show({
         type: "success",
@@ -120,9 +125,18 @@ export default function settingsDecks() {
 
       router.push(`/decks/${id}`);
     } catch (error) {
-      const err = error as AxiosError<{ message?: string }>;
+      const err = error as AxiosError<{ message?: string; detail?: string }>;
+
+      // 🔍 Детальная диагностика ошибки
+      console.error("❌ Ошибка при сохранении:");
+      console.error("Status:", err.response?.status);
+      console.error("Data:", err.response?.data);
+
       const serverMessage =
-        err.response?.data?.message || "Не удалось сохранить настройки";
+        err.response?.data?.detail ||
+        err.response?.data?.message ||
+        err?.message ||
+        "Не удалось сохранить настройки";
 
       Toast.show({
         type: "error",
@@ -131,8 +145,6 @@ export default function settingsDecks() {
         position: "bottom",
         visibilityTime: 3000,
       });
-
-      console.error("Ошибка при сохранении:", error);
     } finally {
       setIsLoading(false);
     }

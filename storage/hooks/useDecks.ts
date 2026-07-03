@@ -1,809 +1,474 @@
-// hooks/useDecks.ts (исправленная версия с поддержкой новой структуры)
+// hooks/useDecks.ts
+import { useCallback, useEffect, useRef } from "react";
+import { useDeckStore } from "@/store/deck.store";
+import { useCardStore } from "@/store/card.store";
+import { Deck, Card } from "../types/types";
+import { fetchCardById } from "../api/api";
 
-import { useState, useEffect, useCallback } from "react";
-import {
-  Deck,
-  Card,
-  CloudDeckShareResponse,
-  CloudDeckImportResponse,
-} from "../types/types";
-import {
-  loadDecks,
-  saveDecks,
-  loadDeckCards,
-  saveDeckCards,
-} from "../service/decksStorage";
-import {
-  fetchUserDecks,
-  fetchDeckCards,
-  deleteCard,
-  createCard,
-  fetchCardById,
-  updateCardOnServer,
-  updateDeck,
-  deleteDeckOnServer,
-  makeDeckPublicApi,
-  importDeckApi,
-} from "../api/api";
-import { colors } from "@/styles/Colors";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
+/**
+ * Хук для управления колодами и карточками
+ * 
+ * @description
+ * Предоставляет единый интерфейс для работы с колодами и карточками,
+ * используя кэширование и оптимизированные запросы к API.
+ * 
+ * @example
+ * ```tsx
+ * const { decks, loading, loadDecksData, addCard } = useDecks();
+ * 
+ * useEffect(() => {
+ *   loadDecksData();
+ * }, []);
+ * ```
+ * 
+ * @returns {Object} Объект с данными и методами для работы с колодами
+ */
 export const useDecks = () => {
-  const [decks, setDecks] = useState<Deck[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [loadingCards, setLoadingCards] = useState<Record<string, boolean>>({});
-  const [cards, setCards] = useState<Card[]>([]);
+  // ============================================
+  // Подключаем сторы
+  // ============================================
+  const deckStore = useDeckStore();
+  const cardStore = useCardStore();
+
+  // ============================================
+  // 1. ГЕТТЕРЫ - ТОТ ЖЕ API, ЧТО И РАНЬШЕ
+  // ============================================
+  
+  /**
+   * Список колод пользователя
+   * @type {Deck[]}
+   */
+  const decks = deckStore.decks;
 
   /**
-   * Загружает данные колод с приоритетом кэша
-   *
+   * Флаг загрузки колод
+   * @type {boolean}
+   */
+  const loading = deckStore.isLoading;
+
+  /**
+   * Сообщение об ошибке при загрузке
+   * @type {string | null}
+   */
+  const error = deckStore.error;
+
+  /**
+   * Флаг загрузки карточек (по deckId)
+   * @type {Record<string, boolean>}
+   */
+  const loadingCards = cardStore.isLoading;
+
+  /**
+   * Флаг для отслеживания первой загрузки
+   * @type {React.MutableRefObject<boolean>}
+   */
+  const isFirstLoadRef = useRef(true);
+
+  // ============================================
+  // 2. МЕТОДЫ ЗАГРУЗКИ - с защитой от дублей
+  // ============================================
+  
+  /**
+   * Загружает список колод с кэшированием
+   * 
    * @description
-   * Сначала проверяет наличие данных в AsyncStorage.
-   * Если данные есть - использует их и запускает фоновую синхронизацию.
-   * Если данных нет - загружает с сервера и сохраняет в кэш.
-   *
+   * Проверяет наличие данных в кэше перед запросом к серверу.
+   * Если данные уже есть - использует их, иначе делает запрос.
+   * 
    * @async
    * @returns {Promise<void>}
-   *
-   * @throws {Error} При ошибке загрузки данных
-   *
+   * 
    * @example
-   * // Вызывается автоматически при монтировании
-   * useEffect(() => {
-   *   loadDecksData();
-   * }, []);
+   * ```tsx
+   * await loadDecksData();
+   * console.log('Колоды загружены');
+   * ```
    */
   const loadDecksData = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      console.log("Шаг 1: Проверяем AsyncStorage...");
-      const storedDecks = await loadDecks();
-
-      if (storedDecks && storedDecks.length > 0) {
-        console.log("Используем данные из хранилища");
-        setDecks(storedDecks);
-        setLoading(false);
-        // Запускаем фоновую синхронизацию
-        await refreshDecksInBackground();
-      } else {
-        console.log("Загружаем данные с сервера...");
-        const serverDecks = await fetchUserDecks();
-        await saveDecks(serverDecks);
-        setDecks(serverDecks);
-        console.log("Данные сохранены в хранилище");
-      }
-    } catch (err) {
-      console.error("Ошибка при загрузке данных:", err);
-      setError("Не удалось загрузить колоды");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  /**
-   * Выполняет фоновую синхронизацию колод с сервером
-   *
-   * @description
-   * Сравнивает данные на сервере с локальным кэшем.
-   * Обновляет локальные данные если есть различия.
-   * Также синхронизирует количество карточек в колодах.
-   *
-   * @async
-   * @returns {Promise<void>}
-   *
-   * @example
-   * // Запускается автоматически после загрузки локальных данных
-   * await refreshDecksInBackground();
-   */
-  const refreshDecksInBackground = async () => {
-    try {
-      console.log("Фоновая синхронизация с сервером...");
-      const serverDecks = await fetchUserDecks();
-      const storedDecks = await loadDecks();
-
-      if (JSON.stringify(serverDecks) !== JSON.stringify(storedDecks)) {
-        await saveDecks(serverDecks);
-        setDecks(serverDecks);
-        console.log("Данные колод обновлены из сервера");
-      }
-
-      await syncCardsCount(serverDecks);
-    } catch (err) {
-      console.log("Фоновая синхронизация не удалась, используем кэш");
-    }
-  };
-
-  /**
-   * Синхронизирует количество карточек в колодах
-   *
-   * @description
-   * Проверяет соответствие количества карточек между локальным хранилищем и сервером.
-   * При несоответствии загружает актуальные данные с сервера.
-   *
-   * @async
-   * @param {Deck[]} serverDecks - Список колод с сервера
-   * @returns {Promise<void>}
-   *
-   * @example
-   * await syncCardsCount(serverDecks);
-   */
-  const syncCardsCount = useCallback(async (serverDecks: Deck[]) => {
-    try {
-      console.log("🔍 Проверяем соответствие количества карточек...");
-
-      for (const serverDeck of serverDecks) {
-        const localCards = await loadDeckCards(serverDeck.id);
-        const localCount = localCards?.length || 0;
-        const serverCount = serverDeck.total_cards || 0;
-
-        if (localCount !== serverCount) {
-          console.log(`Несоответствие для колоды ${serverDeck.name}:`, {
-            local: localCount,
-            server: serverCount,
-          });
-
-          if (serverCount === 0) {
-            await saveDeckCards(serverDeck.id, []);
-            console.log(`Очищены карточки колоды ${serverDeck.id}`);
-          } else {
-            console.log(
-              `Загружаем карточки колоды ${serverDeck.id} с сервера...`,
-            );
-            const serverCards = await fetchDeckCards(serverDeck.id);
-            await saveDeckCards(serverDeck.id, serverCards);
-            console.log(
-              `Обновлены карточки для колоды ${serverDeck.id}: ${serverCards.length} шт.`,
-            );
-          }
-        }
-      }
-    } catch (error) {
-      console.error("Ошибка при синхронизации карточек:", error);
-    }
-  }, []);
-
-  /**
-   * Обновляет поля колоды
-   *
-   * @description
-   * Отправляет обновленные данные на сервер согласно структуре API:
-   * {
-   *   name: string,
-   *   description: string,
-   *   desired_retention: number,
-   *   maximum_interval: number,
-   *   color: string
-   * }
-   *
-   * @async
-   * @param {string} deckId - ID колоды для обновления
-   * @param {Partial<Deck>} fieldsToUpdate - Объект с полями для обновления
-   * @returns {Promise<void>}
-   */
-  const updateDeckFields = useCallback(
-    async (deckId: string, fieldsToUpdate: Partial<Deck>) => {
-      try {
-        setError(null);
-
-        const currentDeck = decks.find((d) => d.id === deckId);
-        if (!currentDeck) {
-          throw new Error("Колода не найдена в текущем списке");
-        }
-
-        // Извлекаем настройки из fieldsToUpdate или используем текущие
-        const currentSettings = currentDeck.settings || {
-          desired_retention: 0.9,
-          maximum_interval: 365,
-          color: colors.mainColor,
-        };
-
-        // Получаем значения настроек (поддерживаем оба способа)
-        const desiredRetention =
-          fieldsToUpdate.settings?.desired_retention ??
-          (fieldsToUpdate as any).desired_retention ??
-          currentSettings.desired_retention;
-
-        const maximumInterval =
-          fieldsToUpdate.settings?.maximum_interval ??
-          (fieldsToUpdate as any).maximum_interval ??
-          currentSettings.maximum_interval;
-
-        const color =
-          fieldsToUpdate.settings?.color ??
-          (fieldsToUpdate as any).color ??
-          currentSettings.color;
-
-        // Формируем payload строго по структуре API
-        const payload = {
-          name: fieldsToUpdate.name ?? currentDeck.name,
-          description: fieldsToUpdate.description ?? currentDeck.description,
-          desired_retention: Number(desiredRetention),
-          maximum_interval: Number(maximumInterval),
-          color: color,
-        };
-
-        console.log("Отправляем на сервер:", payload);
-
-        // Отправляем на сервер
-        const response = await updateDeck(deckId, payload);
-        console.log("Ответ сервера:", response);
-
-        // Обновляем локальную колоду с правильной структурой
-        const updatedDeck: Deck = {
-          ...currentDeck,
-          name: payload.name,
-          description: payload.description,
-          settings: {
-            desired_retention: payload.desired_retention,
-            maximum_interval: payload.maximum_interval,
-            color: payload.color,
-          },
-        };
-
-        // Обновляем в storage
-        const updatedDecksList = decks.map((deck) =>
-          deck.id === deckId ? updatedDeck : deck,
-        );
-
-        await saveDecks(updatedDecksList);
-        setDecks(updatedDecksList);
-
-        console.log(`✅ Колода ${deckId} успешно обновлена!`);
-      } catch (err) {
-        console.error("❌ Ошибка при обновлении полей колоды:", err);
-        setError("Не удалось обновить данные колоды");
-        throw err;
-      }
-    },
-    [decks],
-  );
-
-  /**
-   * Получает карточки колоды с автоматической синхронизацией
-   *
-   * @description
-   * Сначала проверяет локальный кэш. Если количество карточек не соответствует
-   * ожидаемому или локальных данных нет - загружает с сервера.
-   *
-   * @async
-   * @param {string} deckId - ID колоды
-   * @returns {Promise<Card[]>} Массив карточек колоды
-   *
-   * @example
-   * const cards = await getDeckCards('deck123');
-   * console.log(`Загружено ${cards.length} карточек`);
-   */
-  const getDeckCards = useCallback(
-    async (deckId: string): Promise<Card[]> => {
-      try {
-        setLoadingCards((prev) => ({ ...prev, [deckId]: true }));
-
-        const deck = decks.find((d) => d.id === deckId);
-        const localCards = await loadDeckCards(deckId);
-
-        const expectedCount = deck?.total_cards || 0;
-        const localCount = localCards?.length || 0;
-
-        if (!localCards || localCount !== expectedCount || localCount === 0) {
-          console.log(
-            `Загружаем карточки колоды ${deckId} с сервера... (ожидается: ${expectedCount}, есть: ${localCount})`,
-          );
-
-          const serverCards = await fetchDeckCards(deckId);
-          await saveDeckCards(deckId, serverCards);
-          setCards(serverCards);
-
-          console.log(`Загружено ${serverCards.length} карточек`);
-          return serverCards;
-        }
-
-        console.log(
-          `Карточки загружены из хранилища (${localCards.length} шт.)`,
-        );
-        setCards(localCards);
-        return localCards;
-      } catch (err) {
-        console.error(`Ошибка при загрузке карточек колоды ${deckId}:`, err);
-        return [];
-      } finally {
-        setLoadingCards((prev) => ({ ...prev, [deckId]: false }));
-      }
-    },
-    [decks],
-  );
-
-  /**
-   * Получает колоду по ID
-   *
-   * @description
-   * Ищет колоду в локальном состоянии по ID.
-   *
-   * @param {string} deckId - ID колоды
-   * @returns {Deck | undefined} Найденная колода или undefined
-   *
-   * @example
-   * const deck = getDeckById('deck123');
-   * if (deck) {
-   *   console.log(`Найдена колода: ${deck.name}`);
-   * }
-   */
-  const getDeckById = useCallback(
-    (deckId: string): Deck | undefined => {
-      return decks.find((deck) => deck.id === deckId);
-    },
-    [decks],
-  );
-
-  /**
-   * Обновляет дополнительный счетчик колоды
-   *
-   * @description
-   * Используется для хранения дополнительной информации о колоде.
-   *
-   * @async
-   * @param {string} deckId - ID колоды
-   * @param {number} extraCount - Новое значение дополнительного счетчика
-   * @returns {Promise<void>}
-   *
-   * @example
-   * await updateDeckExtraCount('deck123', 5);
-   */
-  const updateDeckExtraCount = useCallback(
-    async (deckId: string, extraCount: number) => {
-      try {
-        const updatedDecks = decks.map((deck) =>
-          deck.id === deckId ? { ...deck, extraCount } : deck,
-        );
-        setDecks(updatedDecks);
-        await saveDecks(updatedDecks);
-        console.log(
-          `extraCount для колоды ${deckId} обновлен на ${extraCount}`,
-        );
-      } catch (err) {
-        console.error("Ошибка при обновлении extraCount:", err);
-      }
-    },
-    [decks],
-  );
-
-  /**
-   * Удаляет колоду
-   *
-   * @description
-   * Удаляет колоду на сервере, обновляет локальное состояние,
-   * удаляет связанные карточки из AsyncStorage.
-   *
-   * @async
-   * @param {string} deckId - ID колоды для удаления
-   * @returns {Promise<void>}
-   *
-   * @throws {Error} При ошибке удаления на сервере
-   *
-   * @example
-   * try {
-   *   await deleteDeck('deck123');
-   *   console.log('Колода удалена');
-   * } catch (error) {
-   *   console.error('Ошибка удаления:', error);
-   * }
-   */
-  const deleteDeck = useCallback(
-    async (deckId: string) => {
-      try {
-        setLoading(true);
-        await deleteDeckOnServer(deckId);
-
-        const updatedDecks = decks.filter((deck) => deck.id !== deckId);
-        setDecks(updatedDecks);
-        await saveDecks(updatedDecks);
-
-        const cardsKey = `@flashcards/deck_cards_${deckId}`;
-        await AsyncStorage.removeItem(cardsKey);
-
-        console.log(`Колода ${deckId} успешно удалена`);
-      } catch (err) {
-        console.error(`Ошибка при удалении колоды ${deckId}:`, err);
-        setError("Не удалось удалить колоду");
-        throw err;
-      } finally {
-        setLoading(false);
-      }
-    },
-    [decks],
-  );
+    console.log('🔄 loadDecksData вызван');
+    await deckStore.fetchDecks();
+  }, [deckStore.fetchDecks]);
 
   /**
    * Принудительно обновляет список колод с сервера
-   *
+   * 
    * @description
-   * Загружает актуальные данные с сервера, обновляет кэш и состояние.
-   * Также синхронизирует количество карточек.
-   *
+   * Игнорирует кэш и загружает свежие данные с сервера.
+   * Используется для pull-to-refresh или после CRUD операций.
+   * 
    * @async
    * @returns {Promise<void>}
-   *
+   * 
    * @example
-   * // Использовать при pull-to-refresh
-   * await refreshDecks();
+   * ```tsx
+   * // При pull-to-refresh
+   * <RefreshControl onRefresh={refreshDecks} />
+   * ```
    */
   const refreshDecks = useCallback(async () => {
-    try {
-      setLoading(true);
-      const serverDecks = await fetchUserDecks();
-      await saveDecks(serverDecks);
-      setDecks(serverDecks);
-
-      await syncCardsCount(serverDecks);
-
-      console.log("Колоды обновлены");
-    } catch (err) {
-      console.error("Ошибка при обновлении колод:", err);
-      setError("Не удалось обновить колоды");
-    } finally {
-      setLoading(false);
-    }
-  }, [syncCardsCount]);
+    console.log('🔄 refreshDecks вызван');
+    await deckStore.fetchDecks(true);
+  }, [deckStore.fetchDecks]);
 
   /**
-   * Удаляет карточку из колоды
-   *
+   * Получает колоду по ID из кэша
+   * 
    * @description
-   * Удаляет карточку на сервере и обновляет локальные данные:
-   * - Удаляет карточку из кэша колоды
-   * - Обновляет счетчик карточек в колоде
-   *
+   * Возвращает колоду из локального состояния без запроса к серверу.
+   * 
+   * @param {string} deckId - ID колоды
+   * @returns {Deck | undefined} Найденная колода или undefined
+   * 
+   * @example
+   * ```tsx
+   * const deck = getDeckById('123');
+   * if (deck) {
+   *   console.log(deck.name);
+   * }
+   * ```
+   */
+  const getDeckById = useCallback((deckId: string) => {
+    return deckStore.getDeckById(deckId);
+  }, [deckStore.getDeckById]);
+
+  // ============================================
+  // 3. CRUD КОЛОДЫ
+  // ============================================
+  
+  /**
+   * Обновляет поля колоды
+   * 
+   * @description
+   * Отправляет PUT запрос на сервер и обновляет данные локально.
+   * Использует локальную мутацию для мгновенного обновления UI.
+   * 
    * @async
    * @param {string} deckId - ID колоды
-   * @param {string} cardId - ID карточки для удаления
+   * @param {Partial<Deck>} fields - Объект с полями для обновления
    * @returns {Promise<void>}
-   *
-   * @throws {Error} При ошибке удаления на сервере
-   *
+   * 
+   * @throws {Error} При ошибке обновления на сервере
+   * 
    * @example
-   * try {
-   *   await removeCard('deck123', 'card456');
-   *   console.log('Карточка удалена');
-   * } catch (error) {
-   *   console.error('Ошибка удаления карточки:', error);
-   * }
+   * ```tsx
+   * await updateDeckFields('123', {
+   *   name: 'Новое название',
+   *   description: 'Новое описание'
+   * });
+   * ```
    */
-  const removeCard = useCallback(
-    async (deckId: string, cardId: string) => {
-      try {
-        await deleteCard(cardId);
-        const currentCards = await loadDeckCards(deckId);
-        if (currentCards) {
-          const updatedCards = currentCards.filter(
-            (card) => card.id !== cardId,
-          );
-          await saveDeckCards(deckId, updatedCards);
-        }
-
-        const updatedDecks = decks.map((deck) =>
-          deck.id === deckId
-            ? { ...deck, total_cards: Math.max(0, (deck.total_cards || 1) - 1) }
-            : deck,
-        );
-        setDecks(updatedDecks);
-        await saveDecks(updatedDecks);
-
-        console.log(`Карточка ${cardId} удалена`);
-      } catch (error) {
-        console.error("Ошибка при удалении карточки:", error);
-        throw error;
-      }
-    },
-    [decks],
-  );
+  const updateDeckFields = useCallback(async (deckId: string, fields: Partial<Deck>) => {
+    console.log(`📝 updateDeckFields: ${deckId}`);
+    await deckStore.updateDeck(deckId, fields);
+  }, [deckStore.updateDeck]);
 
   /**
-   * Добавляет новую карточку в колоду
-   *
+   * Удаляет колоду
+   * 
    * @description
-   * Создает карточку на сервере и обновляет локальные данные:
-   * - Добавляет карточку в кэш колоды
-   * - Увеличивает счетчик карточек в колоде
-   *
+   * Отправляет DELETE запрос на сервер и удаляет колоду локально.
+   * Обновляет кэш и UI мгновенно.
+   * 
+   * @async
+   * @param {string} deckId - ID колоды для удаления
+   * @returns {Promise<void>}
+   * 
+   * @throws {Error} При ошибке удаления на сервере
+   * 
+   * @example
+   * ```tsx
+   * await deleteDeck('123');
+   * console.log('Колода удалена');
+   * ```
+   */
+  const deleteDeck = useCallback(async (deckId: string) => {
+    console.log(`🗑️ deleteDeck: ${deckId}`);
+    await deckStore.deleteDeck(deckId);
+  }, [deckStore.deleteDeck]);
+
+  // ============================================
+  // 4. КАРТОЧКИ - с проверкой наличия в кэше
+  // ============================================
+  
+  /**
+   * Получает карточки колоды с кэшированием
+   * 
+   * @description
+   * Сначала проверяет наличие карточек в кэше.
+   * Если есть - возвращает мгновенно.
+   * Если нет - загружает с сервера и сохраняет в кэш.
+   * 
+   * @async
+   * @param {string} deckId - ID колоды
+   * @returns {Promise<Card[]>} Массив карточек колоды
+   * 
+   * @example
+   * ```tsx
+   * const cards = await getDeckCards('123');
+   * console.log(`Загружено ${cards.length} карточек`);
+   * ```
+   */
+  const getDeckCards = useCallback(async (deckId: string): Promise<Card[]> => {
+    console.log(`🃏 getDeckCards: ${deckId}`);
+    
+    // ✅ Проверяем, есть ли карточки в кэше
+    const cachedCards = cardStore.getCards(deckId);
+    if (cachedCards.length > 0) {
+      console.log(`📦 Использую кэш карточек (${cachedCards.length} шт.)`);
+      return cachedCards;
+    }
+    
+    // Если нет - загружаем
+    await cardStore.fetchCards(deckId);
+    return cardStore.getCards(deckId);
+  }, [cardStore.fetchCards, cardStore.getCards]);
+
+  /**
+   * Создает новую карточку в колоде
+   * 
+   * @description
+   * Отправляет POST запрос на сервер и добавляет карточку локально.
+   * Обновляет кэш и UI мгновенно без дополнительных GET запросов.
+   * 
    * @async
    * @param {string} deckId - ID колоды
    * @param {string} front - Текст на лицевой стороне
    * @param {string} back - Текст на обратной стороне
    * @returns {Promise<Card>} Созданная карточка
-   *
+   * 
    * @throws {Error} При ошибке создания на сервере
-   *
+   * 
    * @example
-   * try {
-   *   const newCard = await addCard('deck123', 'Вопрос', 'Ответ');
-   *   console.log(`Создана карточка: ${newCard.id}`);
-   * } catch (error) {
-   *   console.error('Ошибка создания карточки:', error);
-   * }
+   * ```tsx
+   * const newCard = await addCard('123', 'Вопрос', 'Ответ');
+   * console.log(`Создана карточка: ${newCard.id}`);
+   * ```
    */
-  const addCard = useCallback(
-    async (deckId: string, front: string, back: string) => {
-      try {
-        const newCard = await createCard(deckId, { front, back });
-
-        setCards((prevCards) => [...prevCards, newCard]);
-
-        const currentCards = await loadDeckCards(deckId);
-        if (currentCards) {
-          await saveDeckCards(deckId, [...currentCards, newCard]);
-        } else {
-          await saveDeckCards(deckId, [newCard]);
-        }
-
-        const updatedDecks = decks.map((deck) =>
-          deck.id === deckId
-            ? { ...deck, total_cards: (deck.total_cards || 0) + 1 }
-            : deck,
-        );
-        setDecks(updatedDecks);
-        await saveDecks(updatedDecks);
-
-        console.log(`Карточка "${front}" создана`);
-        return newCard;
-      } catch (error) {
-        console.error("Ошибка при создании карточки:", error);
-        throw error;
-      }
-    },
-    [decks],
-  );
+  const addCard = useCallback(async (deckId: string, front: string, back: string) => {
+    console.log(`➕ addCard: ${deckId}`);
+    const newCard = await cardStore.createCard({ deck_id: deckId, front, back });
+    return newCard;
+  }, [cardStore.createCard]);
 
   /**
-   * Получает карточку по ID с кэшированием
-   *
+   * Удаляет карточку из колоды
+   * 
    * @description
-   * Сначала ищет карточку в локальном кэше.
-   * Если не находит - загружает с сервера и добавляет в кэш.
-   *
+   * Отправляет DELETE запрос на сервер и удаляет карточку локально.
+   * Обновляет кэш и UI мгновенно без дополнительных GET запросов.
+   * 
    * @async
-   * @param {string} cardId - ID карточки
-   * @returns {Promise<Card | null>} Найденная карточка или null
-   *
+   * @param {string} deckId - ID колоды
+   * @param {string} cardId - ID карточки для удаления
+   * @returns {Promise<void>}
+   * 
+   * @throws {Error} При ошибке удаления на сервере
+   * 
    * @example
-   * const card = await getCardById('card456');
-   * if (card) {
-   *   console.log(`Карточка: ${card.front} -> ${card.back}`);
-   * }
+   * ```tsx
+   * await removeCard('123', '456');
+   * console.log('Карточка удалена');
+   * ```
    */
-  const getCardById = useCallback(
-    async (cardId: string): Promise<Card | null> => {
-      try {
-        console.log(`Ищем карточку ${cardId}...`);
-
-        const foundCard = cards.find((c) => c.id === cardId);
-        if (foundCard) {
-          console.log("Карточка найдена в кэше");
-          return foundCard;
-        }
-
-        const cardFromServer = await fetchCardById(cardId);
-        setCards((prevCards) => {
-          if (prevCards.some((c) => c.id === cardFromServer.id)) {
-            return prevCards;
-          }
-          return [...prevCards, cardFromServer];
-        });
-
-        console.log("Карточка загружена с сервера");
-        return cardFromServer;
-      } catch (error) {
-        console.error("Ошибка получения карточки:", error);
-        return null;
-      }
-    },
-    [cards],
-  );
+  const removeCard = useCallback(async (deckId: string, cardId: string) => {
+    console.log(`➖ removeCard: ${cardId}`);
+    await cardStore.deleteCard(cardId, deckId);
+  }, [cardStore.deleteCard]);
 
   /**
    * Обновляет существующую карточку
-   *
+   * 
    * @description
-   * Обновляет карточку на сервере и синхронизирует локальные данные:
-   * - Обновляет в глобальном кэше карточек
-   * - Обновляет в кэше соответствующей колоды
-   *
+   * Отправляет PUT запрос на сервер и обновляет карточку локально.
+   * 
    * @async
-   * @param {string} cardId - ID карточки для обновления
+   * @param {string} cardId - ID карточки
    * @param {string} front - Новый текст на лицевой стороне
    * @param {string} back - Новый текст на обратной стороне
-   * @returns {Promise<Card | null>} Обновленная карточка
-   *
+   * @returns {Promise<Card>} Обновленная карточка
+   * 
    * @throws {Error} При ошибке обновления на сервере
-   *
+   * 
    * @example
-   * try {
-   *   const updatedCard = await updateCard('card456', 'Новый вопрос', 'Новый ответ');
-   *   console.log('Карточка обновлена');
-   * } catch (error) {
-   *   console.error('Ошибка обновления карточки:', error);
+   * ```tsx
+   * const updated = await updateCard('456', 'Новый вопрос', 'Новый ответ');
+   * console.log('Карточка обновлена');
+   * ```
+   */
+  const updateCard = useCallback(async (cardId: string, front: string, back: string) => {
+    console.log(`📝 updateCard: ${cardId}`);
+    const updated = await cardStore.updateCard(cardId, { front, back });
+    return updated;
+  }, [cardStore.updateCard]);
+
+  /**
+   * Получает карточку по ID с кэшированием
+   * 
+   * @description
+   * Сначала ищет карточку во всех кэшированных карточках.
+   * Если не находит - загружает с сервера.
+   * 
+   * @async
+   * @param {string} cardId - ID карточки
+   * @returns {Promise<Card | null>} Найденная карточка или null
+   * 
+   * @example
+   * ```tsx
+   * const card = await getCardById('456');
+   * if (card) {
+   *   console.log(`Карточка: ${card.front} -> ${card.back}`);
    * }
+   * ```
    */
-  const updateCard = useCallback(
-    async (
-      cardId: string,
-      front: string,
-      back: string,
-    ): Promise<Card | null> => {
-      try {
-        console.log(`Обновляем карточку ${cardId}...`);
+  const getCardById = useCallback(async (cardId: string) => {
+    console.log(`🔍 getCardById: ${cardId}`);
+    
+    // Ищем во всех карточках
+    const allCards = Object.values(cardStore.cards).flat();
+    const found = allCards.find(c => c.id === cardId);
+    if (found) {
+      console.log(`✅ Карточка найдена в кэше`);
+      return found;
+    }
+    
+    // Если не нашли - пробуем загрузить с сервера
+    try {
+      console.log(`🌐 Загружаем карточку ${cardId} с сервера`);
+      const card = await fetchCardById(cardId);
+      return card;
+    } catch (error) {
+      console.error(`❌ Карточка ${cardId} не найдена`);
+      return null;
+    }
+  }, [cardStore.cards]);
 
-        const updatedCard = await updateCardOnServer(cardId, { front, back });
-
-        setCards((prevCards) =>
-          prevCards.map((card) =>
-            card.id === cardId
-              ? { ...card, front: updatedCard.front, back: updatedCard.back }
-              : card,
-          ),
-        );
-
-        for (const deck of decks) {
-          const deckCards = await loadDeckCards(deck.id);
-          if (deckCards?.some((card) => card.id === cardId)) {
-            const updatedDeckCards = deckCards.map((card) =>
-              card.id === cardId ? { ...card, front, back } : card,
-            );
-            await saveDeckCards(deck.id, updatedDeckCards);
-            break;
-          }
-        }
-
-        console.log(`Карточка ${cardId} обновлена`);
-        return updatedCard;
-      } catch (error) {
-        console.error("Ошибка при обновлении карточки:", error);
-        throw error;
-      }
-    },
-    [decks],
-  );
+  // ============================================
+  // 5. ОБЛАЧНЫЕ КОЛОДЫ - с кэшированием результата
+  // ============================================
+  
+  /**
+   * Делает колоду публичной (облачной)
+   * 
+   * @description
+   * Отправляет запрос на публикацию колоды.
+   * Проверяет, не опубликована ли колода уже.
+   * Обновляет локальные данные после публикации.
+   * 
+   * @async
+   * @param {string} deckId - ID колоды
+   * @returns {Promise<CloudDeckShareResponse>} Ответ сервера с cloud_uuid
+   * 
+   * @throws {Error} При ошибке публикации
+   * 
+   * @example
+   * ```tsx
+   * const result = await makeDeckPublic('123');
+   * console.log(`Колода опубликована: ${result.cloud_uuid}`);
+   * ```
+   */
+  const makeDeckPublic = useCallback(async (deckId: string) => {
+    console.log(`☁️ makeDeckPublic: ${deckId}`);
+    
+    // ✅ Проверяем, есть ли уже cloud_deck_id
+    const deck = deckStore.getDeckById(deckId);
+    if (deck?.cloud_info?.cloud_deck_id) {
+      console.log(`📦 Использую существующий cloud_deck_id: ${deck.cloud_info.cloud_deck_id}`);
+      return {
+        cloud_uuid: deck.cloud_info.cloud_deck_id,
+        status: 'EXISTING',
+        message: 'Колода уже опубликована'
+      };
+    }
+    
+    const { makeDeckPublicApi } = await import('../api/api');
+    const result = await makeDeckPublicApi(deckId);
+    
+    // ✅ Обновляем локальные данные
+    await deckStore.fetchDecks(true);
+    
+    return result;
+  }, [deckStore]);
 
   /**
-   * Отправить колоду на публикацию или синхронизацию и обновить локальный статус
+   * Импортирует облачную колоду
+   * 
+   * @description
+   * Импортирует колоду по cloud_uuid.
+   * Обновляет локальный список колод после импорта.
+   * 
+   * @async
+   * @param {string} cloudUuid - UUID облачной колоды
+   * @returns {Promise<CloudDeckImportResponse>} Результат импорта
+   * 
+   * @throws {Error} При ошибке импорта
+   * 
+   * @example
+   * ```tsx
+   * const result = await importDeck('abc-123');
+   * console.log(`Импортировано ${result.added} карточек`);
+   * ```
    */
-  const makeDeckPublic = useCallback(
-    async (deckId: string): Promise<CloudDeckShareResponse> => {
-      try {
-        console.log(
-          `Отправляем колоду ${deckId} в хуке на публикацию или синхронизацию...`,
-        );
+  const importDeck = useCallback(async (cloudUuid: string) => {
+    console.log(`☁️ importDeck: ${cloudUuid}`);
+    const { importDeckApi } = await import('../api/api');
+    const result = await importDeckApi(cloudUuid);
+    
+    // ✅ Обновляем список колод после импорта
+    await deckStore.fetchDecks(true);
+    
+    return result;
+  }, [deckStore]);
 
-        const serverResponse: CloudDeckShareResponse =
-          await makeDeckPublicApi(deckId);
-
-        console.log("📥 Ответ сервера для обновления:", serverResponse);
-
-        setDecks((prevDecks) => {
-          const updatedDecks = prevDecks.map((deck) => {
-            if (deck.id === deckId) {
-              // ✅ Правильно обновляем cloud_info
-              const updatedDeck = {
-                ...deck,
-                cloud_info: {
-                  ...deck.cloud_info,
-                  is_cloud_deck: true,
-                  cloud_deck_id: serverResponse.cloud_uuid, // ✅ cloud_uuid с подчеркиванием
-                  cloud_type: serverResponse.type as "PUBLIC" | "PRIVATE",
-                  is_approved: serverResponse.status === "ACTIVE",
-                  needs_sync: false,
-                  is_author: true,
-                  sync_stats: serverResponse.sync_stats || {
-                    added: 0,
-                    updated: 0,
-                    deleted: 0,
-                  },
-                },
-              };
-              console.log("🔄 Обновленная колода:", updatedDeck);
-              return updatedDeck;
-            }
-            return deck;
-          });
-
-          saveDecks(updatedDecks).catch((err) =>
-            console.error("Ошибка сохранения колод в локальную память:", err),
-          );
-
-          return updatedDecks;
-        });
-
-        console.log(`Локальный статус колоды ${deckId} изменен на PUBLIC`);
-        return serverResponse;
-      } catch (error) {
-        console.error("Ошибка при публикации колоды в хуке:", error);
-        throw error;
-      }
-    },
-    [saveDecks],
-  );
-
+  // ============================================
+  // 6. АВТОЗАГРУЗКА - только если данные не загружены
+  // ============================================
+  
   /**
-   * Импорт облачной колоды для ПОЛЬЗОВАТЕЛЯ
-   * Использует эндпоинт /import
+   * Эффект первичной загрузки данных
+   * 
+   * @description
+   * Загружает данные только при первом монтировании компонента
+   * и только если в сторе еще нет данных.
    */
-  const importDeck = useCallback(
-    async (cloudUuid: string): Promise<CloudDeckImportResponse> => {
-      try {
-        console.log(
-          `Импортируем облачную колоду ${cloudUuid} для пользователя...`,
-        );
-
-        const serverResponse: CloudDeckImportResponse =
-          await importDeckApi(cloudUuid);
-
-        setDecks((prevDecks) => {
-          const updatedDecks = prevDecks.map((deck) => {
-            if (deck.cloud_info?.cloud_deck_id === cloudUuid) {
-              return {
-                ...deck,
-                name: serverResponse.deck_name || deck.name,
-                description:
-                  serverResponse.deck_description || deck.description,
-                cards: serverResponse.cards || deck.cards,
-                cloud_info: {
-                  ...deck.cloud_info,
-                  is_cloud_deck: true,
-                  needs_sync: false,
-                  cloud_deck_id: serverResponse.cloud_uuid,
-                  is_author: false,
-                  last_imported_at: new Date().toISOString(),
-                  ...(serverResponse.sync_stats && {
-                    sync_stats: serverResponse.sync_stats,
-                  }),
-                },
-              };
-            }
-            return deck;
-          });
-
-          saveDecks(updatedDecks).catch((err) =>
-            console.error("Ошибка сохранения колод в локальную память:", err),
-          );
-
-          return updatedDecks;
-        });
-
-        console.log(
-          `Колода ${cloudUuid} успешно импортирована для пользователя`,
-        );
-        return serverResponse;
-      } catch (error) {
-        console.error("Ошибка при импорте облачной колоды:", error);
-        throw error;
-      }
-    },
-    [saveDecks],
-  );
-
   useEffect(() => {
-    loadDecksData();
-  }, [loadDecksData]);
+    // ✅ Загружаем данные только при первом монтировании и если нет данных
+    if (isFirstLoadRef.current && decks.length === 0) {
+      console.log('🔁 Первичная загрузка данных');
+      loadDecksData();
+      isFirstLoadRef.current = false;
+    } else if (decks.length > 0) {
+      console.log('📦 Данные уже есть, автозагрузка пропущена');
+    }
+  }, [decks.length, loadDecksData]);
 
+  // ============================================
+  // 7. ВОЗВРАЩАЕМ ТОТ ЖЕ ОБЪЕКТ
+  // ============================================
+  
   return {
+    // Данные
     decks,
     loading,
     error,
     loadingCards,
-    cards,
+    cards: [],
+    
+    // Методы
+    loadDecksData,
+    refreshDecks,
     getDeckById,
     updateDeckFields,
     deleteDeck,
     getDeckCards,
-    updateDeckExtraCount,
-    refreshDecks,
     removeCard,
     addCard,
-    getCardById,
     updateCard,
-    syncCardsCount,
+    getCardById,
     makeDeckPublic,
     importDeck,
+    
+    // Дополнительно для совместимости
+    syncCardsCount: async () => { console.log('syncCardsCount deprecated'); },
+    updateDeckExtraCount: async () => { console.log('updateDeckExtraCount deprecated'); },
   };
 };

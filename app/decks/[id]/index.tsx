@@ -1,3 +1,4 @@
+// screens/decks/[id]/index.tsx
 import { commonStyles } from "@/styles/Common";
 import { Typography } from "@/styles/Typography";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
@@ -5,7 +6,7 @@ import { ScrollView, View, Image, Pressable, Platform } from "react-native";
 import ReturnIcon from "@/assets/icons/ReturnIcon.png";
 import { styles } from "../styles/deckViewById.style";
 import { Input } from "@/components/Input";
-import { useCallback, useEffect, useState, useMemo } from "react";
+import { useCallback, useEffect, useState, useMemo, useRef } from "react";
 import { SettingsIcon } from "@/feature/profile/assets/SettingsIcon";
 import PlusIcon from "@/assets/icons/PlusIcon.png";
 import searchButton from "@/feature/decks/assets/searchButton.png";
@@ -28,8 +29,16 @@ export default function DeckViewById() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
 
-  const { decks, getDeckCards, removeCard, makeDeckPublic, importDeck, refreshDecks } =
-    useDecks();
+  // ✅ Берем данные из стора
+  const { 
+    decks, 
+    getDeckCards, 
+    removeCard, 
+    makeDeckPublic, 
+    importDeck, 
+    refreshDecks,
+    loadDecksData
+  } = useDecks();
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -37,6 +46,11 @@ export default function DeckViewById() {
   const [cards, setCards] = useState<Card[]>([]);
   const [addedCardsCount, setAddedCardsCount] = useState(0);
 
+  // ✅ Флаг для предотвращения дублирующихся загрузок
+  const isLoadingRef = useRef(false);
+  const isFirstLoadRef = useRef(true);
+
+  // Находим колоду в сторе
   const deck = decks.find((d) => d.id === id);
 
   // Проверяем статус колоды
@@ -54,8 +68,7 @@ export default function DeckViewById() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSyncModalVisible, setIsSyncModalVisible] = useState(false);
   const [isAccessModalVisible, setIsAccessModalVisible] = useState(false);
-  const [isAddedAccessModalVisible, setIsAddedAccessModalVisible] =
-    useState(false);
+  const [isAddedAccessModalVisible, setIsAddedAccessModalVisible] = useState(false);
 
   useEffect(() => {
     if (cloudDeckId) {
@@ -65,7 +78,106 @@ export default function DeckViewById() {
     }
   }, [cloudDeckId]);
 
-  // ✅ ГЛАВНЫЙ ОБРАБОТЧИК: только при нажатии на кнопку
+  // ============================================
+  // ⭐ ГЛАВНАЯ ФУНКЦИЯ ЗАГРУЗКИ ДАННЫХ
+  // ============================================
+  const loadData = useCallback(async (forceRefresh = false) => {
+    // Защита от дублирующихся вызовов
+    if (isLoadingRef.current) {
+      console.log('⏳ Загрузка уже выполняется, пропускаю');
+      return;
+    }
+
+    if (!id) return;
+
+    try {
+      isLoadingRef.current = true;
+      console.log(`📱 Загружаем данные для колоды ${id}, force: ${forceRefresh}`);
+
+      // 1. Загружаем колоды (если нужно)
+      if (forceRefresh || decks.length === 0) {
+        console.log('🔄 Загружаем колоды...');
+        await loadDecksData();
+      }
+
+      // 2. Загружаем карточки
+      console.log('🃏 Загружаем карточки...');
+      const fetchedCards = await getDeckCards(id as string);
+      setCards(fetchedCards);
+      console.log(`✅ Загружено ${fetchedCards.length} карточек`);
+
+      // 3. Обновляем информацию о колоде
+      const updatedDeck = decks.find((d) => d.id === id);
+      if (updatedDeck) {
+        setName(updatedDeck.name);
+        setDescription(updatedDeck.description || "");
+      }
+
+    } catch (error) {
+      console.error('❌ Ошибка загрузки данных:', error);
+      Toast.show({
+        type: "error",
+        text1: "Ошибка загрузки",
+        text2: "Не удалось загрузить данные",
+        position: "bottom",
+      });
+    } finally {
+      isLoadingRef.current = false;
+      isFirstLoadRef.current = false;
+    }
+  }, [id, decks.length, loadDecksData, getDeckCards]);
+
+  // ============================================
+  // ⭐ ТОЛЬКО ОДИН useEffect для загрузки
+  // ============================================
+  useEffect(() => {
+    if (id) {
+      loadData();
+    }
+  }, [id]);
+
+  // ============================================
+  // ⭐ Обновляем данные при возврате на экран
+  // ============================================
+  useFocusEffect(
+    useCallback(() => {
+      if (id) {
+        // Проверяем, изменились ли данные
+        const currentDeck = decks.find((d) => d.id === id);
+        if (currentDeck) {
+          // Обновляем имя/описание если изменились
+          setName(currentDeck.name);
+          setDescription(currentDeck.description || "");
+        }
+        
+        // Обновляем карточки только если это не первый загруз
+        if (!isFirstLoadRef.current) {
+          console.log('🔄 Фоновое обновление при фокусе');
+          loadData(false);
+        }
+      }
+    }, [id, decks, loadData])
+  );
+
+  // ============================================
+  // ⭐ Обновляем информацию о колоде из стора
+  // ============================================
+  useEffect(() => {
+    if (deck) {
+      setName(deck.name);
+      setDescription(deck.description || "");
+      
+      // Если в сторе уже есть карточки - используем их
+      if (deck.cards && deck.cards.length > 0 && cards.length === 0) {
+        console.log(`📦 Использую карточки из стора (${deck.cards.length} шт.)`);
+        setCards(deck.cards);
+      }
+    }
+  }, [deck]);
+
+  // ============================================
+  // ⭐ ОБРАБОТЧИК SHARE
+  // ============================================
   const handleSharePress = async () => {
     if (isGenerating) return;
 
@@ -102,7 +214,6 @@ export default function DeckViewById() {
           const response = await makeDeckPublic(id);
           console.log("📦 Ответ от makeDeckPublic:", response);
 
-          // ✅ Правильное поле - cloud_uuid (с подчеркиванием)
           const cloudUuid = response?.cloud_uuid;
 
           if (cloudUuid) {
@@ -148,7 +259,6 @@ export default function DeckViewById() {
         const response = await makeDeckPublic(id);
         console.log("📦 Ответ от makeDeckPublic (локальная):", response);
 
-        // ✅ Правильное поле - cloud_uuid (с подчеркиванием)
         const cloudUuid = response?.cloud_uuid;
 
         if (cloudUuid) {
@@ -187,6 +297,9 @@ export default function DeckViewById() {
     });
   };
 
+  // ============================================
+  // ⭐ КОПИРОВАНИЕ ССЫЛКИ
+  // ============================================
   const handleCopyLink = async () => {
     const cloudUuid = cachedCloudUuid || cloudDeckId;
 
@@ -260,7 +373,9 @@ export default function DeckViewById() {
     }
   };
 
-  // ✅ Функция для ПУБЛИКАЦИИ в каталог (кнопка внутри модалки)
+  // ============================================
+  // ⭐ ПУБЛИКАЦИЯ В КАТАЛОГ
+  // ============================================
   const handleMakePublic = async () => {
     if (!id) return false;
     try {
@@ -291,6 +406,9 @@ export default function DeckViewById() {
     }
   };
 
+  // ============================================
+  // ⭐ НАВИГАЦИЯ
+  // ============================================
   const handleBack = () => {
     router.push("/decks");
   };
@@ -303,6 +421,44 @@ export default function DeckViewById() {
     router.push(`/decks/${id}/create-card?deckId=${id}`);
   };
 
+  const handleCardPress = (cardId: string) => {
+    router.push(`/card/${cardId}?deckId=${id}`);
+  };
+
+  // ============================================
+  // ⭐ УДАЛЕНИЕ КАРТОЧКИ
+  // ============================================
+  const handleDeleteCard = async (cardId: string, deckId?: string) => {
+    try {
+      await removeCard(deckId || (id as string), cardId);
+      setCards((prevCards) => prevCards.filter((card) => card.id !== cardId));
+
+      Toast.show({
+        type: "success",
+        text1: "Карточка удалена",
+        position: "bottom",
+        visibilityTime: 3000,
+      });
+    } catch (error) {
+      const err = error as AxiosError<{ message?: string }>;
+      const serverMessage =
+        err.response?.data?.message || err?.message || "Попробуйте снова";
+
+      Toast.show({
+        type: "error",
+        text1: "Ошибка удаления карточки",
+        text2: serverMessage,
+        position: "bottom",
+        visibilityTime: 3000,
+      });
+
+      console.error("Ошибка при удалении карточки:", error);
+    }
+  };
+
+  // ============================================
+  // ⭐ СИНХРОНИЗАЦИЯ
+  // ============================================
   const handleCloudSyncAlert = () => {
     setIsSyncModalVisible(true);
   };
@@ -334,7 +490,7 @@ export default function DeckViewById() {
           position: "bottom",
         });
 
-        await loadCards();
+        await loadData(true);
         return true;
       } else {
         console.log("Синхронизация через /import (ПОЛЬЗОВАТЕЛЬ)");
@@ -374,7 +530,7 @@ export default function DeckViewById() {
         return true;
       }
     } catch (error) {
-      console.error(" Ошибка синхронизации:", error);
+      console.error("Ошибка синхронизации:", error);
 
       let errorMessage = "Попробуйте позже";
       if (error instanceof Error) {
@@ -402,66 +558,17 @@ export default function DeckViewById() {
     return await handleSync();
   };
 
-  const loadCards = async () => {
-    try {
-      const fetchedCards = await getDeckCards(id as string);
-      setCards(fetchedCards);
-    } catch (error) {
-      console.error("Ошибка загрузки карточек:", error);
-    }
-  };
-
-  const handleCardPress = (cardId: string) => {
-    router.push(`/card/${cardId}?deckId=${id}`);
-  };
-
-  const handleDeleteCard = async (cardId: string, deckId?: string) => {
-    try {
-      await removeCard(deckId || (id as string), cardId);
-      setCards((prevCards) => prevCards.filter((card) => card.id !== cardId));
-
-      Toast.show({
-        type: "success",
-        text1: "Карточка удалена",
-        position: "bottom",
-        visibilityTime: 3000,
-      });
-    } catch (error) {
-      const err = error as AxiosError<{ message?: string }>;
-      const serverMessage =
-        err.response?.data?.message || err?.message || "Попробуйте снова";
-
-      Toast.show({
-        type: "error",
-        text1: "Ошибка удаления карточки",
-        text2: serverMessage,
-        position: "bottom",
-        visibilityTime: 3000,
-      });
-
-      console.error("Ошибка при удалении карточки:", error);
-    }
-  };
-  
-  // Обработчик для кнопки "Отлично" в модалке успеха
+  // ============================================
+  // ⭐ УСПЕШНОЕ ЗАВЕРШЕНИЕ СИНХРОНИЗАЦИИ
+  // ============================================
   const handleSuccessConfirm = async () => {
     setIsAddedAccessModalVisible(false);
 
     try {
       console.log("🔄 Перезагружаем данные после синхронизации...");
 
-
       await refreshDecks();
-
-      const fetchedCards = await getDeckCards(id as string);
-      setCards(fetchedCards);
-      console.log(`✅ Загружено ${fetchedCards.length} карточек`);
-
-      const updatedDeck = decks.find((d) => d.id === id);
-      if (updatedDeck) {
-        setName(updatedDeck.name);
-        setDescription(updatedDeck.description || "");
-      }
+      await loadData(true);
 
       Toast.show({
         type: "success",
@@ -480,46 +587,20 @@ export default function DeckViewById() {
     }
   };
 
+  // ============================================
+  // ⭐ ФИЛЬТРАЦИЯ КАРТОЧЕК
+  // ============================================
   const filteredCards = useMemo(() => {
     return cards.filter((card) =>
       card.front.toLowerCase().includes(search.toLowerCase()),
     );
   }, [search, cards]);
 
-  useEffect(() => {
-    if (id) {
-      loadCards();
-    }
-  }, [id]);
-
-  useEffect(() => {
-    if (deck) {
-      setName(deck.name);
-      setDescription(deck.description || "");
-
-      if (deck.cards && deck.cards.length > 0) {
-        const currentCardIds = cards.map((c) => c.id).sort();
-        const newCardIds = deck.cards.map((c) => c.id).sort();
-
-        if (JSON.stringify(currentCardIds) !== JSON.stringify(newCardIds)) {
-          console.log("🔄 Обновляем карточки из стора");
-          setCards(deck.cards);
-        }
-      }
-    }
-  }, [deck]); 
-
-  useFocusEffect(
-    useCallback(() => {
-      if (id) {
-        loadCards();
-              refreshDecks();
-      }
-    }, [id, refreshDecks]),
-  );
-
   const hasCards = cards.length > 0;
 
+  // ============================================
+  // ⭐ ОТРИСОВКА
+  // ============================================
   return (
     <View
       style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}
@@ -582,7 +663,6 @@ export default function DeckViewById() {
                     </Pressable>
                   )}
 
-                  {/* Кнопка импорта/шаринга всегда видна */}
                   <Pressable onPress={handleSharePress} disabled={isGenerating}>
                     <Image source={ImportButton} style={styles.importButton} />
                   </Pressable>
@@ -698,6 +778,7 @@ export default function DeckViewById() {
         onMakePublic={handleMakePublic}
         isAuthor={isAuthor}
       />
+
       <CustomAlertCloud
         visible={isAccessModalVisible}
         onCancel={() => setIsAccessModalVisible(false)}
@@ -708,6 +789,7 @@ export default function DeckViewById() {
         confirmText={"Понятно"}
         onConfirm={() => setIsAccessModalVisible(false)}
       />
+
       <CustomAlertCloud
         visible={isAddedAccessModalVisible}
         onCancel={() => setIsAddedAccessModalVisible(false)}
