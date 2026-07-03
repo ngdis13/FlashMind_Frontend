@@ -30,14 +30,14 @@ export default function DeckViewById() {
   const router = useRouter();
 
   // ✅ Берем данные из стора
-  const { 
-    decks, 
-    getDeckCards, 
-    removeCard, 
-    makeDeckPublic, 
-    importDeck, 
+  const {
+    decks,
+    getDeckCards,
+    removeCard,
+    makeDeckPublic,
+    importDeck,
     refreshDecks,
-    loadDecksData
+    loadDecksData,
   } = useDecks();
 
   const [name, setName] = useState("");
@@ -68,7 +68,8 @@ export default function DeckViewById() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSyncModalVisible, setIsSyncModalVisible] = useState(false);
   const [isAccessModalVisible, setIsAccessModalVisible] = useState(false);
-  const [isAddedAccessModalVisible, setIsAddedAccessModalVisible] = useState(false);
+  const [isAddedAccessModalVisible, setIsAddedAccessModalVisible] =
+    useState(false);
 
   useEffect(() => {
     if (cloudDeckId) {
@@ -81,51 +82,55 @@ export default function DeckViewById() {
   // ============================================
   // ⭐ ГЛАВНАЯ ФУНКЦИЯ ЗАГРУЗКИ ДАННЫХ
   // ============================================
-  const loadData = useCallback(async (forceRefresh = false) => {
-    // Защита от дублирующихся вызовов
-    if (isLoadingRef.current) {
-      console.log('⏳ Загрузка уже выполняется, пропускаю');
-      return;
-    }
-
-    if (!id) return;
-
-    try {
-      isLoadingRef.current = true;
-      console.log(`📱 Загружаем данные для колоды ${id}, force: ${forceRefresh}`);
-
-      // 1. Загружаем колоды (если нужно)
-      if (forceRefresh || decks.length === 0) {
-        console.log('🔄 Загружаем колоды...');
-        await loadDecksData();
+  const loadData = useCallback(
+    async (forceRefresh = false) => {
+      // Защита от дублирующихся вызовов
+      if (isLoadingRef.current) {
+        console.log("⏳ Загрузка уже выполняется, пропускаю");
+        return;
       }
 
-      // 2. Загружаем карточки
-      console.log('🃏 Загружаем карточки...');
-      const fetchedCards = await getDeckCards(id as string);
-      setCards(fetchedCards);
-      console.log(`✅ Загружено ${fetchedCards.length} карточек`);
+      if (!id) return;
 
-      // 3. Обновляем информацию о колоде
-      const updatedDeck = decks.find((d) => d.id === id);
-      if (updatedDeck) {
-        setName(updatedDeck.name);
-        setDescription(updatedDeck.description || "");
+      try {
+        isLoadingRef.current = true;
+        console.log(
+          `📱 Загружаем данные для колоды ${id}, force: ${forceRefresh}`,
+        );
+
+        // 1. Загружаем колоды (если нужно)
+        if (forceRefresh || decks.length === 0) {
+          console.log("🔄 Загружаем колоды...");
+          await loadDecksData();
+        }
+
+        // 2. Загружаем карточки
+        console.log("🃏 Загружаем карточки...");
+        const fetchedCards = await getDeckCards(id as string);
+        setCards(fetchedCards);
+        console.log(`✅ Загружено ${fetchedCards.length} карточек`);
+
+        // 3. Обновляем информацию о колоде
+        const updatedDeck = decks.find((d) => d.id === id);
+        if (updatedDeck) {
+          setName(updatedDeck.name);
+          setDescription(updatedDeck.description || "");
+        }
+      } catch (error) {
+        console.error("❌ Ошибка загрузки данных:", error);
+        Toast.show({
+          type: "error",
+          text1: "Ошибка загрузки",
+          text2: "Не удалось загрузить данные",
+          position: "bottom",
+        });
+      } finally {
+        isLoadingRef.current = false;
+        isFirstLoadRef.current = false;
       }
-
-    } catch (error) {
-      console.error('❌ Ошибка загрузки данных:', error);
-      Toast.show({
-        type: "error",
-        text1: "Ошибка загрузки",
-        text2: "Не удалось загрузить данные",
-        position: "bottom",
-      });
-    } finally {
-      isLoadingRef.current = false;
-      isFirstLoadRef.current = false;
-    }
-  }, [id, decks.length, loadDecksData, getDeckCards]);
+    },
+    [id, decks.length, loadDecksData, getDeckCards],
+  );
 
   // ============================================
   // ⭐ ТОЛЬКО ОДИН useEffect для загрузки
@@ -149,14 +154,14 @@ export default function DeckViewById() {
           setName(currentDeck.name);
           setDescription(currentDeck.description || "");
         }
-        
+
         // Обновляем карточки только если это не первый загруз
         if (!isFirstLoadRef.current) {
-          console.log('🔄 Фоновое обновление при фокусе');
+          console.log("🔄 Фоновое обновление при фокусе");
           loadData(false);
         }
       }
-    }, [id, decks, loadData])
+    }, [id, decks, loadData]),
   );
 
   // ============================================
@@ -166,10 +171,12 @@ export default function DeckViewById() {
     if (deck) {
       setName(deck.name);
       setDescription(deck.description || "");
-      
+
       // Если в сторе уже есть карточки - используем их
       if (deck.cards && deck.cards.length > 0 && cards.length === 0) {
-        console.log(`📦 Использую карточки из стора (${deck.cards.length} шт.)`);
+        console.log(
+          `📦 Использую карточки из стора (${deck.cards.length} шт.)`,
+        );
         setCards(deck.cards);
       }
     }
@@ -590,10 +597,31 @@ export default function DeckViewById() {
   // ============================================
   // ⭐ ФИЛЬТРАЦИЯ КАРТОЧЕК
   // ============================================
+  // ============================================
+  // ⭐ ФИЛЬТРАЦИЯ И СОРТИРОВКА КАРТОЧЕК
+  // ============================================
   const filteredCards = useMemo(() => {
-    return cards.filter((card) =>
+    // Сначала фильтруем по поиску
+    const filtered = cards.filter((card) =>
       card.front.toLowerCase().includes(search.toLowerCase()),
     );
+
+    // Затем сортируем по сложности (от высокой к низкой)
+    // Предполагаем, что difficulty - это число, где больше = сложнее
+    return filtered.sort((a, b) => {
+      // Если difficulty есть у обеих карточек
+      if (a.difficulty !== undefined && b.difficulty !== undefined) {
+        return b.difficulty - a.difficulty; // По убыванию (сложные сверху)
+      }
+      // Если у одной карточки нет difficulty, считаем её легкой (помещаем вниз)
+      if (a.difficulty === undefined && b.difficulty !== undefined) {
+        return 1; // a (без difficulty) идет после b
+      }
+      if (a.difficulty !== undefined && b.difficulty === undefined) {
+        return -1; // a (с difficulty) идет перед b
+      }
+      return 0; // если у обеих нет difficulty, порядок не меняем
+    });
   }, [search, cards]);
 
   const hasCards = cards.length > 0;
