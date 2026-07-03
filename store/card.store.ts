@@ -4,7 +4,8 @@ import {
   fetchDeckCards, 
   createCard, 
   updateCardOnServer, 
-  deleteCard 
+  deleteCard,
+  fetchCardById
 } from "@/storage/api/api";
 import { loadDeckCards, saveDeckCards } from "@/storage/service/decksStorage";
 import { Card } from "@/storage/types/types";
@@ -13,84 +14,158 @@ type CardState = {
   cards: Record<string, Card[]>; // { deckId: [cards] }
   isLoading: Record<string, boolean>;
   error: string | null;
+  lastFetched: Record<string, number>;
+  
   fetchCards: (deckId: string, force?: boolean) => Promise<void>;
   getCards: (deckId: string) => Card[];
+  getCardById: (cardId: string) => Promise<Card | null>;  // ← НОВЫЙ МЕТОД
   createCard: (data: { deck_id: string; front: string; back: string }) => Promise<Card>;
   updateCard: (id: string, data: Partial<Card>) => Promise<Card>;
   deleteCard: (id: string, deckId: string) => Promise<void>;
+  clearCards: (deckId?: string) => void;
 };
 
 export const useCardStore = create<CardState>((set, get) => ({
   cards: {},
   isLoading: {},
   error: null,
+  lastFetched: {},
 
-// store/card.store.ts - обновленный fetchCards
-fetchCards: async (deckId: string, force = false) => {
-  console.log(`🔍 fetchCards вызван для ${deckId}, force: ${force}`);
-  
-  // Если уже есть карточки - используем кэш
-  if (!force && get().cards[deckId] && get().cards[deckId].length > 0) {
-    console.log(`📦 Карточки для колоды ${deckId} уже загружены (${get().cards[deckId].length} шт.)`);
-    return;
-  }
-
-  // Защита от дублирующихся запросов
-  if (get().isLoading[deckId]) {
-    console.log(`⏳ Запрос карточек для ${deckId} уже выполняется, пропускаю`);
-    return;
-  }
-
-  set((state) => ({ 
-    isLoading: { ...state.isLoading, [deckId]: true },
-    error: null 
-  }));
-
-  try {
-    // Проверяем AsyncStorage
-    console.log(`💾 Проверяем кэш для ${deckId}...`);
-    const cached = await loadDeckCards(deckId);
-    console.log(`📦 В кэше: ${cached?.length || 0} карточек`);
-    
-    if (cached && cached.length > 0 && !force) {
-      console.log(`✅ Использую кэш: ${cached.length} карточек`);
-      set((state) => ({
-        cards: { ...state.cards, [deckId]: cached },
-        isLoading: { ...state.isLoading, [deckId]: false }
-      }));
+  // ============================================
+  // ⭐ ПОЛУЧАЕМ УРЕЗАННЫЕ КАРТОЧКИ КОЛОДЫ
+  // ============================================
+  fetchCards: async (deckId: string, force = false) => {
+    // Если уже есть карточки - используем кэш
+    if (!force && get().cards[deckId] && get().cards[deckId].length > 0) {
+      console.log(`📦 Карточки для колоды ${deckId} уже загружены (${get().cards[deckId].length} шт.)`);
       return;
     }
 
-    // Запрос к серверу
-    console.log(`🌐 Загружаем карточки для ${deckId} с сервера...`);
-    const serverCards = await fetchDeckCards(deckId);
-    console.log(`📥 Получено ${serverCards?.length || 0} карточек с сервера`);
-    
-    if (serverCards && serverCards.length > 0) {
-      await saveDeckCards(deckId, serverCards);
-      console.log(`💾 Сохранено ${serverCards.length} карточек в кэш`);
-    } else {
-      console.log(`⚠️ Сервер вернул 0 карточек для колоды ${deckId}`);
+    if (get().isLoading[deckId]) {
+      console.log(`⏳ Запрос карточек для ${deckId} уже выполняется`);
+      return;
     }
-    
-    set((state) => ({
-      cards: { ...state.cards, [deckId]: serverCards || [] },
-      isLoading: { ...state.isLoading, [deckId]: false }
+
+    set((state) => ({ 
+      isLoading: { ...state.isLoading, [deckId]: true },
+      error: null 
     }));
-  } catch (error) {
-    console.error('❌ Ошибка загрузки карточек:', error);
-    set((state) => ({
-      error: error instanceof Error ? error.message : 'Ошибка загрузки',
-      isLoading: { ...state.isLoading, [deckId]: false }
-    }));
-  }
-},
+
+    try {
+      // Проверяем AsyncStorage
+      const cached = await loadDeckCards(deckId);
+      if (cached && cached.length > 0 && !force) {
+        console.log(`📦 Использую кэш: ${cached.length} карточек`);
+        set((state) => ({
+          cards: { ...state.cards, [deckId]: cached },
+          isLoading: { ...state.isLoading, [deckId]: false }
+        }));
+        return;
+      }
+
+      // Запрос к серверу (урезанные данные)
+      console.log(`🌐 Загружаем карточки для ${deckId} с сервера...`);
+      const serverCards = await fetchDeckCards(deckId);
+      console.log(`📥 Получено ${serverCards?.length || 0} карточек с сервера (урезанные)`);
+      
+      if (serverCards && serverCards.length > 0) {
+        await saveDeckCards(deckId, serverCards);
+      }
+      
+      set((state) => ({
+        cards: { ...state.cards, [deckId]: serverCards || [] },
+        isLoading: { ...state.isLoading, [deckId]: false },
+        lastFetched: { ...state.lastFetched, [deckId]: Date.now() }
+      }));
+    } catch (error) {
+      console.error('❌ Ошибка загрузки карточек:', error);
+      set((state) => ({
+        error: error instanceof Error ? error.message : 'Ошибка загрузки',
+        isLoading: { ...state.isLoading, [deckId]: false }
+      }));
+    }
+  },
 
   getCards: (deckId: string) => {
     return get().cards[deckId] || [];
   },
 
-  // ⭐ СОЗДАНИЕ - только 1 POST запрос
+  // ============================================
+  // ⭐ ПОЛУЧАЕМ ПОЛНУЮ КАРТОЧКУ ПО ID
+  // ============================================
+  getCardById: async (cardId: string): Promise<Card | null> => {
+    console.log(`🔍 getCardById: ${cardId}`);
+    
+    // 1️⃣ Ищем в кэше (сначала во всех колодах)
+    const allCards = Object.values(get().cards).flat();
+    const found = allCards.find(c => c.id === cardId);
+    
+    if (found) {
+      console.log(`✅ Карточка найдена в кэше: ${found.front}`);
+      // ✅ Проверяем, есть ли back (если нет - нужно загрузить полную версию)
+      if (found.back) {
+        console.log(`📦 Полная карточка с back: ${found.back.substring(0, 30)}...`);
+        return found;
+      } else {
+        console.log(`⚠️ Карточка в кэше без back, загружаем полную версию...`);
+        // Продолжаем к запросу на сервер
+      }
+    } else {
+      console.log(`❌ Карточка ${cardId} не найдена в кэше`);
+    }
+
+    // 2️⃣ Если нет в кэше или нет back - загружаем с сервера
+    try {
+      console.log(`🌐 Загружаем ПОЛНУЮ карточку ${cardId} с сервера...`);
+      const fullCard = await fetchCardById(cardId);
+      console.log(`✅ Полная карточка загружена:`, {
+        id: fullCard.id,
+        front: fullCard.front,
+        hasBack: !!fullCard.back
+      });
+      
+      // 3️⃣ Обновляем кэш с полной карточкой
+      // Находим в какой колоде эта карточка
+      let deckId = '';
+      for (const [key, cards] of Object.entries(get().cards)) {
+        if (cards.some(c => c.id === cardId)) {
+          deckId = key;
+          break;
+        }
+      }
+      
+      if (deckId) {
+        console.log(`📦 Обновляем карточку в кэше колоды ${deckId}`);
+        // Обновляем карточку в кэше
+        const updatedCards = get().cards[deckId].map(c => 
+          c.id === cardId ? { ...c, ...fullCard } : c
+        );
+        
+        set((state) => ({
+          cards: {
+            ...state.cards,
+            [deckId]: updatedCards
+          }
+        }));
+        // Сохраняем в AsyncStorage
+        await saveDeckCards(deckId, updatedCards);
+        console.log(`💾 Обновлена карточка в кэше для колоды ${deckId}`);
+      } else {
+        // Если колода не найдена - просто добавляем карточку в отдельный кэш
+        console.log(`⚠️ Колода для карточки ${cardId} не найдена, сохраняем отдельно`);
+        // Здесь можно добавить логику для сохранения отдельной карточки
+      }
+      
+      return fullCard;
+    } catch (error) {
+      console.error(`❌ Ошибка загрузки карточки ${cardId}:`, error);
+      return null;
+    }
+  },
+
+  // ============================================
+  // CRUD операции
+  // ============================================
   createCard: async (data) => {
     try {
       console.log(`📝 Создаем карточку в колоде ${data.deck_id}...`);
@@ -107,7 +182,6 @@ fetchCards: async (deckId: string, force = false) => {
         }
       }));
       
-      // Сохраняем в кэш
       await saveDeckCards(data.deck_id, get().cards[data.deck_id]);
       console.log(`✅ Карточка создана локально`);
       return newCard;
@@ -117,7 +191,6 @@ fetchCards: async (deckId: string, force = false) => {
     }
   },
 
-  // ⭐ ОБНОВЛЕНИЕ - только 1 PUT запрос
   updateCard: async (id: string, data: Partial<Card>) => {
     try {
       console.log(`📝 Обновляем карточку ${id}...`);
@@ -134,7 +207,6 @@ fetchCards: async (deckId: string, force = false) => {
       }
       
       if (deckId) {
-        // Обновляем локально
         set((state) => ({
           cards: {
             ...state.cards,
@@ -143,7 +215,6 @@ fetchCards: async (deckId: string, force = false) => {
             )
           }
         }));
-        
         await saveDeckCards(deckId, get().cards[deckId]);
       }
       
@@ -155,13 +226,11 @@ fetchCards: async (deckId: string, force = false) => {
     }
   },
 
-  // ⭐ УДАЛЕНИЕ - только 1 DELETE запрос
   deleteCard: async (id: string, deckId: string) => {
     try {
       console.log(`🗑️ Удаляем карточку ${id}...`);
       await deleteCard(id);
       
-      // Удаляем локально
       set((state) => ({
         cards: {
           ...state.cards,
@@ -169,12 +238,22 @@ fetchCards: async (deckId: string, force = false) => {
         }
       }));
       
-      // Сохраняем в кэш
       await saveDeckCards(deckId, get().cards[deckId]);
       console.log(`✅ Карточка ${id} удалена локально`);
     } catch (error) {
       console.error('❌ Ошибка удаления:', error);
       throw error;
+    }
+  },
+
+  clearCards: (deckId?: string) => {
+    if (deckId) {
+      set((state) => ({
+        cards: { ...state.cards, [deckId]: [] },
+        lastFetched: { ...state.lastFetched, [deckId]: undefined }
+      }));
+    } else {
+      set({ cards: {}, lastFetched: {} });
     }
   }
 }));

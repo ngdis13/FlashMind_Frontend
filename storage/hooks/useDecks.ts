@@ -301,46 +301,24 @@ export const useDecks = () => {
     return updated;
   }, [cardStore.updateCard]);
 
-  /**
-   * Получает карточку по ID с кэшированием
-   * 
-   * @description
-   * Сначала ищет карточку во всех кэшированных карточках.
-   * Если не находит - загружает с сервера.
-   * 
-   * @async
-   * @param {string} cardId - ID карточки
-   * @returns {Promise<Card | null>} Найденная карточка или null
-   * 
-   * @example
-   * ```tsx
-   * const card = await getCardById('456');
-   * if (card) {
-   *   console.log(`Карточка: ${card.front} -> ${card.back}`);
-   * }
-   * ```
-   */
-  const getCardById = useCallback(async (cardId: string) => {
-    console.log(`🔍 getCardById: ${cardId}`);
-    
-    // Ищем во всех карточках
-    const allCards = Object.values(cardStore.cards).flat();
-    const found = allCards.find(c => c.id === cardId);
-    if (found) {
-      console.log(`✅ Карточка найдена в кэше`);
-      return found;
-    }
-    
-    // Если не нашли - пробуем загрузить с сервера
-    try {
-      console.log(`🌐 Загружаем карточку ${cardId} с сервера`);
-      const card = await fetchCardById(cardId);
-      return card;
-    } catch (error) {
-      console.error(`❌ Карточка ${cardId} не найдена`);
-      return null;
-    }
-  }, [cardStore.cards]);
+// hooks/useDecks.ts - обнови getCardById
+
+/**
+ * Получает карточку по ID с кэшированием
+ * 
+ * @description
+ * Сначала ищет карточку во всех кэшированных карточках.
+ * Если не находит или нет back - загружает полную версию с сервера.
+ * 
+ * @async
+ * @param {string} cardId - ID карточки
+ * @returns {Promise<Card | null>} Найденная карточка или null
+ */
+const getCardById = useCallback(async (cardId: string) => {
+  console.log(`🔍 getCardById: ${cardId}`);
+  // ✅ Используем новый метод из cardStore
+  return await cardStore.getCardById(cardId);
+}, [cardStore]); // ← Добавляем cardStore в зависимости
 
   // ============================================
   // 5. ОБЛАЧНЫЕ КОЛОДЫ - с кэшированием результата
