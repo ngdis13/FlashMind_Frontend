@@ -1,3 +1,4 @@
+// screens/main/MainDecksScreen.tsx
 import { useEffect, useState, useCallback, useRef } from "react";
 import {
   View,
@@ -9,7 +10,9 @@ import {
   TouchableWithoutFeedback,
   Animated,
   useWindowDimensions,
+  RefreshControl,
 } from "react-native";
+import { useFocusEffect } from "expo-router";
 import { commonStyles } from "@/styles/Common";
 import { Typography } from "@/styles/Typography";
 import { Input } from "@/components/Input";
@@ -22,19 +25,83 @@ import { useRouter } from "expo-router";
 import { useDecks } from "@/storage/hooks/useDecks";
 import { getPluralCards } from "@/utils/helpers/getPluralCards";
 import { Deck } from "@/storage/types/types";
+import Toast from "react-native-toast-message";
+import { useDeckStore } from "@/store/deck.store";
 
 export default function MainDecksScreen() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [search, setSearch] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
   const router = useRouter();
 
-  const { decks, loading } = useDecks();
+  const { decks, loading, refreshDecks, loadDecksData } = useDecks();
 
   const modalAnim = useRef(new Animated.Value(0)).current;
   const { width } = useWindowDimensions();
   const currentContentWidth = Math.min(width, 800);
   const numColumns = Math.max(2, Math.floor((currentContentWidth - 20) / 180));
 
+  // ============================================
+  // ⭐ 1. ЗАГРУЗКА ПРИ ПЕРВОМ ОТКРЫТИИ
+  // ============================================
+  useEffect(() => {
+    console.log("🚀 Первичная загрузка колод");
+    loadDecksData();
+  }, []);
+
+  // ============================================
+  // ⭐ 2. ОБНОВЛЕНИЕ ПРИ ВОЗВРАТЕ - ВСЕГДА!
+  // ============================================
+  useFocusEffect(
+    useCallback(() => {
+      console.log('🔄 Обновляем колоды при возврате на главный экран');
+      
+      const refreshData = async () => {
+        try {
+          // ✅ Всегда обновляем с сервера!
+          await refreshDecks();
+          console.log('✅ Данные колод обновлены');
+        } catch (error) {
+          console.error('❌ Ошибка обновления данных:', error);
+        }
+      };
+      
+      refreshData();
+    }, [refreshDecks])
+  );
+
+  // ============================================
+  // ⭐ 3. PULL-TO-REFRESH
+  // ============================================
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      console.log("🔄 Pull-to-refresh: обновляем колоды");
+      await refreshDecks();
+
+      Toast.show({
+        type: "success",
+        text1: "Колоды обновлены",
+        position: "bottom",
+        visibilityTime: 1500,
+      });
+    } catch (error) {
+      console.error("❌ Ошибка обновления:", error);
+      Toast.show({
+        type: "error",
+        text1: "Ошибка обновления",
+        text2: "Попробуйте позже",
+        position: "bottom",
+      });
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refreshDecks]);
+
+  // ============================================
+  // ОСТАЛЬНЫЕ ФУНКЦИИ
+  // ============================================
+  
   const handleAddDecks = () => {
     setIsModalVisible(true);
     Animated.timing(modalAnim, {
@@ -63,18 +130,24 @@ export default function MainDecksScreen() {
   const handleEditDecks = (id: string) => router.push(`/decks/${id}`);
   const handleDeckPress = (id: string) => router.push(`/decks/${id}/study`);
 
-
   const getDeckColor = (deck: Deck): string => {
-    return deck.settings?.color  || colors.mainColor;
+    return deck.settings?.color || colors.mainColor;
   };
 
+  // ============================================
+  // ОТРИСОВКА
+  // ============================================
   return (
     <View
       style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}
     >
       <View style={[commonStyles.container, { flex: 1 }]}>
-        {loading ? (
-          <ActivityIndicator size="large" color="#000" style={{ flex: 1 }} />
+        {loading && !refreshing ? (
+          <ActivityIndicator
+            size="large"
+            color={colors.mainColor}
+            style={{ flex: 1 }}
+          />
         ) : (
           <View style={styles.wrapper}>
             <FlatList
@@ -84,6 +157,14 @@ export default function MainDecksScreen() {
               numColumns={numColumns}
               columnWrapperStyle={styles.columnWrapper}
               contentContainerStyle={styles.listContentContainer}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={onRefresh}
+                  colors={[colors.mainColor]}
+                  tintColor={colors.mainColor}
+                />
+              }
               ListHeaderComponent={
                 <View style={styles.headerContainer}>
                   <Typography variant="h1" style={{ marginBottom: 16 }}>
@@ -112,20 +193,24 @@ export default function MainDecksScreen() {
                   </Typography>
                 </View>
               )}
-              renderItem={({ item, index }) => (
-                <View style={styles.deckItemWrapper}>
-                  <DecksView
-                    title={item.name}
-                    cardCount={getPluralCards(item.total_cards)}
-                    onCardPress={() => handleDeckPress(item.id)}
-                    onEditPress={() => handleEditDecks(item.id)}
-                    cardCountRepeat={item.repeat_cards}
-                    index={index}
-                  
-                    color={getDeckColor(item)}
-                  />
-                </View>
-              )}
+              renderItem={({ item, index }) => {
+                // ✅ Логируем для проверки
+                console.log(`📊 Колода: ${item.name}, repeat_cards: ${item.repeat_cards}`);
+                
+                return (
+                  <View style={styles.deckItemWrapper}>
+                    <DecksView
+                      title={item.name}
+                      cardCount={getPluralCards(item.total_cards)}
+                      onCardPress={() => handleDeckPress(item.id)}
+                      onEditPress={() => handleEditDecks(item.id)}
+                      cardCountRepeat={item.repeat_cards || 0}
+                      index={index}
+                      color={getDeckColor(item)}
+                    />
+                  </View>
+                );
+              }}
             />
 
             <MainButton

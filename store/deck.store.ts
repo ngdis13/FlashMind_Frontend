@@ -1,4 +1,4 @@
-
+// store/deck.store.ts
 import { create } from "zustand";
 import { fetchUserDecks, updateDeck, deleteDeckOnServer } from "@/storage/api/api";
 import { loadDecks, saveDecks } from "@/storage/service/decksStorage";
@@ -8,28 +8,35 @@ type DeckState = {
   decks: Deck[];
   isLoading: boolean;
   error: string | null;
+  lastFetched: number | null;
+  needsRefresh: boolean;
+  
   fetchDecks: (force?: boolean) => Promise<void>;
   getDeckById: (id: string) => Deck | undefined;
   updateDeck: (id: string, data: Partial<Deck>) => Promise<void>;
   deleteDeck: (id: string) => Promise<void>;
+  setNeedsRefresh: (value: boolean) => void;
 };
 
 export const useDeckStore = create<DeckState>((set, get) => ({
   decks: [],
   isLoading: false,
   error: null,
+  lastFetched: null,
+  needsRefresh: false,
 
-  // ⭐ ГЛАВНЫЙ МЕТОД - с кэшированием
+  setNeedsRefresh: (value: boolean) => {
+    set({ needsRefresh: value });
+  },
+
   fetchDecks: async (force = false) => {
     const state = get();
     
-    // Если уже есть данные - используем кэш
     if (!force && state.decks.length > 0) {
       console.log('📦 Колоды уже загружены, использую кэш');
       return;
     }
 
-    // Защита от дублирующихся запросов
     if (state.isLoading) {
       console.log('⏳ Запрос уже выполняется');
       return;
@@ -38,19 +45,25 @@ export const useDeckStore = create<DeckState>((set, get) => ({
     set({ isLoading: true, error: null });
 
     try {
-      // Сначала проверяем AsyncStorage
       const cached = await loadDecks();
       if (cached && cached.length > 0 && !force) {
         console.log(`📦 Загружено ${cached.length} колод из кэша`);
-        set({ decks: cached, isLoading: false });
+        set({ decks: cached, isLoading: false, lastFetched: Date.now() });
         return;
       }
 
-      // Если кэша нет - запрос к серверу
       console.log('🌐 Загружаем колоды с сервера...');
       const serverDecks = await fetchUserDecks();
+      
+      // ✅ Сохраняем ВСЕ поля
       await saveDecks(serverDecks);
-      set({ decks: serverDecks, isLoading: false });
+      set({ 
+        decks: serverDecks, 
+        isLoading: false, 
+        lastFetched: Date.now(),
+        needsRefresh: false // Сбрасываем флаг
+      });
+      
       console.log(`✅ Загружено ${serverDecks.length} колод с сервера`);
     } catch (error) {
       console.error('❌ Ошибка загрузки колод:', error);
@@ -65,20 +78,17 @@ export const useDeckStore = create<DeckState>((set, get) => ({
     return get().decks.find(d => d.id === id);
   },
 
-  // ⭐ ОБНОВЛЕНИЕ - с локальным обновлением
   updateDeck: async (id: string, data: Partial<Deck>) => {
     try {
       console.log(`📝 Обновляем колоду ${id}...`);
       await updateDeck(id, data);
       
-      // Обновляем локально
       set((state) => ({
         decks: state.decks.map(deck =>
           deck.id === id ? { ...deck, ...data } : deck
         )
       }));
       
-      // Сохраняем в кэш
       await saveDecks(get().decks);
       console.log(`✅ Колода ${id} обновлена локально`);
     } catch (error) {
@@ -87,18 +97,15 @@ export const useDeckStore = create<DeckState>((set, get) => ({
     }
   },
 
-  // ⭐ УДАЛЕНИЕ - с локальным обновлением
   deleteDeck: async (id: string) => {
     try {
       console.log(`🗑️ Удаляем колоду ${id}...`);
       await deleteDeckOnServer(id);
       
-      // Удаляем локально
       set((state) => ({
         decks: state.decks.filter(deck => deck.id !== id)
       }));
       
-      // Сохраняем в кэш
       await saveDecks(get().decks);
       console.log(`✅ Колода ${id} удалена локально`);
     } catch (error) {
