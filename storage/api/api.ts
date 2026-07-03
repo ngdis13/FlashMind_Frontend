@@ -167,13 +167,16 @@ export const fetchCards = async (
 /**
  * Получить карточки конкретной колоды (обертка для удобства)
  */
+// api.ts
 export const fetchDeckCards = async (deckId: string): Promise<Card[]> => {
+  console.log(`🌐 API: Запрос карточек для колоды ${deckId}`);
   try {
     const response = await fetchCards(deckId);
-    return response.cards;
-  } catch (err) {
-    console.error(`Ошибка загрузки карточек колоды ${deckId}:`, err);
-    throw err;
+    console.log(`✅ API: Получено ${response.cards?.length || 0} карточек`);
+    return response.cards || [];
+  } catch (error) {
+    console.error(`❌ API: Ошибка загрузки карточек ${deckId}:`, error);
+    throw error;
   }
 };
 
