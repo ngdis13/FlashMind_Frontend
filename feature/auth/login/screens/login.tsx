@@ -26,8 +26,7 @@ import { Typography } from "@/styles/Typography";
 import { commonStyles } from "@/styles/Common";
 import { colors } from "@/styles/Colors";
 
-// Обязательно для корректной работы WebBrowser на Android
-WebBrowser.maybeCompleteAuthSession();
+
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -41,77 +40,6 @@ export default function LoginScreen() {
   const router = useRouter();
   const setAccessToken = useAuthStore((state) => state.setAccessToken);
 
-  // Ссылка для возврата в приложение (схема настраивается в app.json)
-  const redirectUrl = Linking.createURL("auth-redirect");
-
-  // Слушаем возвращение из браузера (Deep Link от бэкенда)
-  useEffect(() => {
-    const subscription = Linking.addEventListener("url", handleDeepLink);
-    return () => subscription.remove();
-  }, []);
-
-  const handleDeepLink = (event: { url: string }) => {
-    const { path, queryParams } = Linking.parse(event.url);
-
-    // Если бэк отправил пользователя назад с токеном
-    if (queryParams && queryParams.token) {
-      const jwtToken = queryParams.token as string;
-
-      console.log("=== ТОКЕН ПОЛУЧЕН ИЗ TELEGRAM ===");
-      console.log(jwtToken); // Выведет ваш токен в консоль Metro Bundler
-
-      setAccessToken(jwtToken);
-      WebBrowser.dismissBrowser(); // Закрываем окно браузера
-      router.replace("/profile");
-    }
-  };
-
-  const handleTelegramLogin = async () => {
-    setServerError(null);
-
-    // Важно: меняем response_type на "id_token" и добавляем nonce (любая случайная строка)
-    // В redirect_uri передаем схему вашего мобильного приложения, чтобы ТГ вернул ответ прямо в телефон!
-    const telegramAuthUrl =
-      `https://oauth.telegram.org/auth?` +
-      `client_id=8925590183` +
-      `&redirect_uri=${encodeURIComponent(redirectUrl)}` + // Возвращаем сразу в приложение
-      `&response_type=id_token` + // ТГ сам поймет, что нужно сразу отдать JWT токен
-      `&scope=user` +
-      `&nonce=flashmind_test_nonce`; // Обязательный параметр для id_token
-
-    try {
-      // Открываем браузер внутри приложения
-      const result = await WebBrowser.openAuthSessionAsync(
-        telegramAuthUrl,
-        redirectUrl,
-      );
-
-      // Если вход успешный, Telegram вернет URL с токеном прямо сюда!
-      if (result.type === "success" && result.url) {
-        // Разбираем URL, который вернул Telegram
-        const parsedUrl = Linking.parse(result.url);
-
-        // Ловим id_token (он обычно приходит в хэше # или query параметрах)
-        const idToken =
-          parsedUrl.queryParams?.id_token ||
-          parsedUrl.hash?.match(/id_token=([^&]+)/)?.[1];
-
-        if (idToken) {
-          console.log("=== УСПЕХ! ТОКЕН ПОЛУЧЕН НА ФРОНТЕНДЕ ===");
-          console.log("id_token:", idToken); // Вот ваш заветный токен в консоли Metro!
-
-          // Сохраняем и идем в профиль
-          setAccessToken(idToken);
-          router.replace("/profile");
-        } else {
-          console.log("URL вернулся, но токена в нем нет:", result.url);
-        }
-      }
-    } catch (error) {
-      setServerError("Не удалось открыть авторизацию Telegram");
-      console.error(error);
-    }
-  };
 
   const handleLogin = async () => {
     let hasError = false;
@@ -209,39 +137,6 @@ export default function LoginScreen() {
               onPress={handleLogin}
               disabled={!isButtonActive}
             />
-
-            {/* Новая кнопка Telegram в стиле вашего UI */}
-            <Pressable
-              onPress={handleTelegramLogin}
-              style={({ pressed }) => [
-                {
-                  backgroundColor: "#229ED9", // Фирменный цвет Telegram
-                  paddingVertical: 12,
-                  borderRadius: 20, // Делаем кнопку округлой как на макете
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: "100%",
-                  opacity: pressed ? 0.9 : 1, // Эффект нажатия
-                  gap: 8,
-                },
-              ]}
-            >
-              <Image
-                source={tgIcon}
-                style={{ width: 20, height: 20 }}
-                resizeMode="contain"
-              />
-
-              <Typography
-                variant="h2"
-                style={{
-                  color: "white",
-                }}
-              >
-                Войти через Telegram
-              </Typography>
-            </Pressable>
 
             {/* Кнопка регистрации */}
             <SecondButton title="Регистрация" onPress={handleRegister} />
