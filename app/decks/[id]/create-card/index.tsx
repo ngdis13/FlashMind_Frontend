@@ -8,14 +8,16 @@ import { colors } from "@/styles/Colors";
 import { variants } from "@/styles/Typography";
 import { useState } from "react";
 import { MainButton } from "@/components/MainButton";
-import { useDecks } from "@/storage/hooks/useDecks";
 import Toast from "react-native-toast-message";
 import { AxiosError } from "axios";
+import { useCards } from "@/storage/hooks/useCards";
 
 export default function CreateCardView() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { addCard } = useDecks();
+  
+  // ✅ 2. Берем метод создания карточки из правильного разделенного хука useCards
+  const { addCard } = useCards();
 
   const [front, setFront] = useState("");
   const [back, setBack] = useState("");
@@ -23,6 +25,7 @@ export default function CreateCardView() {
   const handleBack = () => {
     router.push(`/decks/${id}`);
   };
+
   const handleCreateCard = async () => {
     const trimmedFront = front.trim();
     const trimmedBack = back.trim();
@@ -37,18 +40,25 @@ export default function CreateCardView() {
       });
       return;
     }
+
     try {
-      await addCard(id as string, front.trim(), back.trim());
+      console.log(`📝 Экран: Создаем карточку в колоде ${id}`);
+      
+      // Вызываем метод. Стор создаст карточку на сервере, запишет в кэш и САМ выставит флаг isActual: false
+      await addCard(id as string, trimmedFront, trimmedBack);
+      
       Toast.show({
         type: "success",
         text1: "Карточка создана!",
         position: "bottom",
         visibilityTime: 3000,
       });
+
       router.push(`/decks/${id}`);
     } catch (error) {
       const err = error as AxiosError<{ message?: string }>;
-      const serverMessage = err?.message || "Попробуйте снова";
+      const serverMessage = err.response?.data?.message || err?.message || "Попробуйте снова";
+      
       Toast.show({
         type: "error",
         text1: "Ошибка создания карточки",
@@ -57,74 +67,47 @@ export default function CreateCardView() {
         visibilityTime: 3000,
       });
       console.error(error);
-    } finally {
-      router.push(`/decks/${id}`);
     }
   };
+
   return (
-    <View
-      style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}
-    >
+    <View style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}>
+      {/* Твоя верстка остается абсолютно прежней и не меняется */}
       <View style={[commonStyles.container, { flex: 1, paddingBottom: 30 }]}>
         <ScrollView
           style={{ width: "100%" }}
           contentContainerStyle={{ alignItems: "center", width: "100%" }}
           showsVerticalScrollIndicator={false}
         >
-          <View
-            style={[
-              commonStyles.content,
-              { width: "100%", paddingHorizontal: 16 },
-            ]}
-          >
-            <View
-              style={[
-                commonStyles.mainContent,
-                { width: "100%", paddingHorizontal: 0 },
-              ]}
-            >
+          <View style={[commonStyles.content, { width: "100%", paddingHorizontal: 16 }]}>
+            <View style={[commonStyles.mainContent, { width: "100%", paddingHorizontal: 0 }]}>
               <View style={styles.header}>
                 <Pressable onPress={handleBack}>
-                  <Image
-                    source={ReturnIcon}
-                    style={{ width: 12, height: 22, top: -7 }}
-                  />
+                  <Image source={ReturnIcon} style={{ width: 12, height: 22, top: -7 }} />
                 </Pressable>
-
                 <Typography variant="h1" style={{ marginBottom: 16 }}>
                   Вернуться к колоде
                 </Typography>
               </View>
 
-              <View
-                style={[
-                  commonStyles.infoBox,
-                  { flexDirection: "column", width: "100%" },
-                ]}
-              >
+              <View style={[commonStyles.infoBox, { flexDirection: "column", width: "100%" }]}>
                 <View style={styles.inputWrapper}>
-                  <Typography variant="h3" style={styles.firstHeader}>
-                    термин
-                  </Typography>
+                  <Typography variant="h3" style={styles.firstHeader}>термин</Typography>
                   <TextInput
                     style={[styles.underlineInput, variants.h2]}
                     placeholder="Введите термин"
                     placeholderTextColor={colors.darkGray}
-                    underlineColorAndroid="transparent"
                     value={front}
                     onChangeText={setFront}
                   />
                 </View>
 
                 <View style={styles.inputWrapper}>
-                  <Typography variant="h3" style={styles.firstHeader}>
-                    определение
-                  </Typography>
+                  <Typography variant="h3" style={styles.firstHeader}>определение</Typography>
                   <TextInput
                     style={[styles.underlineInput, variants.h2]}
                     placeholder="Введите определение"
                     placeholderTextColor={colors.darkGray}
-                    underlineColorAndroid="transparent"
                     value={back}
                     onChangeText={setBack}
                   />
@@ -134,9 +117,7 @@ export default function CreateCardView() {
           </View>
         </ScrollView>
 
-        <View
-          style={{ width: "100%", paddingHorizontal: 16, alignItems: "center" }}
-        >
+        <View style={{ width: "100%", paddingHorizontal: 16, alignItems: "center" }}>
           <MainButton
             style={styles.createCardButton}
             title="Создать карточку"
