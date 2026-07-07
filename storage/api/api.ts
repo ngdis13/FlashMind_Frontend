@@ -1,4 +1,4 @@
-// src/services/api.ts
+
 import apiClient from "@/api/client";
 import { getMainServiceApiUrl } from "@/api/getMainServiceApiUrl";
 import { handleApiError } from "@/api/interceptors/error.interceptor";

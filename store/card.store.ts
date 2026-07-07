@@ -1,25 +1,46 @@
-
 import { create } from "zustand";
-import { 
-  fetchDeckCards, 
-  createCard, 
-  updateCardOnServer, 
+import {
+  fetchDeckCards,
+  createCard,
+  updateCardOnServer,
   deleteCard,
-  fetchCardById
+  fetchCardById,
 } from "@/storage/api/api";
 import { loadDeckCards, saveDeckCards } from "@/storage/service/decksStorage";
 import { Card } from "@/storage/types/types";
 
+interface StoreCardListItem {
+  id: string;
+  deck_id: string;
+  front: string;
+  difficulty?: string | null;
+  stability?: string | null;
+  back?: never; 
+}
+
+export type StoreCard = StoreCardListItem | Card;
+
+
+interface DeckCardsStorage {
+  isActual: boolean;
+  cards: StoreCard[];
+}
+
 type CardState = {
-  cards: Record<string, Card[]>; // { deckId: [cards] }
+  cards: Record<string, DeckCardsStorage>;
   isLoading: Record<string, boolean>;
   error: string | null;
   lastFetched: Record<string, number>;
-  
-  fetchCards: (deckId: string, force?: boolean) => Promise<void>;
-  getCards: (deckId: string) => Card[];
-  getCardById: (cardId: string) => Promise<Card | null>;  // ← НОВЫЙ МЕТОД
-  createCard: (data: { deck_id: string; front: string; back: string }) => Promise<Card>;
+
+  getCards: (deckId: string) => Promise<StoreCard[]>;
+  invalidateCards: (deckId: string) => void;
+
+  getCardById: (cardId: string) => Promise<Card | null>;
+  createCard: (data: {
+    deck_id: string;
+    front: string;
+    back: string;
+  }) => Promise<Card>;
   updateCard: (id: string, data: Partial<Card>) => Promise<Card>;
   deleteCard: (id: string, deckId: string) => Promise<void>;
   clearCards: (deckId?: string) => void;
@@ -31,229 +52,232 @@ export const useCardStore = create<CardState>((set, get) => ({
   error: null,
   lastFetched: {},
 
-  // ============================================
-  // ⭐ ПОЛУЧАЕМ УРЕЗАННЫЕ КАРТОЧКИ КОЛОДЫ
-  // ============================================
-  fetchCards: async (deckId: string, force = false) => {
-    // Если уже есть карточки - используем кэш
-    if (!force && get().cards[deckId] && get().cards[deckId].length > 0) {
-      console.log(`📦 Карточки для колоды ${deckId} уже загружены (${get().cards[deckId].length} шт.)`);
-      return;
-    }
+  // Умное получение карточек с проверкой актуальности
+  getCards: async (deckId: string): Promise<StoreCard[]> => {
+    const currentRecord = get().cards[deckId];
 
-    if (get().isLoading[deckId]) {
-      console.log(`⏳ Запрос карточек для ${deckId} уже выполняется`);
-      return;
-    }
+    if (!currentRecord) {
+      const diskData = await loadDeckCards(deckId);
+      if (diskData) {
+        const isNewFormat =
+          diskData && typeof diskData === "object" && "isActual" in diskData;
 
-    set((state) => ({ 
-      isLoading: { ...state.isLoading, [deckId]: true },
-      error: null 
-    }));
+        const normalizedDiskCache: DeckCardsStorage = isNewFormat
+          ? (diskData as unknown as DeckCardsStorage)
+          : { isActual: true, cards: diskData as unknown as StoreCard[] };
 
-    try {
-      // Проверяем AsyncStorage
-      const cached = await loadDeckCards(deckId);
-      if (cached && cached.length > 0 && !force) {
-        console.log(`📦 Использую кэш: ${cached.length} карточек`);
         set((state) => ({
-          cards: { ...state.cards, [deckId]: cached },
-          isLoading: { ...state.isLoading, [deckId]: false }
+          cards: { ...state.cards, [deckId]: normalizedDiskCache },
         }));
-        return;
+
+        if (normalizedDiskCache.isActual) {
+          console.log(
+            `getCards: Данные актуальны на диске для колоды ${deckId}`,
+          );
+          return normalizedDiskCache.cards;
+        }
+      }
+    }
+
+    const record = get().cards[deckId];
+
+    if (!record || record.isActual === false) {
+      if (get().isLoading[deckId]) {
+        return record?.cards || [];
       }
 
-      // Запрос к серверу (урезанные данные)
-      console.log(`🌐 Загружаем карточки для ${deckId} с сервера...`);
-      const serverCards = await fetchDeckCards(deckId);
-      console.log(`📥 Получено ${serverCards?.length || 0} карточек с сервера (урезанные)`);
-      
-      if (serverCards && serverCards.length > 0) {
-        await saveDeckCards(deckId, serverCards);
+      set((state) => ({
+        isLoading: { ...state.isLoading, [deckId]: true },
+        error: null,
+      }));
+
+      try {
+        console.log(`🌐 getCards: Делаем запрос к API для колоды ${deckId}`);
+        const serverCards = await fetchDeckCards(deckId);
+
+        const freshState: DeckCardsStorage = {
+          isActual: true,
+          cards: serverCards as StoreCard[],
+        };
+
+        set((state) => ({
+          cards: { ...state.cards, [deckId]: freshState },
+          isLoading: { ...state.isLoading, [deckId]: false },
+          lastFetched: { ...state.lastFetched, [deckId]: Date.now() },
+        }));
+
+        await saveDeckCards(deckId, freshState as unknown as Card[]);
+
+        return serverCards as StoreCard[];
+      } catch (error) {
+        set((state) => ({
+          error: error instanceof Error ? error.message : "Ошибка загрузки",
+          isLoading: { ...state.isLoading, [deckId]: false },
+        }));
+        return record?.cards || [];
       }
-      
+    }
+
+    console.log(`📦 getCards: Данные актуальны в памяти для колоды ${deckId}`);
+    return record.cards;
+  },
+
+  // Инвалидация (сброс актуальности)
+  invalidateCards: (deckId: string) => {
+    const record = get().cards[deckId];
+
+    if (record) {
+      console.log(
+        `🚨 invalidateCards: Меняем флаг на false для колоды ${deckId}`,
+      );
+
+      const updatedState: DeckCardsStorage = {
+        ...record,
+        isActual: false,
+      };
+
       set((state) => ({
-        cards: { ...state.cards, [deckId]: serverCards || [] },
-        isLoading: { ...state.isLoading, [deckId]: false },
-        lastFetched: { ...state.lastFetched, [deckId]: Date.now() }
+        cards: { ...state.cards, [deckId]: updatedState },
       }));
-    } catch (error) {
-      console.error('❌ Ошибка загрузки карточек:', error);
-      set((state) => ({
-        error: error instanceof Error ? error.message : 'Ошибка загрузки',
-        isLoading: { ...state.isLoading, [deckId]: false }
-      }));
+
+      saveDeckCards(deckId, updatedState as unknown as Card[]);
     }
   },
 
-  getCards: (deckId: string) => {
-    return get().cards[deckId] || [];
-  },
-
-  // ============================================
-  // ⭐ ПОЛУЧАЕМ ПОЛНУЮ КАРТОЧКУ ПО ID
-  // ============================================
   getCardById: async (cardId: string): Promise<Card | null> => {
-    console.log(`🔍 getCardById: ${cardId}`);
-    
-    // 1️⃣ Ищем в кэше (сначала во всех колодах)
-    const allCards = Object.values(get().cards).flat();
-    const found = allCards.find(c => c.id === cardId);
-    
-    if (found) {
-      console.log(`✅ Карточка найдена в кэше: ${found.front}`);
-      // ✅ Проверяем, есть ли back (если нет - нужно загрузить полную версию)
-      if (found.back) {
-        console.log(`📦 Полная карточка с back: ${found.back.substring(0, 30)}...`);
-        return found;
-      } else {
-        console.log(`⚠️ Карточка в кэше без back, загружаем полную версию...`);
-        // Продолжаем к запросу на сервер
-      }
-    } else {
-      console.log(`❌ Карточка ${cardId} не найдена в кэше`);
+    const allCards = Object.values(get().cards)
+      .map((record) => record.cards)
+      .flat();
+    const found = allCards.find((c) => c.id === cardId);
+
+    if (found && "back" in found && found.back) {
+      return found as Card;
     }
 
-    // 2️⃣ Если нет в кэше или нет back - загружаем с сервера
     try {
-      console.log(`🌐 Загружаем ПОЛНУЮ карточку ${cardId} с сервера...`);
       const fullCard = await fetchCardById(cardId);
-      console.log(`✅ Полная карточка загружена:`, {
-        id: fullCard.id,
-        front: fullCard.front,
-        hasBack: !!fullCard.back
-      });
-      
-      // 3️⃣ Обновляем кэш с полной карточкой
-      // Находим в какой колоде эта карточка
-      let deckId = '';
-      for (const [key, cards] of Object.entries(get().cards)) {
-        if (cards.some(c => c.id === cardId)) {
+
+      let deckId = "";
+      for (const [key, record] of Object.entries(get().cards)) {
+        if (record.cards.some((c) => c.id === cardId)) {
           deckId = key;
           break;
         }
       }
-      
+
       if (deckId) {
-        console.log(`📦 Обновляем карточку в кэше колоды ${deckId}`);
-        // Обновляем карточку в кэше
-        const updatedCards = get().cards[deckId].map(c => 
-          c.id === cardId ? { ...c, ...fullCard } : c
+        const updatedCards = get().cards[deckId].cards.map((c) =>
+          c.id === cardId ? (fullCard as StoreCard) : c,
         );
-        
+
+        const updatedState: DeckCardsStorage = {
+          ...get().cards[deckId],
+          cards: updatedCards,
+        };
+
         set((state) => ({
-          cards: {
-            ...state.cards,
-            [deckId]: updatedCards
-          }
+          cards: { ...state.cards, [deckId]: updatedState },
         }));
-        // Сохраняем в AsyncStorage
-        await saveDeckCards(deckId, updatedCards);
-        console.log(`💾 Обновлена карточка в кэше для колоды ${deckId}`);
-      } else {
-        // Если колода не найдена - просто добавляем карточку в отдельный кэш
-        console.log(`⚠️ Колода для карточки ${cardId} не найдена, сохраняем отдельно`);
-        // Здесь можно добавить логику для сохранения отдельной карточки
+
+        await saveDeckCards(deckId, updatedState as unknown as Card[]);
       }
-      
+
       return fullCard;
     } catch (error) {
-      console.error(`❌ Ошибка загрузки карточки ${cardId}:`, error);
       return null;
     }
   },
 
-  // ============================================
-  // CRUD операции
-  // ============================================
+  // Создание карточки 
   createCard: async (data) => {
-    try {
-      console.log(`📝 Создаем карточку в колоде ${data.deck_id}...`);
-      const newCard = await createCard(data.deck_id, { 
-        front: data.front, 
-        back: data.back 
-      });
-      
-      // Добавляем локально
-      set((state) => ({
-        cards: {
-          ...state.cards,
-          [data.deck_id]: [...(state.cards[data.deck_id] || []), newCard]
-        }
-      }));
-      
-      await saveDeckCards(data.deck_id, get().cards[data.deck_id]);
-      console.log(`✅ Карточка создана локально`);
-      return newCard;
-    } catch (error) {
-      console.error('❌ Ошибка создания:', error);
-      throw error;
-    }
+    const newCard = await createCard(data.deck_id, {
+      front: data.front,
+      back: data.back,
+    });
+
+    const currentRecord = get().cards[data.deck_id] || {
+      isActual: true,
+      cards: [],
+    };
+    const updatedState: DeckCardsStorage = {
+      ...currentRecord,
+      cards: [...currentRecord.cards, newCard as StoreCard],
+    };
+
+    set((state) => ({
+      cards: { ...state.cards, [data.deck_id]: updatedState },
+    }));
+
+    await saveDeckCards(data.deck_id, updatedState as unknown as Card[]);
+    return newCard;
   },
 
+  // Обновление карточки 
   updateCard: async (id: string, data: Partial<Card>) => {
-    try {
-      console.log(`📝 Обновляем карточку ${id}...`);
-      const updated = await updateCardOnServer(id, data as any);
-      
-      // Находим deckId
-      const state = get();
-      let deckId = '';
-      for (const [key, cards] of Object.entries(state.cards)) {
-        if (cards.some(c => c.id === id)) {
-          deckId = key;
-          break;
-        }
+    const updated = await updateCardOnServer(
+      id,
+      data as { front: string; back: string },
+    );
+
+    let deckId = "";
+    for (const [key, record] of Object.entries(get().cards)) {
+      if (record.cards.some((c) => c.id === id)) {
+        deckId = key;
+        break;
       }
-      
-      if (deckId) {
-        set((state) => ({
-          cards: {
-            ...state.cards,
-            [deckId]: state.cards[deckId].map(card =>
-              card.id === id ? { ...card, ...updated } : card
-            )
-          }
-        }));
-        await saveDeckCards(deckId, get().cards[deckId]);
-      }
-      
-      console.log(`✅ Карточка ${id} обновлена локально`);
-      return updated;
-    } catch (error) {
-      console.error('❌ Ошибка обновления:', error);
-      throw error;
     }
+
+    if (deckId) {
+      const updatedState: DeckCardsStorage = {
+        ...get().cards[deckId],
+        cards: get().cards[deckId].cards.map((card) =>
+          card.id === id ? (updated as StoreCard) : card,
+        ),
+      };
+
+      set((state) => ({
+        cards: { ...state.cards, [deckId]: updatedState },
+      }));
+      await saveDeckCards(deckId, updatedState as unknown as Card[]);
+    }
+
+    return updated;
   },
 
+  // 🗑️ Удаление карточки (убран избыточный try/catch)
   deleteCard: async (id: string, deckId: string) => {
-    try {
-      console.log(`🗑️ Удаляем карточку ${id}...`);
-      await deleteCard(id);
-      
+    await deleteCard(id);
+
+    const currentRecord = get().cards[deckId];
+    if (currentRecord) {
+      const updatedState: DeckCardsStorage = {
+        ...currentRecord,
+        cards: currentRecord.cards.filter((card) => card.id !== id),
+      };
+
       set((state) => ({
-        cards: {
-          ...state.cards,
-          [deckId]: state.cards[deckId].filter(card => card.id !== id)
-        }
+        cards: { ...state.cards, [deckId]: updatedState },
       }));
-      
-      await saveDeckCards(deckId, get().cards[deckId]);
-      console.log(`✅ Карточка ${id} удалена локально`);
-    } catch (error) {
-      console.error('❌ Ошибка удаления:', error);
-      throw error;
+
+      await saveDeckCards(deckId, updatedState as unknown as Card[]);
     }
   },
 
   clearCards: (deckId?: string) => {
     if (deckId) {
-      set((state) => ({
-        cards: { ...state.cards, [deckId]: [] },
-        lastFetched: { ...state.lastFetched, [deckId]: undefined }
-      }));
+      set((state) => {
+        const { [deckId]: _, ...remainingFetched } = state.lastFetched;
+
+        return {
+          cards: {
+            ...state.cards,
+            [deckId]: { isActual: false, cards: [] as StoreCard[] },
+          },
+          lastFetched: remainingFetched,
+        };
+      });
     } else {
       set({ cards: {}, lastFetched: {} });
     }
-  }
+  },
 }));

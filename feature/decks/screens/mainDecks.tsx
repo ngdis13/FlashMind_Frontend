@@ -1,4 +1,3 @@
-// screens/main/MainDecksScreen.tsx
 import { useEffect, useState, useCallback, useRef } from "react";
 import {
   View,
@@ -26,7 +25,8 @@ import { useDecks } from "@/storage/hooks/useDecks";
 import { getPluralCards } from "@/utils/helpers/getPluralCards";
 import { Deck } from "@/storage/types/types";
 import Toast from "react-native-toast-message";
-import { useDeckStore } from "@/store/deck.store";
+import { useCards } from "@/storage/hooks/useCards";
+
 
 export default function MainDecksScreen() {
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -35,6 +35,7 @@ export default function MainDecksScreen() {
   const router = useRouter();
 
   const { decks, loading, refreshDecks, loadDecksData } = useDecks();
+  const { getDeckCards } = useCards();
 
   const modalAnim = useRef(new Animated.Value(0)).current;
   const { width } = useWindowDimensions();
@@ -128,7 +129,20 @@ export default function MainDecksScreen() {
     : decks;
 
   const handleEditDecks = (id: string) => router.push(`/decks/${id}`);
-  const handleDeckPress = (id: string) => router.push(`/decks/${id}/study`);
+    const handleDeckPress = useCallback(async (id: string) => {
+    try {
+      console.log(`Нажата колода ${id}, подготавливаем актуальные карточки`);
+      console.log('Вызываем getDeckCards, которая проверит или обновит данные с сервера')
+      
+      await getDeckCards(id); 
+      
+      console.log(`Карточки готовы в сторе, переходим к обучению`);
+      router.push(`/decks/${id}/study`);
+    } catch (error) {
+      console.error("Ошибка при подготовке карточек перед обучением:", error);
+    }
+  }, [getDeckCards, router]);
+
 
   const getDeckColor = (deck: Deck): string => {
     return deck.settings?.color || colors.mainColor;

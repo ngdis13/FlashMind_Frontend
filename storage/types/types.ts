@@ -54,13 +54,18 @@ export interface DeckSettings {
 export interface Card {
   id: string;
   front: string;
-  back: string;
+  back?: string;
   deck_id: string;
   created_at?: string; // опционально, если есть
   updated_at?: string; // опционально, если есть
   difficulty?: number; // опционально, если есть
   stability?: number; // опционально, если есть
   // Добавь другие поля, если они есть в реальном ответе
+}
+
+export interface DeckCardsStorage {
+  isActual: boolean;
+  cards: Card[];
 }
 
 /**
