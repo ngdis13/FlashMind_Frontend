@@ -15,11 +15,10 @@ interface StoreCardListItem {
   front: string;
   difficulty?: string | null;
   stability?: string | null;
-  back?: never; 
+  back?: never;
 }
 
 export type StoreCard = StoreCardListItem | Card;
-
 
 interface DeckCardsStorage {
   isActual: boolean;
@@ -106,7 +105,8 @@ export const useCardStore = create<CardState>((set, get) => ({
           lastFetched: { ...state.lastFetched, [deckId]: Date.now() },
         }));
 
-        await saveDeckCards(deckId, freshState as unknown as Card[]);
+        // СТАНЕТ: Передаем на диск строго массив карточек, как и требовал decksStorage
+        await saveDeckCards(deckId, freshState.cards as Card[]);
 
         return serverCards as StoreCard[];
       } catch (error) {
@@ -140,7 +140,8 @@ export const useCardStore = create<CardState>((set, get) => ({
         cards: { ...state.cards, [deckId]: updatedState },
       }));
 
-      saveDeckCards(deckId, updatedState as unknown as Card[]);
+      // Передаем на диск строго массив карточек!
+      saveDeckCards(deckId, updatedState.cards as Card[]);
     }
   },
 
@@ -188,7 +189,7 @@ export const useCardStore = create<CardState>((set, get) => ({
     }
   },
 
-  // Создание карточки 
+  // Создание карточки
   createCard: async (data) => {
     const newCard = await createCard(data.deck_id, {
       front: data.front,
@@ -212,7 +213,7 @@ export const useCardStore = create<CardState>((set, get) => ({
     return newCard;
   },
 
-  // Обновление карточки 
+  // Обновление карточки
   updateCard: async (id: string, data: Partial<Card>) => {
     const updated = await updateCardOnServer(
       id,

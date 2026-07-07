@@ -18,6 +18,7 @@ import { getStudyCard, postCardRating, StudyCard } from "./api/api";
 import { Logo } from "@/components/Logo";
 import React from "react";
 import { RatingButton } from "./components/RatingButton";
+import { useCards } from "@/storage/hooks/useCards";
 
 // Вспомогательная функция для форматирования миллисекунд в читаемый вид
 const formatTotalTime = (ms: number): string => {
@@ -49,6 +50,8 @@ export default function StudyDecksScreen() {
   const slideAnim = useRef(new Animated.Value(0)).current;
 
   const { decks } = useDecks();
+  const { invalidateDeckCards } = useCards();
+  
   const deck = decks.find((d) => d.id === id);
 
   const [cardStartTime, setCardStartTime] = useState<number>(Date.now());
@@ -112,6 +115,13 @@ export default function StudyDecksScreen() {
         }),
       ]).start(async () => {
         try {
+          // Вызывается строго ПОСЛЕ КАЖДОЙ карточки.
+          // Как только пользователь нажал кнопку рейтинга — мы сразу помечаем колоду как неактуальную.
+          if (id) {
+            console.log(`Карточка оценена. Инвалидируем колоду ${id} (isActual -> false)`);
+            invalidateDeckCards(id);
+          }
+
           const response = await postCardRating(
             currentCard.id,
             rating,
@@ -150,8 +160,9 @@ export default function StudyDecksScreen() {
         }
       });
     },
-    [cards, isSubmitting, fadeAnim, slideAnim, cardStartTime],
-  ); // Зависимости функции
+
+    [cards, isSubmitting, fadeAnim, slideAnim, cardStartTime, id, invalidateDeckCards],
+  );
 
   const currentIndex = useMemo(() => {
     return Math.min(finishedCount + 1, totalToStudy);
@@ -162,7 +173,6 @@ export default function StudyDecksScreen() {
       style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}
     >
       <View style={[commonStyles.container, { flex: 1, paddingBottom: 30 }]}>
-
         <View
           style={[
             commonStyles.content,
@@ -189,10 +199,7 @@ export default function StudyDecksScreen() {
             </View>
 
             {loading ? (
-              <ActivityIndicator
-                size="large"
-                style={{ flex: 1 }}
-              />
+              <ActivityIndicator size="large" style={{ flex: 1 }} />
             ) : cards.length > 0 ? (
               <Animated.View
                 style={{
@@ -244,7 +251,11 @@ export default function StudyDecksScreen() {
                     <Typography
                       variant="h3"
                       color={colors.darkMainColor}
-                      style={{ textAlign: "center", fontWeight: "500", letterSpacing: 0.3, }}
+                      style={{
+                        textAlign: "center",
+                        fontWeight: "500",
+                        letterSpacing: 0.3,
+                      }}
                     >
                       ⏱ Время обучения: {totalSessionTimeStr}
                     </Typography>

@@ -42,47 +42,34 @@ export default function MainDecksScreen() {
   const currentContentWidth = Math.min(width, 800);
   const numColumns = Math.max(2, Math.floor((currentContentWidth - 20) / 180));
 
-  // ============================================
-  // ⭐ 1. ЗАГРУЗКА ПРИ ПЕРВОМ ОТКРЫТИИ
-  // ============================================
   useEffect(() => {
-    console.log("🚀 Первичная загрузка колод");
     loadDecksData();
   }, []);
 
-  // ============================================
-  // ⭐ 2. ОБНОВЛЕНИЕ ПРИ ВОЗВРАТЕ - ВСЕГДА!
-  // ============================================
+
   useFocusEffect(
     useCallback(() => {
-      console.log('🔄 Обновляем колоды при возврате на главный экран');
-      
-      const refreshData = async () => {
+      const checkAndLoadData = async () => {
         try {
-          // ✅ Всегда обновляем с сервера!
-          await refreshDecks();
-          console.log('✅ Данные колод обновлены');
+          await loadDecksData(); // Берет данные из памяти, если они там уже есть
         } catch (error) {
-          console.error('❌ Ошибка обновления данных:', error);
+          console.error('❌ Ошибка загрузки данных при фокусе:', error);
         }
       };
       
-      refreshData();
-    }, [refreshDecks])
+      checkAndLoadData();
+    }, [loadDecksData])
   );
 
-  // ============================================
-  // ⭐ 3. PULL-TO-REFRESH
-  // ============================================
+  // Для ручного стягивания экрана (Pull-to-refresh) принудительный сброс кэша уместен
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      console.log("🔄 Pull-to-refresh: обновляем колоды");
-      await refreshDecks();
+      await refreshDecks(); // Здесь force-запрос оправдан действием пользователя
 
       Toast.show({
         type: "success",
-        text1: "Колоды обновлены",
+        text1: "Колоды updated",
         position: "bottom",
         visibilityTime: 1500,
       });
@@ -99,10 +86,6 @@ export default function MainDecksScreen() {
     }
   }, [refreshDecks]);
 
-  // ============================================
-  // ОСТАЛЬНЫЕ ФУНКЦИИ
-  // ============================================
-  
   const handleAddDecks = () => {
     setIsModalVisible(true);
     Animated.timing(modalAnim, {
@@ -129,28 +112,20 @@ export default function MainDecksScreen() {
     : decks;
 
   const handleEditDecks = (id: string) => router.push(`/decks/${id}`);
-    const handleDeckPress = useCallback(async (id: string) => {
+  
+  const handleDeckPress = useCallback(async (id: string) => {
     try {
-      console.log(`Нажата колода ${id}, подготавливаем актуальные карточки`);
-      console.log('Вызываем getDeckCards, которая проверит или обновит данные с сервера')
-      
-      await getDeckCards(id); 
-      
-      console.log(`Карточки готовы в сторе, переходим к обучению`);
+      await getDeckCards(id);
       router.push(`/decks/${id}/study`);
     } catch (error) {
       console.error("Ошибка при подготовке карточек перед обучением:", error);
     }
   }, [getDeckCards, router]);
 
-
   const getDeckColor = (deck: Deck): string => {
     return deck.settings?.color || colors.mainColor;
   };
 
-  // ============================================
-  // ОТРИСОВКА
-  // ============================================
   return (
     <View
       style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}
@@ -208,9 +183,6 @@ export default function MainDecksScreen() {
                 </View>
               )}
               renderItem={({ item, index }) => {
-                // ✅ Логируем для проверки
-                console.log(`📊 Колода: ${item.name}, repeat_cards: ${item.repeat_cards}`);
-                
                 return (
                   <View style={styles.deckItemWrapper}>
                     <DecksView
@@ -254,7 +226,7 @@ export default function MainDecksScreen() {
                       transform: [
                         {
                           scale: modalAnim.interpolate({
-                            inputRange: [0, 1],
+                            inputRange:[0,1],
                             outputRange: [0.9, 1],
                           }),
                         },
