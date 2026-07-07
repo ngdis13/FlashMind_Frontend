@@ -260,7 +260,7 @@ export const useCardStore = create<CardState>((set, get) => {
           cards: { ...state.cards, [deckId]: updatedState },
         }));
 
-        await saveDeckCards(data.deck_id, updatedState);
+        await saveDeckCards(deckId, updatedState);
       }
 
       return updated;
@@ -281,7 +281,7 @@ export const useCardStore = create<CardState>((set, get) => {
           cards: { ...state.cards, [deckId]: updatedState },
         }));
 
-        await saveDeckCards(data.deck_id, updatedState);
+        await saveDeckCards(deckId, updatedState);
       }
     },
 
