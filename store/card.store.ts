@@ -189,40 +189,37 @@ export const useCardStore = create<CardState>((set, get) => ({
     }
   },
 
-  // Создание карточки
+  // Создание карточки с автоматической инвалидацией
   createCard: async (data) => {
     const newCard = await createCard(data.deck_id, {
       front: data.front,
-      back: data.back,
+      back: data.back
     });
 
-    const currentRecord = get().cards[data.deck_id] || {
-      isActual: true,
-      cards: [],
-    };
+    const currentRecord = get().cards[data.deck_id] || { isActual: true, cards: [] };
+    
     const updatedState: DeckCardsStorage = {
-      ...currentRecord,
-      cards: [...currentRecord.cards, newCard as StoreCard],
+      // Принудительно ставим false, так как состав карточек на сервере изменился
+      isActual: false, 
+      cards: [...currentRecord.cards, newCard as StoreCard]
     };
 
     set((state) => ({
-      cards: { ...state.cards, [data.deck_id]: updatedState },
+      cards: { ...state.cards, [data.deck_id]: updatedState }
     }));
 
-    await saveDeckCards(data.deck_id, updatedState as unknown as Card[]);
+    // Сохраняем на диск массив карточек
+    await saveDeckCards(data.deck_id, updatedState.cards as Card[]);
     return newCard;
   },
 
-  // Обновление карточки
-  updateCard: async (id: string, data: Partial<Card>) => {
-    const updated = await updateCardOnServer(
-      id,
-      data as { front: string; back: string },
-    );
+  // Обновление карточки с автоматической инвалидацией
+  updateCard: async (id, data) => {
+    const updated = await updateCardOnServer(id, data as { front: string; back: string });
 
-    let deckId = "";
+    let deckId = '';
     for (const [key, record] of Object.entries(get().cards)) {
-      if (record.cards.some((c) => c.id === id)) {
+      if (record.cards.some(c => c.id === id)) {
         deckId = key;
         break;
       }
@@ -230,37 +227,40 @@ export const useCardStore = create<CardState>((set, get) => ({
 
     if (deckId) {
       const updatedState: DeckCardsStorage = {
-        ...get().cards[deckId],
-        cards: get().cards[deckId].cards.map((card) =>
-          card.id === id ? (updated as StoreCard) : card,
-        ),
+        // Помечаем колоду как неактуальную, так как данные одной из карточек изменились
+        isActual: false,
+        cards: get().cards[deckId].cards.map(card =>
+          card.id === id ? (updated as StoreCard) : card
+        )
       };
 
       set((state) => ({
-        cards: { ...state.cards, [deckId]: updatedState },
+        cards: { ...state.cards, [deckId]: updatedState }
       }));
-      await saveDeckCards(deckId, updatedState as unknown as Card[]);
+      
+      await saveDeckCards(deckId, updatedState.cards as Card[]);
     }
 
     return updated;
   },
 
-  // 🗑️ Удаление карточки (убран избыточный try/catch)
-  deleteCard: async (id: string, deckId: string) => {
+  // Удаление карточки с автоматической инвалидацией
+  deleteCard: async (id, deckId) => {
     await deleteCard(id);
 
     const currentRecord = get().cards[deckId];
     if (currentRecord) {
       const updatedState: DeckCardsStorage = {
-        ...currentRecord,
-        cards: currentRecord.cards.filter((card) => card.id !== id),
+        // Данных стало меньше, кэш устарел — ставим false
+        isActual: false,
+        cards: currentRecord.cards.filter(card => card.id !== id)
       };
 
       set((state) => ({
-        cards: { ...state.cards, [deckId]: updatedState },
+        cards: { ...state.cards, [deckId]: updatedState }
       }));
 
-      await saveDeckCards(deckId, updatedState as unknown as Card[]);
+      await saveDeckCards(deckId, updatedState.cards as Card[]);
     }
   },
 

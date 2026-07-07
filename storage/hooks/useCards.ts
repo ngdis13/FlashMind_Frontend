@@ -25,8 +25,8 @@ export const useCards = () => {
   const addCard = useCallback(async (deckId: string, front: string, back: string) => {
     return await cardStore.createCard({ deck_id: deckId, front, back });
   }, [cardStore.createCard]);
-
-  const removeCard = useCallback(async (deckId: string, cardId: string) => {
+  
+  const removeCard = useCallback(async (cardId: string, deckId: string) => {
     await cardStore.deleteCard(cardId, deckId);
   }, [cardStore.deleteCard]);
 

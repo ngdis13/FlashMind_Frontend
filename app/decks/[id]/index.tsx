@@ -24,29 +24,30 @@ import { ShareDeckModal } from "../components/ShareDeckModal";
 import * as Clipboard from "expo-clipboard";
 import { SyncDeckModal } from "../components/SyncDeckModal";
 import { CustomAlertCloud } from "../components/CustomAlertCloud";
+import { useCards } from "@/storage/hooks/useCards";
+import { StoreCard } from "@/store/card.store";
 
 export default function DeckViewById() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
 
-  // ✅ Берем данные из стора
   const {
     decks,
-    getDeckCards,
-    removeCard,
     makeDeckPublic,
     importDeck,
     refreshDecks,
     loadDecksData,
   } = useDecks();
 
+  const { getDeckCards, removeCard} = useCards();
+
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [search, setSearch] = useState("");
-  const [cards, setCards] = useState<Card[]>([]);
+  const [cards, setCards] = useState<StoreCard[]>([]);
   const [addedCardsCount, setAddedCardsCount] = useState(0);
 
-  // ✅ Флаг для предотвращения дублирующихся загрузок
+  // Флаг для предотвращения дублирующихся загрузок
   const isLoadingRef = useRef(false);
   const isFirstLoadRef = useRef(true);
 
@@ -84,7 +85,6 @@ export default function DeckViewById() {
   // ============================================
   const loadData = useCallback(
     async (forceRefresh = false) => {
-      // Защита от дублирующихся вызовов
       if (isLoadingRef.current) {
         console.log("⏳ Загрузка уже выполняется, пропускаю");
         return;
@@ -94,21 +94,19 @@ export default function DeckViewById() {
 
       try {
         isLoadingRef.current = true;
-        console.log(
-          `📱 Загружаем данные для колоды ${id}, force: ${forceRefresh}`,
-        );
+        console.log(`📱 Загружаем данные для колоды ${id}, force: ${forceRefresh}`);
 
-        // 1. Загружаем колоды (если нужно)
-        if (forceRefresh || decks.length === 0) {
-          console.log("🔄 Загружаем колоды...");
+        // 1. Загружаем колоды только если их вообще нет в памяти
+        if (decks.length === 0) {
+          console.log("🔄 Локальный стор колод пуст, подгружаем...");
           await loadDecksData();
         }
 
-        // 2. Загружаем карточки
-        console.log("🃏 Загружаем карточки...");
+        // 2. Загружаем карточки через наш новый умный метод
+        console.log("🃏 Запрашиваем карточки через useCards...");
         const fetchedCards = await getDeckCards(id as string);
         setCards(fetchedCards);
-        console.log(`✅ Загружено ${fetchedCards.length} карточек`);
+        console.log(`✅ Метод getDeckCards вернул ${fetchedCards.length} карточек`);
 
         // 3. Обновляем информацию о колоде
         const updatedDeck = decks.find((d) => d.id === id);
@@ -129,37 +127,40 @@ export default function DeckViewById() {
         isFirstLoadRef.current = false;
       }
     },
-    [id, decks.length, loadDecksData, getDeckCards],
+    [id, decks, loadDecksData, getDeckCards],
   );
 
   // ============================================
-  // ⭐ ТОЛЬКО ОДИН useEffect для загрузки
+  // ⭐ ТОЛЬКО ОДИН useEffect для первичной загрузки
   // ============================================
   useEffect(() => {
     if (id) {
-      loadData();
+      loadData(false);
     }
-  }, [id]);
+  }, [id, loadData]);
+
 
   // ============================================
-  // ⭐ Обновляем данные при возврате на экран
+  // ⭐ Обновляем данные при возврате на экран (useFocusEffect)
   // ============================================
   useFocusEffect(
     useCallback(() => {
-      if (id) {
-        // Проверяем, изменились ли данные
-        const currentDeck = decks.find((d) => d.id === id);
-        if (currentDeck) {
-          // Обновляем имя/описание если изменились
-          setName(currentDeck.name);
-          setDescription(currentDeck.description || "");
-        }
+      if (!id) return;
 
-        // Обновляем карточки только если это не первый загруз
-        if (!isFirstLoadRef.current) {
-          console.log("🔄 Фоновое обновление при фокусе");
-          loadData(false);
-        }
+      // Мгновенно синхронизируем имя и описание из Zustand стора колод
+      const currentDeck = decks.find((d) => d.id === id);
+      if (currentDeck) {
+        setName(currentDeck.name);
+        setDescription(currentDeck.description || "");
+      }
+
+      // Если пользователь вернулся на экран (например, после создания/удаления карточки),
+      // мы просто вызываем loadData(false). Наш getDeckCards сам посмотрит на флаг isActual.
+      // Если флаг false (данные были изменены) — он обновит список с сервера.
+      // Если флаг true (ничего не менялось) — он мгновенно вернет кэш без запроса к API!
+      if (!isFirstLoadRef.current) {
+        console.log("🔄 Фоновая проверка актуальности при фокусе экрана");
+        loadData(false);
       }
     }, [id, decks, loadData]),
   );
@@ -433,11 +434,18 @@ export default function DeckViewById() {
   };
 
   // ============================================
-  // ⭐ УДАЛЕНИЕ КАРТОЧКИ
+  // ⭐ УДАЛЕНИЕ КАРТОЧКИ (Исправлен порядок аргументов)
   // ============================================
   const handleDeleteCard = async (cardId: string, deckId?: string) => {
+    // Определяем правильный id колоды
+    const currentDeckId = deckId || (id as string);
+
     try {
-      await removeCard(deckId || (id as string), cardId);
+      console.log(`🗑️ Удаляем карточку ${cardId} из колоды ${currentDeckId}`);
+      
+      await removeCard(cardId, currentDeckId);
+
+      // Мгновенно убираем карточку из локального стейта экрана, чтобы UI не ждал
       setCards((prevCards) => prevCards.filter((card) => card.id !== cardId));
 
       Toast.show({
@@ -462,6 +470,7 @@ export default function DeckViewById() {
       console.error("Ошибка при удалении карточки:", error);
     }
   };
+
 
   // ============================================
   // ⭐ СИНХРОНИЗАЦИЯ
@@ -594,9 +603,7 @@ export default function DeckViewById() {
     }
   };
 
-  // ============================================
-  // ⭐ ФИЛЬТРАЦИЯ КАРТОЧЕК
-  // ============================================
+
   // ============================================
   // ⭐ ФИЛЬТРАЦИЯ И СОРТИРОВКА КАРТОЧЕК
   // ============================================

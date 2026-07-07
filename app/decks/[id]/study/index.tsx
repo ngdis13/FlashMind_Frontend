@@ -56,7 +56,6 @@ export default function StudyDecksScreen() {
         // Вычисляем, сколько новых карточек доступно
         const availableNew = data.total - data.learned - data.in_learning;
 
-        // Ставим по умолчанию 5 карточек, но если их всего 3, то поставим 3
         const defaultToLearn = Math.max(0, Math.min(availableNew, 5));
 
         setAddCount(defaultToLearn);
