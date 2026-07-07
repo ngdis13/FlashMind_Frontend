@@ -1,6 +1,12 @@
-// src/services/storage.ts
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Deck, Card } from '../types/types';
+import { Deck, Card} from '../types/types';
+import { StoreCard } from '@/store/card.store';
+
+export interface DeckCardsStorage {
+  isActual: boolean;
+  cards: StoreCard[]; 
+}
 
 // Ключи для разных типов данных
 const STORAGE_KEYS = {
@@ -64,60 +70,74 @@ export const updateSingleDeckInStorage = async (deckId: string, updatedFields: P
 };
 
 /**
- * Сохранить карточки конкретной колоды
+ * Сохранить карточки конкретной колоды ВМЕСТЕ с флагом актуальности
  */
-export const saveDeckCards = async (deckId: string, cards: Card[]): Promise<void> => {
+export const saveDeckCards = async (deckId: string, storageData: DeckCardsStorage): Promise<void> => {
   try {
     const key = `${STORAGE_KEYS.DECK_CARDS}_${deckId}`;
-    const jsonValue = JSON.stringify(cards);
+    
+    if (!storageData || typeof storageData.isActual !== 'boolean' || !Array.isArray(storageData.cards)) {
+      throw new Error(`[Storage CRITICAL] Попытка записать неверный формат для колоды ${deckId}`);
+    }
+
+    const jsonValue = JSON.stringify(storageData);
     await AsyncStorage.setItem(key, jsonValue);
-    console.log(`Карточки колоды ${deckId} сохранены (${cards.length} шт.)`);
+    console.log(`💾 Карточки колоды ${deckId} сохранены на диск.`);
   } catch (error) {
     console.error('Ошибка при сохранении карточек:', error);
     throw error;
   }
 };
-
 /**
- * Загрузить карточки конкретной колоды
+ * Загрузить карточки конкретной колоды и статус их актуальности
  */
-export const loadDeckCards = async (deckId: string): Promise<Card[] | null> => {
+export const loadDeckCards = async (deckId: string): Promise<DeckCardsStorage | null> => {
   try {
     const key = `${STORAGE_KEYS.DECK_CARDS}_${deckId}`;
     const jsonValue = await AsyncStorage.getItem(key);
-    if (jsonValue === null) {
-      console.log(`📭 В хранилище нет карточек для колоды ${deckId}`);
-      return null;
+    if (jsonValue === null) return null;
+    
+    const data = JSON.parse(jsonValue);
+    
+    // Вместо падения — мягкий сброс старого кэша (если на диске лежит старый формат массива)
+    if (!data || typeof data.isActual !== 'boolean' || !Array.isArray(data.cards)) {
+      console.log(`⚠️ На диске обнаружен старый формат для колоды ${deckId}. Сбрасываем кэш.`);
+      await AsyncStorage.removeItem(key); // Чистим старый мусор автоматически!
+      return null; // Стор поймет, что данных нет, и безопасно пойдет на сервер
     }
-    const cards = JSON.parse(jsonValue);
-    console.log(`Загружено ${cards.length} карточек для колоды ${deckId}`);
-    return cards;
+
+    return data as DeckCardsStorage;
   } catch (error) {
-    console.error('Ошибка при загрузке карточек:', error);
+    console.error('Ошибка при загрузке карточек с диска:', error);
     return null;
   }
 };
 
 /**
- * Обновить карточку в колоде 
+ * Обновить карточку в колоде локально на диске
  */
 export const updateCardInDeck = async (
   deckId: string, 
   cardId: string, 
-  updates: Partial<Card>
-): Promise<Card[] | null> => {
+  updates: Partial<StoreCard> // <-- Меняем на Partial<StoreCard>
+): Promise<DeckCardsStorage | null> => {
   try {
-    const cards = await loadDeckCards(deckId);
-    if (!cards) return null;
+    const storageData = await loadDeckCards(deckId);
+    if (!storageData) return null;
     
-    const updatedCards = cards.map(card => 
-      card.id === cardId ? { ...card, ...updates } : card
+    const updatedCards = storageData.cards.map(card => 
+      card.id === cardId ? { ...card, ...updates } as StoreCard : card
     );
     
-    await saveDeckCards(deckId, updatedCards);
-    return updatedCards;
+    const newState: DeckCardsStorage = {
+      isActual: true,
+      cards: updatedCards
+    };
+    
+    await saveDeckCards(deckId, newState);
+    return newState;
   } catch (error) {
-    console.error('Ошибка при обновлении карточки:', error);
+    console.error('Ошибка при обновлении карточки на диске:', error);
     return null;
   }
 };

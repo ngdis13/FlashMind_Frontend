@@ -33,7 +33,6 @@ type CardState = {
 
   getCards: (deckId: string) => Promise<StoreCard[]>;
   invalidateCards: (deckId: string) => void;
-
   getCardById: (cardId: string) => Promise<Card | null>;
   createCard: (data: {
     deck_id: string;
@@ -43,242 +42,264 @@ type CardState = {
   updateCard: (id: string, data: Partial<Card>) => Promise<Card>;
   deleteCard: (id: string, deckId: string) => Promise<void>;
   clearCards: (deckId?: string) => void;
+  // Добавляем прямой метод ручного обновления стора (пригодится хуку)
+  setDeckCardsState: (deckId: string, newState: DeckCardsStorage) => void;
 };
 
-export const useCardStore = create<CardState>((set, get) => ({
-  cards: {},
-  isLoading: {},
-  error: null,
-  lastFetched: {},
+export const useCardStore = create<CardState>((set, get) => {
+  // Жесткий валидатор формата: если прилетает не объект с isActual и cards — падаем
+  const validateFormat = (deckId: string, data: any) => {
+    if (!data) return;
+    const hasCards = Array.isArray(data.cards);
+    const hasActualFlag = typeof data.isActual === "boolean";
 
-  // Умное получение карточек с проверкой актуальности
-  getCards: async (deckId: string): Promise<StoreCard[]> => {
-    const currentRecord = get().cards[deckId];
+    if (!hasCards || !hasActualFlag) {
+      throw new Error(
+        `[Zustand CRITICAL] Нарушен формат данных для колоды ${deckId}! ` +
+          `Ожидалось: { cards: StoreCard[], isActual: boolean }. ` +
+          `Получено: ${JSON.stringify(data)}.`,
+      );
+    }
+  };
 
-    if (!currentRecord) {
-      const diskData = await loadDeckCards(deckId);
-      if (diskData) {
-        const isNewFormat =
-          diskData && typeof diskData === "object" && "isActual" in diskData;
+  return {
+    cards: {},
+    isLoading: {},
+    error: null,
+    lastFetched: {},
 
-        const normalizedDiskCache: DeckCardsStorage = isNewFormat
-          ? (diskData as unknown as DeckCardsStorage)
-          : { isActual: true, cards: diskData as unknown as StoreCard[] };
+    setDeckCardsState: (deckId, newState) => {
+      validateFormat(deckId, newState);
+      set((state) => ({
+        cards: { ...state.cards, [deckId]: newState },
+      }));
+    },
 
-        set((state) => ({
-          cards: { ...state.cards, [deckId]: normalizedDiskCache },
-        }));
+    // Внутри useCardStore в файле card.store.ts:
 
-        if (normalizedDiskCache.isActual) {
+    getCards: async (deckId: string): Promise<StoreCard[]> => {
+      const currentRecord = get().cards[deckId];
+
+      // 1. Проверяем оперативку
+      if (currentRecord) {
+        validateFormat(deckId, currentRecord);
+        if (currentRecord.isActual) {
           console.log(
-            `getCards: Данные актуальны на диске для колоды ${deckId}`,
+            `📦 getCards: Данные актуальны в памяти для колоды ${deckId}`,
           );
-          return normalizedDiskCache.cards;
+          return currentRecord.cards;
         }
       }
-    }
 
-    const record = get().cards[deckId];
+      // 2. Если в памяти нет — проверяем диск
+      if (!currentRecord) {
+        const diskData = await loadDeckCards(deckId); // Тут уже прилетает { isActual, cards } или null
+        if (diskData) {
+          validateFormat(deckId, diskData); // Проверяем на жесткое соответствие
 
-    if (!record || record.isActual === false) {
-      if (get().isLoading[deckId]) {
-        return record?.cards || [];
+          set((state) => ({
+            cards: { ...state.cards, [deckId]: diskData },
+          }));
+
+          if (diskData.isActual) {
+            console.log(
+              `💾 getCards: Данные актуальны на диске для колоды ${deckId}`,
+            );
+            return diskData.cards;
+          }
+        }
       }
 
-      set((state) => ({
-        isLoading: { ...state.isLoading, [deckId]: true },
-        error: null,
-      }));
+      // 3. Запрос к серверу, если кэш пустой или устарел (isActual === false)
+      const record = get().cards[deckId];
+      if (!record || record.isActual === false) {
+        if (get().isLoading[deckId]) {
+          return record?.cards || [];
+        }
+
+        set((state) => ({
+          isLoading: { ...state.isLoading, [deckId]: true },
+          error: null,
+        }));
+
+        try {
+          console.log(`🌐 getCards: Делаем запрос к API для колоды ${deckId}`);
+          const serverCards = await fetchDeckCards(deckId);
+
+          const freshState: DeckCardsStorage = {
+            isActual: true,
+            cards: serverCards as StoreCard[],
+          };
+
+          set((state) => ({
+            cards: { ...state.cards, [deckId]: freshState },
+            isLoading: { ...state.isLoading, [deckId]: false },
+            lastFetched: { ...state.lastFetched, [deckId]: Date.now() },
+          }));
+
+          await saveDeckCards(deckId, freshState);
+
+          return serverCards as StoreCard[];
+        } catch (error) {
+          set((state) => ({
+            error: error instanceof Error ? error.message : "Ошибка загрузки",
+            isLoading: { ...state.isLoading, [deckId]: false },
+          }));
+          return record?.cards || [];
+        }
+      }
+
+      return record.cards;
+    },
+
+    invalidateCards: (deckId: string) => {
+      const record = get().cards[deckId];
+      if (record) {
+        console.log(
+          `🚨 invalidateCards: Сброс актуальности для колоды ${deckId}`,
+        );
+        const updatedState: DeckCardsStorage = { ...record, isActual: false };
+
+        set((state) => ({ cards: { ...state.cards, [deckId]: updatedState } }));
+        saveDeckCards(deckId, updatedState);
+      }
+    },
+
+    getCardById: async (cardId: string): Promise<Card | null> => {
+      const allCards = Object.values(get().cards)
+        .map((record) => record.cards)
+        .flat();
+      const found = allCards.find((c) => c.id === cardId);
+
+      if (found && "back" in found && found.back) {
+        return found as Card;
+      }
 
       try {
-        console.log(`🌐 getCards: Делаем запрос к API для колоды ${deckId}`);
-        const serverCards = await fetchDeckCards(deckId);
+        const fullCard = await fetchCardById(cardId);
+        let deckId = "";
+        for (const [key, record] of Object.entries(get().cards)) {
+          if (record.cards.some((c) => c.id === cardId)) {
+            deckId = key;
+            break;
+          }
+        }
 
-        const freshState: DeckCardsStorage = {
-          isActual: true,
-          cards: serverCards as StoreCard[],
-        };
+        if (deckId) {
+          const updatedCards = get().cards[deckId].cards.map((c) =>
+            c.id === cardId ? (fullCard as StoreCard) : c,
+          );
 
-        set((state) => ({
-          cards: { ...state.cards, [deckId]: freshState },
-          isLoading: { ...state.isLoading, [deckId]: false },
-          lastFetched: { ...state.lastFetched, [deckId]: Date.now() },
-        }));
+          const updatedState: DeckCardsStorage = {
+            ...get().cards[deckId],
+            cards: updatedCards,
+          };
 
-        // СТАНЕТ: Передаем на диск строго массив карточек, как и требовал decksStorage
-        await saveDeckCards(deckId, freshState.cards as Card[]);
+          set((state) => ({
+            cards: { ...state.cards, [deckId]: updatedState },
+          }));
+          await saveDeckCards(deckId, updatedState);
+        }
 
-        return serverCards as StoreCard[];
+        return fullCard;
       } catch (error) {
-        set((state) => ({
-          error: error instanceof Error ? error.message : "Ошибка загрузки",
-          isLoading: { ...state.isLoading, [deckId]: false },
-        }));
-        return record?.cards || [];
+        return null;
       }
-    }
+    },
 
-    console.log(`📦 getCards: Данные актуальны в памяти для колоды ${deckId}`);
-    return record.cards;
-  },
+    // ОПТИМИЗИРОВАНО: Добавление НЕ сбрасывает кэш
+    createCard: async (data) => {
+      const currentRecord = get().cards[data.deck_id] || {
+        isActual: true,
+        cards: [],
+      };
+      validateFormat(data.deck_id, currentRecord);
 
-  // Инвалидация (сброс актуальности)
-  invalidateCards: (deckId: string) => {
-    const record = get().cards[deckId];
-
-    if (record) {
-      console.log(
-        `🚨 invalidateCards: Меняем флаг на false для колоды ${deckId}`,
-      );
+      const newCard = await createCard(data.deck_id, {
+        front: data.front,
+        back: data.back,
+      });
 
       const updatedState: DeckCardsStorage = {
-        ...record,
-        isActual: false,
+        isActual: true, // Локальный массив обновлен, повторный GET не нужен!
+        cards: [...currentRecord.cards, newCard as StoreCard],
       };
 
       set((state) => ({
-        cards: { ...state.cards, [deckId]: updatedState },
+        cards: { ...state.cards, [data.deck_id]: updatedState },
       }));
 
-      // Передаем на диск строго массив карточек!
-      saveDeckCards(deckId, updatedState.cards as Card[]);
-    }
-  },
+      await saveDeckCards(data.deck_id, updatedState);
+      return newCard;
+    },
 
-  getCardById: async (cardId: string): Promise<Card | null> => {
-    const allCards = Object.values(get().cards)
-      .map((record) => record.cards)
-      .flat();
-    const found = allCards.find((c) => c.id === cardId);
-
-    if (found && "back" in found && found.back) {
-      return found as Card;
-    }
-
-    try {
-      const fullCard = await fetchCardById(cardId);
+    // ОПТИМИЗИРОВАНО: Редактирование НЕ сбрасывает кэш
+    updateCard: async (id, data) => {
+      const updated = await updateCardOnServer(
+        id,
+        data as { front: string; back: string },
+      );
 
       let deckId = "";
       for (const [key, record] of Object.entries(get().cards)) {
-        if (record.cards.some((c) => c.id === cardId)) {
+        if (record.cards.some((c) => c.id === id)) {
           deckId = key;
           break;
         }
       }
 
       if (deckId) {
-        const updatedCards = get().cards[deckId].cards.map((c) =>
-          c.id === cardId ? (fullCard as StoreCard) : c,
-        );
-
         const updatedState: DeckCardsStorage = {
-          ...get().cards[deckId],
-          cards: updatedCards,
+          isActual: true, // Обновили локально, данные свежие!
+          cards: get().cards[deckId].cards.map((card) =>
+            card.id === id ? (updated as StoreCard) : card,
+          ),
         };
 
         set((state) => ({
           cards: { ...state.cards, [deckId]: updatedState },
         }));
 
-        await saveDeckCards(deckId, updatedState.cards as Card[]);
+        await saveDeckCards(data.deck_id, updatedState);
       }
 
-      return fullCard;
-    } catch (error) {
-      return null;
-    }
-  },
+      return updated;
+    },
 
-  // Создание карточки с автоматической инвалидацией
-  createCard: async (data) => {
-    const newCard = await createCard(data.deck_id, {
-      front: data.front,
-      back: data.back
-    });
+    // ОПТИМИЗИРОВАНО: Удаление НЕ сбрасывает кэш
+    deleteCard: async (id, deckId) => {
+      await deleteCard(id);
 
-    const currentRecord = get().cards[data.deck_id] || { isActual: true, cards: [] };
-    
-    const updatedState: DeckCardsStorage = {
-      // Принудительно ставим false, так как состав карточек на сервере изменился
-      isActual: false, 
-      cards: [...currentRecord.cards, newCard as StoreCard]
-    };
-
-    set((state) => ({
-      cards: { ...state.cards, [data.deck_id]: updatedState }
-    }));
-
-    // Сохраняем на диск массив карточек
-    await saveDeckCards(data.deck_id, updatedState.cards as Card[]);
-    return newCard;
-  },
-
-  // Обновление карточки с автоматической инвалидацией
-  updateCard: async (id, data) => {
-    const updated = await updateCardOnServer(id, data as { front: string; back: string });
-
-    let deckId = '';
-    for (const [key, record] of Object.entries(get().cards)) {
-      if (record.cards.some(c => c.id === id)) {
-        deckId = key;
-        break;
-      }
-    }
-
-    if (deckId) {
-      const updatedState: DeckCardsStorage = {
-        // Помечаем колоду как неактуальную, так как данные одной из карточек изменились
-        isActual: false,
-        cards: get().cards[deckId].cards.map(card =>
-          card.id === id ? (updated as StoreCard) : card
-        )
-      };
-
-      set((state) => ({
-        cards: { ...state.cards, [deckId]: updatedState }
-      }));
-      
-      await saveDeckCards(deckId, updatedState.cards as Card[]);
-    }
-
-    return updated;
-  },
-
-  // Удаление карточки с автоматической инвалидацией
-  deleteCard: async (id, deckId) => {
-    await deleteCard(id);
-
-    const currentRecord = get().cards[deckId];
-    if (currentRecord) {
-      const updatedState: DeckCardsStorage = {
-        // Данных стало меньше, кэш устарел — ставим false
-        isActual: false,
-        cards: currentRecord.cards.filter(card => card.id !== id)
-      };
-
-      set((state) => ({
-        cards: { ...state.cards, [deckId]: updatedState }
-      }));
-
-      await saveDeckCards(deckId, updatedState.cards as Card[]);
-    }
-  },
-
-  clearCards: (deckId?: string) => {
-    if (deckId) {
-      set((state) => {
-        const { [deckId]: _, ...remainingFetched } = state.lastFetched;
-
-        return {
-          cards: {
-            ...state.cards,
-            [deckId]: { isActual: false, cards: [] as StoreCard[] },
-          },
-          lastFetched: remainingFetched,
+      const currentRecord = get().cards[deckId];
+      if (currentRecord) {
+        const updatedState: DeckCardsStorage = {
+          isActual: true, // Локально удалили, синхронизация с сервером сохранена
+          cards: currentRecord.cards.filter((card) => card.id !== id),
         };
-      });
-    } else {
-      set({ cards: {}, lastFetched: {} });
-    }
-  },
-}));
+
+        set((state) => ({
+          cards: { ...state.cards, [deckId]: updatedState },
+        }));
+
+        await saveDeckCards(data.deck_id, updatedState);
+      }
+    },
+
+    clearCards: (deckId?: string) => {
+      if (deckId) {
+        set((state) => {
+          const { [deckId]: _, ...remainingFetched } = state.lastFetched;
+          return {
+            cards: {
+              ...state.cards,
+              [deckId]: { isActual: false, cards: [] as StoreCard[] },
+            },
+            lastFetched: remainingFetched,
+          };
+        });
+      } else {
+        set({ cards: {}, lastFetched: {} });
+      }
+    },
+  };
+});
