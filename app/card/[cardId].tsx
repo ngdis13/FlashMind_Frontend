@@ -5,19 +5,19 @@ import {
   Image,
   Pressable,
   TextInput,
-  Alert,
 } from "react-native";
 import ReturnIcon from "@/assets/icons/ReturnIcon.png";
 import { commonStyles } from "@/styles/Common";
 import { styles } from "./cardView.style";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
-import { useDecks } from "@/storage/hooks/useDecks";
+
 import { useCallback, useState } from "react";
 import { colors } from "@/styles/Colors";
 import { MainButton } from "@/components/MainButton";
 import { Card } from "@/storage/types/types";
 import { AxiosError } from "axios";
 import Toast from "react-native-toast-message";
+import { useCards } from "@/storage/hooks/useCards";
 
 export default function CardView() {
   const { cardId, deckId } = useLocalSearchParams<{
@@ -25,14 +25,15 @@ export default function CardView() {
     deckId: string;
   }>();
   const router = useRouter();
-  const { getCardById, updateCard } = useDecks();
+
+  const { getCardById, updateCard } = useCards();
 
   const [card, setCard] = useState<Card | null>(null);
   const [front, setFront] = useState("");
   const [back, setBack] = useState("");
   const [isLoaded, setIsLoaded] = useState(false);
 
-  const [inputHeight, setInputHeight] = useState(36); // Начальная базовая высота для одной строки
+  const [inputHeight, setInputHeight] = useState(36); 
 
   const handleUpdateCard = async () => {
     const trimmedFront = front.trim();
@@ -50,16 +51,19 @@ export default function CardView() {
     }
 
     try {
+      console.log(`📝 Экран: Обновляем карточку ${cardId} в колоде ${deckId}`);
+      
       const updatedCard = await updateCard(
         cardId as string,
         trimmedFront,
         trimmedBack,
       );
 
+      // Проверяем тип возвращаемого значения, так как дефолтный стейт ожидает Card
       if (updatedCard) {
-        setCard(updatedCard);
+        setCard(updatedCard as Card);
         setFront(updatedCard.front);
-        setBack(updatedCard.back);
+        setBack(updatedCard.back || "");
 
         Toast.show({
           type: "success",
@@ -72,8 +76,7 @@ export default function CardView() {
       }
     } catch (error) {
       const err = error as AxiosError<{ message?: string }>;
-      const serverMessage =
-        err?.message || "Не удалось обновить карточку";
+      const serverMessage = err.response?.data?.message || err?.message || "Не удалось обновить карточку";
 
       Toast.show({
         type: "error",
@@ -95,7 +98,7 @@ export default function CardView() {
     try {
       const foundCard = await getCardById(cardId);
       if (foundCard) {
-        setCard(foundCard);
+        setCard(foundCard as Card);
         setFront(foundCard.front || "");
         setBack(foundCard.back || "");
       }
@@ -126,29 +129,15 @@ export default function CardView() {
   }
 
   return (
-    // Внешняя обертка как в создании карточки
-    <View
-      style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}
-    >
+    <View style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}>
       <View style={[commonStyles.container, { flex: 1, paddingBottom: 30 }]}>
         <ScrollView
           style={{ width: "100%" }}
           contentContainerStyle={{ alignItems: "center", width: "100%" }}
           showsVerticalScrollIndicator={false}
         >
-          {/* Добавлен промежуточный commonStyles.content */}
-          <View
-            style={[
-              commonStyles.content,
-              { width: "100%", paddingHorizontal: 16 },
-            ]}
-          >
-            <View
-              style={[
-                commonStyles.mainContent,
-                { width: "100%", paddingHorizontal: 0 },
-              ]}
-            >
+          <View style={[commonStyles.content, { width: "100%", paddingHorizontal: 16 }]}>
+            <View style={[commonStyles.mainContent, { width: "100%", paddingHorizontal: 0 }]}>
               <View style={styles.header}>
                 <Pressable
                   onPress={handleBack}
@@ -160,43 +149,27 @@ export default function CardView() {
                     alignItems: "center",
                   }}
                 >
-                  <Image
-                    source={ReturnIcon}
-                    style={{ width: 12, height: 22, top: -7 }}
-                  />
+                  <Image source={ReturnIcon} style={{ width: 12, height: 22, top: -7 }} />
                 </Pressable>
-
                 <Typography variant="h1" style={{ marginBottom: 16 }}>
                   Вернуться к колоде
                 </Typography>
               </View>
 
-              <View
-                style={[
-                  commonStyles.infoBox,
-                  { flexDirection: "column", width: "100%" },
-                ]}
-              >
-                {/* ТЕРМИН */}
+              <View style={[commonStyles.infoBox, { flexDirection: "column", width: "100%" }]}>
                 <View style={styles.inputWrapper}>
-                  <Typography variant="h3" style={styles.firstHeader}>
-                    термин
-                  </Typography>
+                  <Typography variant="h3" style={styles.firstHeader}>термин</Typography>
                   <TextInput
                     style={[styles.underlineInput, variants.h2]}
                     placeholder="Введите термин"
                     placeholderTextColor={colors.darkGray}
-                    underlineColorAndroid="transparent"
                     value={front}
                     onChangeText={setFront}
                   />
                 </View>
 
-                {/* ОПРЕДЕЛЕНИЕ (МНОГОСТРОЧНОЕ) */}
                 <View style={styles.inputWrapper}>
-                  <Typography variant="h3" style={styles.firstHeader}>
-                    определение
-                  </Typography>
+                  <Typography variant="h3" style={styles.firstHeader}>определение</Typography>
                   <TextInput
                     style={[
                       styles.underlineInput,
@@ -206,7 +179,6 @@ export default function CardView() {
                     ]}
                     placeholder="Введите определение"
                     placeholderTextColor={colors.darkGray}
-                    underlineColorAndroid="transparent"
                     value={back}
                     onChangeText={setBack}
                     multiline={true}
@@ -221,9 +193,7 @@ export default function CardView() {
           </View>
         </ScrollView>
 
-        <View
-          style={{ width: "100%", paddingHorizontal: 16, alignItems: "center" }}
-        >
+        <View style={{ width: "100%", paddingHorizontal: 16, alignItems: "center" }}>
           <MainButton
             style={styles.updateCardButton}
             title="Сохранить"

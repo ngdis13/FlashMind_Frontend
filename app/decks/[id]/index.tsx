@@ -14,7 +14,6 @@ import { colors } from "@/styles/Colors";
 import { Logo } from "@/components/Logo";
 import { useDecks } from "@/storage/hooks/useDecks";
 import { CardItem } from "../components/CardItem";
-import { Card } from "@/storage/types/types";
 import Toast from "react-native-toast-message";
 import { AxiosError } from "axios";
 import InfoIcon from "@/feature-decks/assets/infoIcon.png";
