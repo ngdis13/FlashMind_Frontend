@@ -48,7 +48,7 @@ export const useDecks = () => {
     },
     [deckStore.deleteDeck],
   );
-  // 5. Создание новой колоды 
+  // 5. Создание новой колоды
   const createNewDeck = useCallback(
     async (
       title: string,
@@ -59,12 +59,10 @@ export const useDecks = () => {
     [deckStore.createNewDeck],
   );
 
-  // 5. Публикация колоды в облако
+  // 6. Публикация колоды в облако (сбрасываем актуальность, так как на сервере меняется cloud_info)
   const makeDeckPublic = useCallback(
     async (deckId: string) => {
-      // ИСПРАВЛЕНО: Ищем колоду прямо в локальном массиве decks хука, без обращений к стору
       const deck = decks.find((d) => d.id === deckId);
-
       if (deck?.cloud_info?.cloud_deck_id) {
         return {
           cloud_uuid: deck.cloud_info.cloud_deck_id,
@@ -76,8 +74,12 @@ export const useDecks = () => {
       const { makeDeckPublicApi } = await import("../api/api");
       const result = await makeDeckPublicApi(deckId);
 
-      // Перезапрашиваем данные с сервера
+      // Сбрасываем актуальность локального кэша колод
+      console.log(
+        `☁️ [useDecks] Колода опубликована. Инвалидируем кэш для обновления cloud_info.`,
+      );
       deckStore.invalidateDecks();
+
       await deckStore.getDecks();
 
       return result;
@@ -85,13 +87,16 @@ export const useDecks = () => {
     [decks, deckStore],
   );
 
-  // 6.  Импорт колоды из облака
+  // 7. Импорт облачной колоды (Логика Димы: сброс актуальности)
   const importDeck = useCallback(
     async (cloudUuid: string) => {
       const { importDeckApi } = await import("../api/api");
-      const result = await importDeckApi(cloudUuid);
+      const result = await importDeckApi(cloudUuid); 
 
-      // Вызываем старое принудительное обновление для облака
+      console.log(
+        "📥 [useDecks] Облачная колода импортирована на сервере. Инвалидируем кэш колод (isActual -> false).",
+      );
+      deckStore.invalidateDecks();
       await deckStore.getDecks();
 
       return result;
@@ -118,6 +123,6 @@ export const useDecks = () => {
     deleteDeck,
     makeDeckPublic,
     importDeck,
-    createNewDeck
+    createNewDeck,
   };
 };
