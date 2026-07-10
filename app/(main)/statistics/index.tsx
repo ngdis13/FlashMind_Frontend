@@ -1,7 +1,5 @@
-import NotFoundPage from "@/app/not-found";
+import StatisticScreen from "@/feature/statistics/screens/statisticsScreen";
 
-export default function StatisticsScreen(){
-    return (
-        <NotFoundPage/>
-    )
+export default function Statistics() {
+  return <StatisticScreen />;
 }
