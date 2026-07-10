@@ -19,6 +19,7 @@ import { Logo } from "@/components/Logo";
 import React from "react";
 import { RatingButton } from "./components/RatingButton";
 import { useCards } from "@/storage/hooks/useCards";
+import { useDeckStore } from "@/store/deck.store";
 
 // Вспомогательная функция для форматирования миллисекунд в читаемый вид
 const formatTotalTime = (ms: number): string => {
@@ -51,7 +52,7 @@ export default function StudyDecksScreen() {
 
   const { decks } = useDecks();
   const { invalidateDeckCards } = useCards();
-  
+
   const deck = decks.find((d) => d.id === id);
 
   const [cardStartTime, setCardStartTime] = useState<number>(Date.now());
@@ -82,6 +83,8 @@ export default function StudyDecksScreen() {
         if (data && data.cards) {
           setCards(data.cards);
           setTotalToStudy(data.cards.length);
+          // Передаем id колоды и реальную длину массива, который только что скачали
+          useDeckStore.getState().updateDeckReviewCount(id, data.cards.length);
         }
       } catch (e) {
         console.error("Ошибка загрузки:", e);
@@ -118,7 +121,9 @@ export default function StudyDecksScreen() {
           // Вызывается строго ПОСЛЕ КАЖДОЙ карточки.
           // Как только пользователь нажал кнопку рейтинга — мы сразу помечаем колоду как неактуальную.
           if (id) {
-            console.log(`Карточка оценена. Инвалидируем колоду ${id} (isActual -> false)`);
+            console.log(
+              `Карточка оценена. Инвалидируем колоду ${id} (isActual -> false)`,
+            );
             invalidateDeckCards(id);
           }
 
@@ -133,6 +138,11 @@ export default function StudyDecksScreen() {
           } else {
             setCards((prev) => prev.slice(1));
             setFinishedCount((prev) => prev + 1);
+            // Карточка успешно пройдена и удалена из списка текущей сессии.
+            // Посылаем сигнал декремента счетчика repeat_cards в стор колод на главной!
+            if (id) {
+              useDeckStore.getState().updateDeckReviewCount(id, "decrement");
+            }
           }
         } catch (error) {
           setCards((prev) => {
@@ -161,7 +171,15 @@ export default function StudyDecksScreen() {
       });
     },
 
-    [cards, isSubmitting, fadeAnim, slideAnim, cardStartTime, id, invalidateDeckCards],
+    [
+      cards,
+      isSubmitting,
+      fadeAnim,
+      slideAnim,
+      cardStartTime,
+      id,
+      invalidateDeckCards,
+    ],
   );
 
   const currentIndex = useMemo(() => {

@@ -8,6 +8,13 @@ export interface DeckCardsStorage {
   cards: StoreCard[]; 
 }
 
+// Новый строгий тип для дискового кэша колод
+export interface DecksStorageState {
+  isActual: boolean;      // Булевый флаг актуальности
+  expiresAt: number;      // Timestamp (в мс) автоматического сброса кэша
+  decks: Deck[];          // Массив самих колод
+}
+
 // Ключи для разных типов данных
 const STORAGE_KEYS = {
   DECKS: '@flashcards/decks',           // Все колоды
@@ -15,59 +22,97 @@ const STORAGE_KEYS = {
 };
 
 /**
- * Сохранить все колоды в хранилище
+ * Сохранить все колоды в хранилище ВМЕСТЕ с флагами актуальности и времени (Новый формат)
  */
-export const saveDecks = async (decks: Deck[]): Promise<void> => {
+export const saveDecks = async (storageData: DecksStorageState): Promise<void> => {
   try {
-    const jsonValue = JSON.stringify(decks);
+    // Жесткая проверка структуры перед записью на диск
+    if (
+      !storageData || 
+      typeof storageData.isActual !== 'boolean' || 
+      typeof storageData.expiresAt !== 'number' || 
+      !Array.isArray(storageData.decks)
+    ) {
+      throw new Error('[Storage CRITICAL] Попытка записать неверный формат структуры колод на диск!');
+    }
+
+    const jsonValue = JSON.stringify(storageData);
     await AsyncStorage.setItem(STORAGE_KEYS.DECKS, jsonValue);
-    console.log('Колоды сохранены в AsyncStorage');
+    console.log(`💾 [Storage] Список колод сохранен на диск. Количество: ${storageData.decks.length} шт. Флаг: ${storageData.isActual}`);
   } catch (error) {
-    console.error('Ошибка при сохранении колод:', error);
+    console.error('Ошибка при сохранении колод в AsyncStorage:', error);
     throw error;
   }
 };
 
+
 /**
- * Загрузить все колоды из хранилища
+ * Загрузить все колоды из хранилища вместе с метаданными
  */
-export const loadDecks = async (): Promise<Deck[] | null> => {
+export const loadDecks = async (): Promise<DecksStorageState | null> => {
   try {
     const jsonValue = await AsyncStorage.getItem(STORAGE_KEYS.DECKS);
     if (jsonValue === null) {
-      console.log('📭 В хранилище нет колод');
+      console.log('📭 [Storage] В хранилище нет данных по колодам');
       return null;
     }
-    const decks = JSON.parse(jsonValue);
-    console.log(` Загружено ${decks.length} колод из хранилища`);
-    return decks;
+
+    const data = JSON.parse(jsonValue);
+
+    // Валидация структуры при чтении с диска:
+    // Если на диске старый формат (просто массив) или объект поврежден — мягко сбрасываем кэш
+    if (
+      !data || 
+      typeof data.isActual !== 'boolean' || 
+      typeof data.expiresAt !== 'number' || 
+      !Array.isArray(data.decks)
+    ) {
+      console.log('⚠️ [Storage] На диске обнаружен старый формат колод. Автоматически сбрасываем кэш...');
+      await AsyncStorage.removeItem(STORAGE_KEYS.DECKS); // Чистим старый мусор
+      return null; // Возвращаем null, чтобы стор безопасно пошел делать GET-запрос к API
+    }
+
+    console.log(`📦 [Storage] Успешно загружено ${data.decks.length} колод с диска. Актуальность: ${data.isActual}`);
+    return data as DecksStorageState;
   } catch (error) {
-    console.error(' Ошибка при загрузке колод:', error);
+    console.error('Ошибка при загрузке колод из AsyncStorage:', error);
     return null;
   }
 };
 
+
 /**
- * Обновить одну конкретную колоду в хранилище
+ * Обновить одну конкретную колоду в хранилище на диске
  */
 export const updateSingleDeckInStorage = async (deckId: string, updatedFields: Partial<Deck>): Promise<Deck[]> => {
   try {
-    const currentDecks = await loadDecks() || [];
+    const currentStorageState = await loadDecks();
     
-    const updatedDecks = currentDecks.map(deck => {
+    // Если данных на диске почему-то нет, возвращаем пустой массив
+    if (!currentStorageState) return [];
+
+    // Мержим старые поля колоды с новыми
+    const updatedDecks = currentStorageState.decks.map(deck => {
       if (deck.id === deckId) {
-        return { ...deck, ...updatedFields }; // Мержим старые поля с новыми
+        return { ...deck, ...updatedFields };
       }
       return deck;
     });
 
-    await saveDecks(updatedDecks);
+    // Сохраняем обратно всю структуру, удерживая старые флаги актуальности и времени
+    const newStorageState: DecksStorageState = {
+      ...currentStorageState,
+      decks: updatedDecks
+    };
+
+    await saveDecks(newStorageState);
     return updatedDecks;
   } catch (error) {
     console.error('Ошибка при обновлении колоды в AsyncStorage:', error);
     throw error;
   }
 };
+
 
 /**
  * Сохранить карточки конкретной колоды ВМЕСТЕ с флагом актуальности

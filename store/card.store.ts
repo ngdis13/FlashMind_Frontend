@@ -8,6 +8,8 @@ import {
 } from "@/storage/api/api";
 import { loadDeckCards, saveDeckCards } from "@/storage/service/decksStorage";
 import { Card } from "@/storage/types/types";
+import { useDeckStore } from "@/store/deck.store"; 
+
 
 interface StoreCardListItem {
   id: string;
@@ -230,6 +232,7 @@ export const useCardStore = create<CardState>((set, get) => {
       }));
 
       await saveDeckCards(data.deck_id, updatedState);
+      useDeckStore.getState().updateDeckTotalCards(data.deck_id, 'increment');
       return newCard;
     },
 
@@ -282,6 +285,7 @@ export const useCardStore = create<CardState>((set, get) => {
         }));
 
         await saveDeckCards(deckId, updatedState);
+        useDeckStore.getState().updateDeckTotalCards(deckId, 'decrement');
       }
     },
 
