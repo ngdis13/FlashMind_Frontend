@@ -142,6 +142,42 @@ export const deleteDeckOnServer = async (deckId: string): Promise<void> => {
   }
 };
 
+
+interface CreateDeckPayload {
+  name: string;
+  description: string;
+  color: string;
+}
+
+
+interface CreateDeckResponse {
+  id: string;
+  name: string;
+  description: string;
+  color: string;
+}
+
+
+export async function createNewDeck(payload: CreateDeckPayload): Promise<CreateDeckResponse> {
+  try {
+    const accessToken = useAuthStore.getState().accessToken;
+    if (!accessToken) {
+      console.log("Токен доступа отсутствует");
+    }
+    const resp = await apiClient.post(
+      getMainServiceApiUrl("/api/v1/decks"),
+      payload,
+      { headers: { Authorization: `Bearer ${accessToken}` } },
+    );
+    console.log("Колода создана", resp.data)
+    return resp.data;
+  } catch (err) {
+    handleApiError(err, "Не удалось создать новую колоду");
+  }
+}
+
+
+
 // ============================================
 // 3. КАРТОЧКИ
 // ============================================

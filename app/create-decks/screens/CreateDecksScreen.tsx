@@ -10,10 +10,10 @@ import { useState } from "react";
 import { MainButton } from "@/components/MainButton";
 import { Logo } from "@/components/Logo";
 import { colors } from "@/styles/Colors";
-import { createNewDeck } from "../api/createDecks.api";
 import { ColorPalette } from "../components/colorPalette";
 import Toast from "react-native-toast-message";
 import { AxiosError } from "axios";
+import { useDecks } from "@/storage/hooks/useDecks";
 
 export default function CreateDecksScreen() {
   const router = useRouter();
@@ -23,6 +23,8 @@ export default function CreateDecksScreen() {
 
   // 1. Стейт для управления видимостью модалки
   const [visibleColorPalette, setVisibleColorPalette] = useState(false);
+
+  const { createNewDeck } = useDecks();
 
   // 2. Стейт для хранения выбранного цвета (по умолчанию ставим, например, colors.red1)
   const [selectedColor, setSelectedColor] = useState(colors.red1);
@@ -50,8 +52,7 @@ export default function CreateDecksScreen() {
     setIsLoading(true);
 
     try {
-      const result = await createNewDeck({
-        name: trimmedName,
+      const result = await createNewDeck(trimmedName, {
         description: description.trim(),
         color: selectedColor,
       });
@@ -81,6 +82,7 @@ export default function CreateDecksScreen() {
       setIsLoading(false);
     }
   };
+
 
   const handleColorModalToggle = () => {
     setVisibleColorPalette((prev) => !prev);
@@ -179,3 +181,4 @@ export default function CreateDecksScreen() {
     </View>
   );
 }
+

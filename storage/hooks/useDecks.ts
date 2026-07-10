@@ -18,64 +18,86 @@ export const useDecks = () => {
 
   // 2. Принудительное обновление (Pull-to-Refresh)
   const refreshDecks = useCallback(async () => {
-    console.log("🔄 [useDecks] Пользователь потянул Pull-to-Refresh. Инвалидируем кэш.");
+    console.log(
+      "🔄 [useDecks] Пользователь потянул Pull-to-Refresh. Инвалидируем кэш.",
+    );
     deckStore.invalidateDecks(); // Переключаем isActual в false
     return await deckStore.getDecks(); // Делаем чистый GET-запрос к API
   }, [deckStore]);
 
   // Находим колоду по ID локально в памяти
-  const getDeckById = useCallback((deckId: string) => {
-    return decks.find(d => d.id === deckId) || null;
-  }, [decks]);
+  const getDeckById = useCallback(
+    (deckId: string) => {
+      return decks.find((d) => d.id === deckId) || null;
+    },
+    [decks],
+  );
 
   // 3. Редактирование полей колоды и настроек (Оптимистичное с Rollback внутри стора)
-  const updateDeckFields = useCallback(async (
-    deckId: string, 
-    fields: Partial<Deck> & Partial<DeckSettings>
-  ) => {
-    await deckStore.updateDeck(deckId, fields);
-  }, [deckStore.updateDeck]);
+  const updateDeckFields = useCallback(
+    async (deckId: string, fields: Partial<Deck> & Partial<DeckSettings>) => {
+      await deckStore.updateDeck(deckId, fields);
+    },
+    [deckStore.updateDeck],
+  );
 
   // 4. Удаление колоды (Оптимистичное с Rollback внутри стора)
-  const deleteDeck = useCallback(async (deckId: string) => {
-    await deckStore.deleteDeck(deckId);
-  }, [deckStore.deleteDeck]);
+  const deleteDeck = useCallback(
+    async (deckId: string) => {
+      await deckStore.deleteDeck(deckId);
+    },
+    [deckStore.deleteDeck],
+  );
+  // 5. Создание новой колоды 
+  const createNewDeck = useCallback(
+    async (
+      title: string,
+      options?: { description?: string; color?: string },
+    ) => {
+      return await deckStore.createNewDeck(title, options);
+    },
+    [deckStore.createNewDeck],
+  );
 
   // 5. Публикация колоды в облако
-  const makeDeckPublic = useCallback(async (deckId: string) => {
-    // ИСПРАВЛЕНО: Ищем колоду прямо в локальном массиве decks хука, без обращений к стору
-    const deck = decks.find(d => d.id === deckId);
-    
-    if (deck?.cloud_info?.cloud_deck_id) {
-      return {
-        cloud_uuid: deck.cloud_info.cloud_deck_id,
-        status: 'EXISTING',
-        message: 'Колода уже опубликована'
-      };
-    }
-    
-    const { makeDeckPublicApi } = await import('../api/api');
-    const result = await makeDeckPublicApi(deckId);
-    
-    // Перезапрашиваем данные с сервера
-    deckStore.invalidateDecks();
-    await deckStore.getDecks();
-    
-    return result;
-  }, [decks, deckStore]);
+  const makeDeckPublic = useCallback(
+    async (deckId: string) => {
+      // ИСПРАВЛЕНО: Ищем колоду прямо в локальном массиве decks хука, без обращений к стору
+      const deck = decks.find((d) => d.id === deckId);
 
+      if (deck?.cloud_info?.cloud_deck_id) {
+        return {
+          cloud_uuid: deck.cloud_info.cloud_deck_id,
+          status: "EXISTING",
+          message: "Колода уже опубликована",
+        };
+      }
+
+      const { makeDeckPublicApi } = await import("../api/api");
+      const result = await makeDeckPublicApi(deckId);
+
+      // Перезапрашиваем данные с сервера
+      deckStore.invalidateDecks();
+      await deckStore.getDecks();
+
+      return result;
+    },
+    [decks, deckStore],
+  );
 
   // 6.  Импорт колоды из облака
-  const importDeck = useCallback(async (cloudUuid: string) => {
-    const { importDeckApi } = await import('../api/api');
-    const result = await importDeckApi(cloudUuid);
-    
-    // Вызываем старое принудительное обновление для облака
-    await deckStore.getDecks();
-    
-    return result;
-  }, [deckStore]);
+  const importDeck = useCallback(
+    async (cloudUuid: string) => {
+      const { importDeckApi } = await import("../api/api");
+      const result = await importDeckApi(cloudUuid);
 
+      // Вызываем старое принудительное обновление для облака
+      await deckStore.getDecks();
+
+      return result;
+    },
+    [deckStore],
+  );
 
   useEffect(() => {
     if (isFirstLoadRef.current) {
@@ -88,7 +110,7 @@ export const useDecks = () => {
     decks,
     loading,
     error,
-    
+
     loadDecksData,
     refreshDecks,
     getDeckById,
@@ -96,5 +118,6 @@ export const useDecks = () => {
     deleteDeck,
     makeDeckPublic,
     importDeck,
+    createNewDeck
   };
 };
