@@ -17,7 +17,7 @@ import { Typography } from "@/styles/Typography";
 import { Input } from "@/components/Input";
 import { MainButton } from "@/components/MainButton";
 import DecksView from "../components/DecksView";
-import { styles } from "../styles/mainDecks.styles";
+import { styles } from "@/feature-decks/styles/MainDecks.styles";
 import searchButton from "../assets/searchButton.png";
 import { colors } from "@/styles/Colors";
 import { useRouter } from "expo-router";
