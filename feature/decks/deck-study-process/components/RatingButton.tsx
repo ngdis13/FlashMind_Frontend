@@ -8,7 +8,6 @@ export const RatingButton = React.memo(({ label, colorStyle, onPress, disabled }
     <Pressable
       onPress={onPress}
       disabled={disabled}
-      // Это работает стабильно и на iOS/Android, и в Web
       style={({ pressed }) => [
         styles.wrapper,
         {
