@@ -1,7 +1,7 @@
 import { commonStyles } from "@/styles/Common";
 import { Typography } from "@/styles/Typography";
 import { View, Image, Pressable } from "react-native";
-import { styles } from "../styles/index.styles";
+import { styles } from "@/feature-decks/styles/CreateDecks.styles";
 
 import ReturnIcon from "@/assets/icons/ReturnIcon.png";
 import { useRouter } from "expo-router";
@@ -10,7 +10,7 @@ import { useState } from "react";
 import { MainButton } from "@/components/MainButton";
 import { Logo } from "@/components/Logo";
 import { colors } from "@/styles/Colors";
-import { ColorPalette } from "../components/colorPalette";
+import { ColorPalette } from "@/feature/decks/components/colorPalette";
 import Toast from "react-native-toast-message";
 import { AxiosError } from "axios";
 import { useDecks } from "@/storage/hooks/useDecks";

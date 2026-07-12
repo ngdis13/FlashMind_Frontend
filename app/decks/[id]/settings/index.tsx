@@ -12,7 +12,7 @@ import { colors } from "@/styles/Colors";
 import infoButton from "@/feature-decks/assets/infoButton.png";
 import deleteIcon from "@/feature-decks/assets/deleteIcon.png";
 // Импортируем палитру
-import { ColorPalette } from "@/app/create-decks/components/colorPalette";
+import { ColorPalette } from "@/feature/decks/components/colorPalette";
 import Slider from "@react-native-community/slider";
 import { LogoSadStar } from "@/components/LogoSadStar";
 import { CustomAlert } from "@/components/CustomAlert";
