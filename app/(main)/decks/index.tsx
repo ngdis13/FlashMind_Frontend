@@ -1,4 +1,4 @@
-import MainDecksScreen from '@/feature/decks/screens/MainDecks';
+import MainDecksScreen from '@/feature-decks/deck-list/screens/MainDecks';
 import React from 'react';
 import { View } from 'react-native';
 
