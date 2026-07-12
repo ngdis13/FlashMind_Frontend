@@ -1,34 +1,75 @@
-import { commonStyles } from "@/styles/Common";
-import { Typography } from "@/styles/Typography";
-import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
-import { ScrollView, View, Image, Pressable, Platform } from "react-native";
-import ReturnIcon from "@/assets/icons/ReturnIcon.png";
-import { styles } from "@/feature-decks/deck-by-id/styles/DeckViewById.style";
-import { Input } from "@/components/Input";
+// --------------------------- React ---------------------------
 import { useCallback, useEffect, useState, useMemo, useRef } from "react";
-import { SettingsIcon } from "@/feature/profile/assets/SettingsIcon";
-import PlusIcon from "@/assets/icons/PlusIcon.png";
-import searchButton from "@/feature-decks/assets/searchButton.png";
-import { colors } from "@/styles/Colors";
-import { Logo } from "@/components/Logo";
-import { useDecks } from "@/storage/hooks/useDecks";
-import { CardItem } from "@/feature-decks/deck-by-id/components/CardItem";
+
+// --------------------------- React Native ---------------------------
+import { ScrollView, View, Image, Pressable, Platform } from "react-native";
+
+// --------------------------- Expo ---------------------------
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+
+// --------------------------- Сторонние библиотеки ---------------------------
 import Toast from "react-native-toast-message";
 import { AxiosError } from "axios";
+import * as Clipboard from "expo-clipboard";
+
+// --------------------------- Стили ---------------------------
+import { commonStyles } from "@/styles/Common";
+import { Typography } from "@/styles/Typography";
+import { colors } from "@/styles/Colors";
+import { styles } from "@/feature-decks/deck-by-id/styles/DeckViewById.style";
+
+// --------------------------- Компоненты ---------------------------
+import { Input } from "@/components/Input";
+import { Logo } from "@/components/Logo";
+import { CardItem } from "@/feature-decks/deck-by-id/components/CardItem";
+import { ShareDeckModal } from "@/feature-decks/deck-by-id/components/ShareDeckModal";
+import { SyncDeckModal } from "@/feature-decks/components/SyncDeckModal";
+import { CustomAlertCloud } from "@/feature-decks/deck-by-id/components/CustomAlertCloud";
+
+// --------------------------- Ассеты ---------------------------
+import ReturnIcon from "@/assets/icons/ReturnIcon.png";
+import PlusIcon from "@/assets/icons/PlusIcon.png";
+import searchButton from "@/feature-decks/assets/searchButton.png";
 import InfoIcon from "@/feature-decks/assets/infoIcon.png";
 import GreatIcon from "@/feature-decks/assets/GreatIcon.png";
 import ImportButton from "@/feature-decks/assets/importButton.png";
-import { ShareDeckModal } from "@/feature-decks/deck-by-id/components/ShareDeckModal";
-import * as Clipboard from "expo-clipboard";
-import { SyncDeckModal } from "@/feature-decks/components/SyncDeckModal";
-import { CustomAlertCloud } from "@/feature-decks/deck-by-id/components/CustomAlertCloud";
+
+// --------------------------- Иконки ---------------------------
+import { SettingsIcon } from "@/feature/profile/assets/SettingsIcon";
+
+// --------------------------- Хуки и хранилища ---------------------------
+import { useDecks } from "@/storage/hooks/useDecks";
 import { useCards } from "@/storage/hooks/useCards";
+
+// --------------------------- Типы и утилиты ---------------------------
 import { StoreCard } from "@/store/card.store";
 
+/**
+ * Экран просмотра колоды по ID
+ * 
+ * @component
+ * @returns {JSX.Element} React компонент экрана колоды
+ * 
+ * @description
+ * Экран отображает:
+ * - Информацию о колоде (название, описание)
+ * - Кнопку возврата к списку колод
+ * - Кнопку настроек колоды
+ * - Кнопку шаринга/синхронизации
+ * - Список карточек с возможностью поиска
+ * - Кнопку добавления новой карточки
+ * - Индикаторы статуса облачной синхронизации
+ * 
+ * @example
+ * // Использование в навигации с параметром id
+ * router.push(`/decks/${deckId}`)
+ */
 export default function DeckViewById() {
+  // --------------------------- Параметры маршрута ---------------------------
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
 
+  // --------------------------- Хуки ---------------------------
   const {
     decks,
     makeDeckPublic,
@@ -39,37 +80,65 @@ export default function DeckViewById() {
 
   const { getDeckCards, removeCard} = useCards();
 
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [search, setSearch] = useState("");
+  // --------------------------- Состояния ---------------------------
+  const [name, setName] = useState<string>("");
+  const [description, setDescription] = useState<string>("");
+  const [search, setSearch] = useState<string>("");
   const [cards, setCards] = useState<StoreCard[]>([]);
-  const [addedCardsCount, setAddedCardsCount] = useState(0);
+  const [addedCardsCount, setAddedCardsCount] = useState<number>(0);
 
   // Флаг для предотвращения дублирующихся загрузок
-  const isLoadingRef = useRef(false);
-  const isFirstLoadRef = useRef(true);
+  const isLoadingRef = useRef<boolean>(false);
+  const isFirstLoadRef = useRef<boolean>(true);
 
-  // Находим колоду в сторе
+  // --------------------------- Вычисления ---------------------------
+  /**
+   * Находит текущую колоду в сторе по ID
+   */
   const deck = decks.find((d) => d.id === id);
 
-  // Проверяем статус колоды
+  /**
+   * Проверяет, является ли колода облачной
+   */
   const isCloudDeck = deck?.cloud_info?.is_cloud_deck === true;
+
+  /**
+   * Проверяет, нужна ли синхронизация
+   */
   const needsSync = deck?.cloud_info?.needs_sync === true;
+
+  /**
+   * Получает ID облачной колоды
+   */
   const cloudDeckId = deck?.cloud_info?.cloud_deck_id;
+
+  /**
+   * Проверяет, является ли пользователь автором колоды
+   */
   const isAuthor = deck?.cloud_info?.is_author === true;
 
-  // Показываем иконку только если колода облачная
+  /**
+   * Показывает иконку предупреждения, если колода облачная и требуется синхронизация
+   */
   const showCloudAlert = isCloudDeck && needsSync;
+
+  /**
+   * Показывает иконку успеха, если колода облачная и синхронизация не требуется
+   */
   const showCloudOk = isCloudDeck && !needsSync;
 
-  const [isShareModalVisible, setIsShareModalVisible] = useState(false);
+  // --------------------------- Состояния модальных окон ---------------------------
+  const [isShareModalVisible, setIsShareModalVisible] = useState<boolean>(false);
   const [cachedCloudUuid, setCachedCloudUuid] = useState<string | null>(null);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [isSyncModalVisible, setIsSyncModalVisible] = useState(false);
-  const [isAccessModalVisible, setIsAccessModalVisible] = useState(false);
-  const [isAddedAccessModalVisible, setIsAddedAccessModalVisible] =
-    useState(false);
+  const [isGenerating, setIsGenerating] = useState<boolean>(false);
+  const [isSyncModalVisible, setIsSyncModalVisible] = useState<boolean>(false);
+  const [isAccessModalVisible, setIsAccessModalVisible] = useState<boolean>(false);
+  const [isAddedAccessModalVisible, setIsAddedAccessModalVisible] = useState<boolean>(false);
 
+  // --------------------------- Effects ---------------------------
+  /**
+   * Обновляет кэшированный UUID облачной колоды
+   */
   useEffect(() => {
     if (cloudDeckId) {
       setCachedCloudUuid(cloudDeckId);
@@ -81,6 +150,12 @@ export default function DeckViewById() {
   // ============================================
   // ⭐ ГЛАВНАЯ ФУНКЦИЯ ЗАГРУЗКИ ДАННЫХ
   // ============================================
+  /**
+   * Загружает данные колоды и карточек
+   * 
+   * @param {boolean} forceRefresh - Принудительное обновление данных
+   * @async
+   */
   const loadData = useCallback(
     async (forceRefresh = false) => {
       if (isLoadingRef.current) {
@@ -131,6 +206,9 @@ export default function DeckViewById() {
   // ============================================
   // ⭐ ТОЛЬКО ОДИН useEffect для первичной загрузки
   // ============================================
+  /**
+   * Загружает данные при монтировании компонента
+   */
   useEffect(() => {
     if (id) {
       loadData(false);
@@ -141,6 +219,10 @@ export default function DeckViewById() {
   // ============================================
   // ⭐ Обновляем данные при возврате на экран (useFocusEffect)
   // ============================================
+  /**
+   * Обновляет данные при фокусе экрана
+   * Синхронизирует имя и описание из стора
+   */
   useFocusEffect(
     useCallback(() => {
       if (!id) return;
@@ -166,6 +248,9 @@ export default function DeckViewById() {
   // ============================================
   // ⭐ Обновляем информацию о колоде из стора
   // ============================================
+  /**
+   * Обновляет информацию о колоде и карточках из стора
+   */
   useEffect(() => {
     if (deck) {
       setName(deck.name);
@@ -184,6 +269,11 @@ export default function DeckViewById() {
   // ============================================
   // ⭐ ОБРАБОТЧИК SHARE
   // ============================================
+  /**
+   * Обрабатывает нажатие на кнопку шаринга колоды
+   * Создает публичную ссылку на колоду
+   * @async
+   */
   const handleSharePress = async () => {
     if (isGenerating) return;
 
@@ -306,6 +396,10 @@ export default function DeckViewById() {
   // ============================================
   // ⭐ КОПИРОВАНИЕ ССЫЛКИ
   // ============================================
+  /**
+   * Копирует ссылку на колоду в буфер обмена
+   * @async
+   */
   const handleCopyLink = async () => {
     const cloudUuid = cachedCloudUuid || cloudDeckId;
 
@@ -382,7 +476,12 @@ export default function DeckViewById() {
   // ============================================
   // ⭐ ПУБЛИКАЦИЯ В КАТАЛОГ
   // ============================================
-  const handleMakePublic = async () => {
+  /**
+   * Публикует колоду в каталог
+   * @async
+   * @returns {Promise<boolean>} Успешность публикации
+   */
+  const handleMakePublic = async (): Promise<boolean> => {
     if (!id) return false;
     try {
       Toast.show({
@@ -415,26 +514,45 @@ export default function DeckViewById() {
   // ============================================
   // ⭐ НАВИГАЦИЯ
   // ============================================
-  const handleBack = () => {
+  /**
+   * Возвращает на список колод
+   */
+  const handleBack = (): void => {
     router.push("/decks");
   };
 
-  const handleSettings = () => {
+  /**
+   * Переходит в настройки колоды
+   */
+  const handleSettings = (): void => {
     router.push(`/decks/${id}/settings`);
   };
 
-  const handleAddCard = () => {
+  /**
+   * Переходит на экран создания карточки
+   */
+  const handleAddCard = (): void => {
     router.push(`/decks/${id}/create-card?deckId=${id}`);
   };
 
-  const handleCardPress = (cardId: string) => {
+  /**
+   * Переходит на экран просмотра карточки
+   * @param {string} cardId - ID карточки
+   */
+  const handleCardPress = (cardId: string): void => {
     router.push(`/card/${cardId}?deckId=${id}`);
   };
 
   // ============================================
-  // ⭐ УДАЛЕНИЕ КАРТОЧКИ (Исправлен порядок аргументов)
+  // ⭐ УДАЛЕНИЕ КАРТОЧКИ
   // ============================================
-  const handleDeleteCard = async (cardId: string, deckId?: string) => {
+  /**
+   * Удаляет карточку из колоды
+   * @param {string} cardId - ID карточки
+   * @param {string} [deckId] - ID колоды (опционально)
+   * @async
+   */
+  const handleDeleteCard = async (cardId: string, deckId?: string): Promise<void> => {
     // Определяем правильный id колоды
     const currentDeckId = deckId || (id as string);
 
@@ -473,15 +591,26 @@ export default function DeckViewById() {
   // ============================================
   // ⭐ СИНХРОНИЗАЦИЯ
   // ============================================
-  const handleCloudSyncAlert = () => {
+  /**
+   * Открывает модальное окно синхронизации
+   */
+  const handleCloudSyncAlert = (): void => {
     setIsSyncModalVisible(true);
   };
 
-  const handleAccessSync = () => {
+  /**
+   * Открывает модальное окно доступа
+   */
+  const handleAccessSync = (): void => {
     setIsAccessModalVisible(true);
   };
 
-  const handleSync = async () => {
+  /**
+   * Выполняет синхронизацию колоды с облаком
+   * @async
+   * @returns {Promise<boolean>} Успешность синхронизации
+   */
+  const handleSync = async (): Promise<boolean> => {
     if (!id) return false;
 
     try {
@@ -567,7 +696,12 @@ export default function DeckViewById() {
     }
   };
 
-  const handleSyncConfirm = async () => {
+  /**
+   * Подтверждает синхронизацию
+   * @async
+   * @returns {Promise<boolean>} Результат синхронизации
+   */
+  const handleSyncConfirm = async (): Promise<boolean> => {
     setIsSyncModalVisible(false);
     return await handleSync();
   };
@@ -575,7 +709,12 @@ export default function DeckViewById() {
   // ============================================
   // ⭐ УСПЕШНОЕ ЗАВЕРШЕНИЕ СИНХРОНИЗАЦИИ
   // ============================================
-  const handleSuccessConfirm = async () => {
+  /**
+   * Обрабатывает успешное завершение синхронизации
+   * Обновляет данные колоды
+   * @async
+   */
+  const handleSuccessConfirm = async (): Promise<void> => {
     setIsAddedAccessModalVisible(false);
 
     try {
@@ -605,6 +744,9 @@ export default function DeckViewById() {
   // ============================================
   // ⭐ ФИЛЬТРАЦИЯ И СОРТИРОВКА КАРТОЧЕК
   // ============================================
+  /**
+   * Фильтрует и сортирует карточки по поисковому запросу и сложности
+   */
   const filteredCards = useMemo(() => {
     // Сначала фильтруем по поиску
     const filtered = cards.filter((card) =>
@@ -629,6 +771,9 @@ export default function DeckViewById() {
     });
   }, [search, cards]);
 
+  /**
+   * Проверяет наличие карточек в колоде
+   */
   const hasCards = cards.length > 0;
 
   // ============================================
