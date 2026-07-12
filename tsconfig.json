@@ -27,6 +27,7 @@
       "@/feature-profile/*": ["./feature/profile/*"],
       "@/feature-settings/*": ["./feature/settings/*"],
       "@/feature-decks/*": ["./feature/decks/*"],
+
       
     }
   },

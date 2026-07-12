@@ -1,28 +1,27 @@
-// screens/decks/[id]/index.tsx
 import { commonStyles } from "@/styles/Common";
 import { Typography } from "@/styles/Typography";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { ScrollView, View, Image, Pressable, Platform } from "react-native";
 import ReturnIcon from "@/assets/icons/ReturnIcon.png";
-import { styles } from "@/feature-decks/styles/DeckViewById.style";
+import { styles } from "@/feature-decks/deck-by-id/styles/DeckViewById.style";
 import { Input } from "@/components/Input";
 import { useCallback, useEffect, useState, useMemo, useRef } from "react";
 import { SettingsIcon } from "@/feature/profile/assets/SettingsIcon";
 import PlusIcon from "@/assets/icons/PlusIcon.png";
-import searchButton from "@/feature/decks/assets/searchButton.png";
+import searchButton from "@/feature-decks/assets/searchButton.png";
 import { colors } from "@/styles/Colors";
 import { Logo } from "@/components/Logo";
 import { useDecks } from "@/storage/hooks/useDecks";
-import { CardItem } from "@/feature-decks/components/CardItem";
+import { CardItem } from "@/feature-decks/deck-by-id/components/CardItem";
 import Toast from "react-native-toast-message";
 import { AxiosError } from "axios";
 import InfoIcon from "@/feature-decks/assets/infoIcon.png";
 import GreatIcon from "@/feature-decks/assets/GreatIcon.png";
 import ImportButton from "@/feature-decks/assets/importButton.png";
-import { ShareDeckModal } from "@/feature-decks/components/ShareDeckModal";
+import { ShareDeckModal } from "@/feature-decks/deck-by-id/components/ShareDeckModal";
 import * as Clipboard from "expo-clipboard";
 import { SyncDeckModal } from "@/feature-decks/components/SyncDeckModal";
-import { CustomAlertCloud } from "@/feature-decks/components/CustomAlertCloud";
+import { CustomAlertCloud } from "@/feature-decks/deck-by-id/components/CustomAlertCloud";
 import { useCards } from "@/storage/hooks/useCards";
 import { StoreCard } from "@/store/card.store";
 
