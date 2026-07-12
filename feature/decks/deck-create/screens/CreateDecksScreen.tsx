@@ -1,7 +1,7 @@
 import { commonStyles } from "@/styles/Common";
 import { Typography } from "@/styles/Typography";
 import { View, Image, Pressable } from "react-native";
-import { styles } from "@/feature-decks/styles/CreateDecks.styles";
+import { styles } from "@/feature-decks/deck-create/styles/CreateDecks.styles";
 
 import ReturnIcon from "@/assets/icons/ReturnIcon.png";
 import { useRouter } from "expo-router";
