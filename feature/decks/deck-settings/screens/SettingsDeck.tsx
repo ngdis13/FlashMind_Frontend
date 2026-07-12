@@ -1,39 +1,72 @@
-import { commonStyles } from "@/styles/Common";
+// --------------------------- React ---------------------------
+import { useEffect, useState } from "react";
+
+// --------------------------- React Native ---------------------------
 import { Pressable, View, Image, ScrollView } from "react-native";
-import ReturnIcon from "@/assets/icons/ReturnIcon.png";
-import { Typography } from "@/styles/Typography";
+
+// --------------------------- Expo ---------------------------
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useDecks } from "@/storage/hooks/useDecks";
+
+// --------------------------- Сторонние библиотеки ---------------------------
+import Slider from "@react-native-community/slider";
+import Toast from "react-native-toast-message";
+import { AxiosError } from "axios";
+
+// --------------------------- Стили ---------------------------
+import { commonStyles } from "@/styles/Common";
+import { Typography } from "@/styles/Typography";
+import { colors } from "@/styles/Colors";
 import { styles } from "@/feature-decks/deck-settings/styles/SettingsDeck.style";
+
+// --------------------------- Компоненты ---------------------------
 import { MainButton } from "@/components/MainButton";
 import { Input } from "@/components/Input";
-import { useEffect, useState } from "react";
-import { colors } from "@/styles/Colors";
-import infoButton from "@/feature-decks/assets/infoButton.png";
-import deleteIcon from "@/feature-decks/assets/deleteIcon.png";
-// Импортируем палитру
 import { ColorPalette } from "@/feature/decks/components/colorPalette";
-import Slider from "@react-native-community/slider";
 import { LogoSadStar } from "@/components/LogoSadStar";
 import { CustomAlert } from "@/components/CustomAlert";
-import { AxiosError } from "axios";
-import Toast from "react-native-toast-message";
 import { InfoStudy } from "@/feature/decks/components/InfoStudy";
 
-// Константы для логарифмического слайдера интервала
+// --------------------------- Ассеты ---------------------------
+import ReturnIcon from "@/assets/icons/ReturnIcon.png";
+import infoButton from "@/feature-decks/assets/infoButton.png";
+import deleteIcon from "@/feature-decks/assets/deleteIcon.png";
+
+// --------------------------- Хуки и хранилища ---------------------------
+import { useDecks } from "@/storage/hooks/useDecks";
+
+// --------------------------- Константы ---------------------------
+/**
+ * Минимальное количество дней для интервала повторения
+ */
 const MIN_DAYS = 30;
+
+/**
+ * Максимальное количество дней для интервала повторения
+ */
 const MAX_DAYS = 730;
 
-// Перевод позиции слайдера (0...1) в реальные дни
-const logScale = (value: number) => {
+// --------------------------- Вспомогательные функции ---------------------------
+/**
+ * Преобразует позицию слайдера (0-1) в реальное количество дней
+ * Использует логарифмическую шкалу для равномерного распределения
+ * 
+ * @param {number} value - Позиция слайдера от 0 до 1
+ * @returns {number} Количество дней (округленное)
+ */
+const logScale = (value: number): number => {
   const minLog = Math.log(MIN_DAYS);
   const maxLog = Math.log(MAX_DAYS);
   const scale = minLog + value * (maxLog - minLog);
   return Math.round(Math.exp(scale));
 };
 
-// Перевод реальных дней обратно в позицию слайдера (0...1)
-const logPosition = (days: number) => {
+/**
+ * Преобразует количество дней в позицию слайдера (0-1)
+ * 
+ * @param {number} days - Количество дней
+ * @returns {number} Позиция слайдера от 0 до 1
+ */
+const logPosition = (days: number): number => {
   if (days < MIN_DAYS) return 0;
   if (days > MAX_DAYS) return 1;
   const minLog = Math.log(MIN_DAYS);
@@ -41,49 +74,130 @@ const logPosition = (days: number) => {
   return (Math.log(days) - minLog) / (maxLog - minLog);
 };
 
+/**
+ * Экран настроек колоды
+ * 
+ * @component
+ * @returns {JSX.Element} React компонент экрана настроек колоды
+ * 
+ * @description
+ * Экран предоставляет:
+ * - Редактирование названия и описания колоды
+ * - Выбор цвета колоды через палитру
+ * - Настройка интенсивности обучения (Лайт/Баланс/Интенсив/Пользовательский)
+ * - Продвинутые настройки:
+ *   - Целевое запоминание (85-95%)
+ *   - Максимальный интервал повторения (30-730 дней)
+ * - Удаление колоды с подтверждением
+ * - Сохранение всех изменений с валидацией
+ * 
+ * @example
+ * // Использование в навигации
+ * router.push(`/decks/${deckId}/settings`)
+ */
 export default function SettingsDecksScreen() {
+  // --------------------------- Параметры маршрута ---------------------------
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
 
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  // 1. Стейты для управления цветом и видимостью палитры
-  const [selectedColor, setSelectedColor] = useState(colors.red1);
-  const [visibleColorPalette, setVisibleColorPalette] = useState(false);
-
-  const [visibleInfo, setVisibleInfo] = useState(false);
-
-  const [intensity, setIntensity] = useState("balance");
-  const [targetRetention, setTargetRetention] = useState(90); // По умолчанию 90%
-  const [maxInterval, setMaxInterval] = useState(90); // По умолчанию 90 дней
-  //для управления скролла во время настроек обучения
-  const [isScrollEnabled, setIsScrollEnabled] = useState(true);
-
-  const [isLoading, setIsLoading] = useState(false);
-  //Взаимодействие колоды с сервером и хранилищем
+  // --------------------------- Хуки ---------------------------
   const { decks, updateDeckFields, deleteDeck } = useDecks();
-  //Удаление колоды
-  const [alertVisible, setAlertVisible] = useState(false);
 
+  // --------------------------- Состояния ---------------------------
+  /**
+   * Название колоды
+   */
+  const [name, setName] = useState<string>("");
+  
+  /**
+   * Описание колоды
+   */
+  const [description, setDescription] = useState<string>("");
+  
+  /**
+   * Выбранный цвет колоды
+   */
+  const [selectedColor, setSelectedColor] = useState<string>(colors.red1);
+  
+  /**
+   * Видимость палитры цветов
+   */
+  const [visibleColorPalette, setVisibleColorPalette] = useState<boolean>(false);
+  
+  /**
+   * Видимость информационного блока об обучении
+   */
+  const [visibleInfo, setVisibleInfo] = useState<boolean>(false);
+
+  /**
+   * Режим интенсивности обучения: "light" | "balance" | "intensive" | "custom"
+   */
+  const [intensity, setIntensity] = useState<string>("balance");
+  
+  /**
+   * Целевой процент запоминания (85-95%)
+   */
+  const [targetRetention, setTargetRetention] = useState<number>(90);
+  
+  /**
+   * Максимальный интервал повторения в днях
+   */
+  const [maxInterval, setMaxInterval] = useState<number>(90);
+  
+  /**
+   * Управление прокруткой ScrollView во время настройки слайдеров
+   */
+  const [isScrollEnabled, setIsScrollEnabled] = useState<boolean>(true);
+
+  /**
+   * Флаг загрузки
+   */
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  
+  /**
+   * Видимость модального окна подтверждения удаления
+   */
+  const [alertVisible, setAlertVisible] = useState<boolean>(false);
+
+  // --------------------------- Константы ---------------------------
+  /**
+   * Доступные режимы интенсивности обучения
+   */
   const modes = [
     { id: "light", label: "Лайт" },
     { id: "balance", label: "Баланс" },
     { id: "intensive", label: "Интенсив" },
   ];
 
-  const handleBack = () => {
+  // --------------------------- Обработчики навигации ---------------------------
+  /**
+   * Возвращает на экран просмотра колоды
+   */
+  const handleBack = (): void => {
     router.push(`/decks/${id}`);
   };
 
-  const handleColorModalToggle = () => {
+  // --------------------------- Обработчики цвета ---------------------------
+  /**
+   * Открывает/закрывает палитру цветов
+   */
+  const handleColorModalToggle = (): void => {
     setVisibleColorPalette((prev) => !prev);
   };
 
-  const handleColorModalClose = () => {
+  /**
+   * Закрывает палитру цветов
+   */
+  const handleColorModalClose = (): void => {
     setVisibleColorPalette(false);
   };
 
-  const handleSaveEdit = async () => {
+  // --------------------------- Обработчики сохранения ---------------------------
+  /**
+   * Сохраняет изменения настроек колоды
+   * @async
+   */
+  const handleSaveEdit = async (): Promise<void> => {
     const trimmedName = name.trim();
 
     if (!trimmedName) {
@@ -110,7 +224,6 @@ export default function SettingsDecksScreen() {
 
       console.log("📤 Отправляем на сервер:", JSON.stringify(payload, null, 2));
 
-      // ✅ Вызываем updateDeckFields с правильным payload
       await updateDeckFields(id, payload);
 
       console.log("✅ Колода обновлена");
@@ -126,7 +239,6 @@ export default function SettingsDecksScreen() {
     } catch (error) {
       const err = error as AxiosError<{ message?: string; detail?: string }>;
 
-      // 🔍 Детальная диагностика ошибки
       console.error("❌ Ошибка при сохранении:");
       console.error("Status:", err.response?.status);
       console.error("Data:", err.response?.data);
@@ -149,12 +261,20 @@ export default function SettingsDecksScreen() {
     }
   };
 
-  const handleInfo = () => {
-    //для блока информации об интенсивностти обучения
+  // --------------------------- Обработчики интенсивности ---------------------------
+  /**
+   * Переключает видимость информационного блока об обучении
+   */
+  const handleInfo = (): void => {
     setVisibleInfo((prev) => !prev);
   };
 
-  const handleSelectIntensity = (mode: string) => {
+  /**
+   * Выбирает режим интенсивности обучения и обновляет соответствующие настройки
+   * 
+   * @param {string} mode - Идентификатор режима ("light" | "balance" | "intensive")
+   */
+  const handleSelectIntensity = (mode: string): void => {
     setIntensity(mode);
 
     if (mode === "light") {
@@ -168,9 +288,21 @@ export default function SettingsDecksScreen() {
       setMaxInterval(30);
     }
   };
-  // 1. Эта функция теперь срабатывает ТОЛЬКО при подтверждении в модалке
-  const handleConfirmDelete = async () => {
-    setAlertVisible(false); // Закрываем модалку
+
+  // --------------------------- Обработчики удаления ---------------------------
+  /**
+   * Открывает модальное окно подтверждения удаления
+   */
+  const handlePressDeleteButton = (): void => {
+    setAlertVisible(true);
+  };
+
+  /**
+   * Подтверждает удаление колоды
+   * @async
+   */
+  const handleConfirmDelete = async (): Promise<void> => {
+    setAlertVisible(false);
     try {
       setIsLoading(true);
       await deleteDeck(id);
@@ -196,16 +328,18 @@ export default function SettingsDecksScreen() {
     }
   };
 
-  // 2. Функция для открытия модалки (вешается на саму кнопку в интерфейсе)
-  const handlePressDeleteButton = () => {
-    setAlertVisible(true);
-  };
-
-  // 3. Функция отмены в модалке
-  const handleCancelDelete = () => {
+  /**
+   * Отменяет удаление колоды
+   */
+  const handleCancelDelete = (): void => {
     setAlertVisible(false);
   };
 
+  // --------------------------- Effects ---------------------------
+  /**
+   * Загружает данные колоды при монтировании компонента
+   * Устанавливает значения полей и определяет режим интенсивности
+   */
   useEffect(() => {
     const deck = decks.find((d) => d.id === id);
     if (deck) {
@@ -216,7 +350,7 @@ export default function SettingsDecksScreen() {
       }
 
       // 1. Получаем и нормализуем значения из базы данных
-      let loadedRetention = 92; // Дефолтное значение
+      let loadedRetention = 92;
       if (deck.settings.desired_retention) {
         const rawRetention = deck.settings.desired_retention;
         loadedRetention =
@@ -225,7 +359,7 @@ export default function SettingsDecksScreen() {
             : Math.round(rawRetention);
       }
 
-      let loadedInterval = 365; // Дефолтное значение
+      let loadedInterval = 365;
       if (deck.settings.maximum_interval) {
         const rawInterval = deck.settings.maximum_interval;
         loadedInterval =
@@ -253,6 +387,7 @@ export default function SettingsDecksScreen() {
     }
   }, [decks, id]);
 
+  // --------------------------- Отрисовка ---------------------------
   return (
     <View
       style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}
@@ -381,7 +516,6 @@ export default function SettingsDecksScreen() {
                     step={1}
                     value={targetRetention}
                     onValueChange={setTargetRetention}
-                    //управление скроллом во время настройки
                     onSlidingStart={() => setIsScrollEnabled(false)}
                     onSlidingComplete={() => setIsScrollEnabled(true)}
                     minimumTrackTintColor={colors.mainColor}
@@ -484,6 +618,7 @@ export default function SettingsDecksScreen() {
             </Typography>
           </Pressable>
         </ScrollView>
+
         {/* Модалка для подтверждения удаления */}
         <CustomAlert
           visible={alertVisible}

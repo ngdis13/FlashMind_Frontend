@@ -1,9 +1,61 @@
+// --------------------------- React ---------------------------
 import React from "react";
+
+// --------------------------- React Native ---------------------------
+import { Pressable, View, StyleSheet, StyleProp, ViewStyle } from "react-native";
+
+// --------------------------- Стили ---------------------------
 import { Typography } from "@/styles/Typography";
-import { Pressable, View, StyleSheet } from "react-native";
 import { colors } from "@/styles/Colors";
 
-export const RatingButton = React.memo(({ label, colorStyle, onPress, disabled }: any) => {
+/**
+ * Пропсы для компонента RatingButton
+ * @interface RatingButtonProps
+ * @property {string} label - Текст кнопки
+ * @property {StyleProp<ViewStyle>} colorStyle - Стиль цвета кнопки
+ * @property {() => void} onPress - Колбэк при нажатии на кнопку
+ * @property {boolean} [disabled] - Флаг блокировки кнопки
+ */
+interface RatingButtonProps {
+  label: string;
+  colorStyle: StyleProp<ViewStyle>;
+  onPress: () => void;
+  disabled?: boolean;
+}
+
+/**
+ * Компонент кнопки для оценки сложности карточки
+ * 
+ * @component
+ * @param {RatingButtonProps} props - Свойства компонента
+ * @param {string} props.label - Текст кнопки
+ * @param {StyleProp<ViewStyle>} props.colorStyle - Стиль цвета кнопки
+ * @param {() => void} props.onPress - Колбэк при нажатии
+ * @param {boolean} [props.disabled] - Флаг блокировки
+ * @returns {JSX.Element} React компонент кнопки оценки
+ * 
+ * @description
+ * Компонент отображает кнопку для оценки сложности карточки с:
+ * - Анимацией нажатия (масштабирование до 0.95)
+ * - Затемнением при нажатии
+ * - Возможностью блокировки
+ * - Мемоизацией для оптимизации производительности
+ * 
+ * @example
+ * // Использование кнопки оценки
+ * <RatingButton
+ *   label="Забыл"
+ *   colorStyle={styles.redButton}
+ *   onPress={() => handleRate(1)}
+ *   disabled={isSubmitting}
+ * />
+ */
+export const RatingButton = React.memo<RatingButtonProps>(({
+  label,
+  colorStyle,
+  onPress,
+  disabled = false,
+}: RatingButtonProps) => {
   return (
     <Pressable
       onPress={onPress}
@@ -36,11 +88,24 @@ export const RatingButton = React.memo(({ label, colorStyle, onPress, disabled }
   );
 });
 
+// Добавляем displayName для отладки
+RatingButton.displayName = 'RatingButton';
+
+// --------------------------- Стили ---------------------------
+/**
+ * Стили для компонента RatingButton
+ * @constant
+ */
 const styles = StyleSheet.create({
+  /**
+   * Стиль обертки для анимации нажатия
+   */
   wrapper: {
     borderRadius: 20,
-    // Убираем лишние стили отсюда, переносим в View
   },
+  /**
+   * Стиль самой кнопки
+   */
   ratingButton: {
     width: 86,
     height: 35,
