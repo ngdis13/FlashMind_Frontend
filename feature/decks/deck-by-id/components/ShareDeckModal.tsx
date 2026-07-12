@@ -86,7 +86,7 @@ export const ShareDeckModal = ({
   onCopyLink,
   onMakePublic,
   isAuthor = false,
-}: ShareDeckModalProps): JSX.Element => {
+}: ShareDeckModalProps) => {
   // --------------------------- Состояния ---------------------------
   /**
    * Текущий шаг модального окна для автора
