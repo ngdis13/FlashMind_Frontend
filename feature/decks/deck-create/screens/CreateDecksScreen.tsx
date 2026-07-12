@@ -1,42 +1,105 @@
-import { commonStyles } from "@/styles/Common";
-import { Typography } from "@/styles/Typography";
-import { View, Image, Pressable } from "react-native";
-import { styles } from "@/feature-decks/deck-create/styles/CreateDecks.styles";
-
-import ReturnIcon from "@/assets/icons/ReturnIcon.png";
-import { useRouter } from "expo-router";
-import { Input } from "@/components/Input";
+// --------------------------- React ---------------------------
 import { useState } from "react";
-import { MainButton } from "@/components/MainButton";
-import { Logo } from "@/components/Logo";
-import { colors } from "@/styles/Colors";
-import { ColorPalette } from "@/feature/decks/components/colorPalette";
+
+// --------------------------- React Native ---------------------------
+import { View, Image, Pressable } from "react-native";
+
+// --------------------------- Expo ---------------------------
+import { useRouter } from "expo-router";
+
+// --------------------------- Сторонние библиотеки ---------------------------
 import Toast from "react-native-toast-message";
 import { AxiosError } from "axios";
+
+// --------------------------- Стили ---------------------------
+import { commonStyles } from "@/styles/Common";
+import { Typography } from "@/styles/Typography";
+import { colors } from "@/styles/Colors";
+import { styles } from "@/feature-decks/deck-create/styles/CreateDecks.styles";
+
+// --------------------------- Компоненты ---------------------------
+import { Input } from "@/components/Input";
+import { MainButton } from "@/components/MainButton";
+import { Logo } from "@/components/Logo";
+import { ColorPalette } from "@/feature/decks/components/colorPalette";
+
+// --------------------------- Ассеты ---------------------------
+import ReturnIcon from "@/assets/icons/ReturnIcon.png";
+
+// --------------------------- Хуки и хранилища ---------------------------
 import { useDecks } from "@/storage/hooks/useDecks";
 
+/**
+ * Экран создания новой колоды
+ * 
+ * @component
+ * @returns {JSX.Element} React компонент экрана создания колоды
+ * 
+ * @description
+ * Экран предоставляет:
+ * - Поле для ввода названия колоды (обязательное)
+ * - Поле для ввода описания (опционально, до 4 строк)
+ * - Выбор цвета колоды через модальную палитру
+ * - Кнопку создания колоды с валидацией
+ * - Информационный блок с логотипом
+ * - Возврат к списку колод
+ * 
+ * @example
+ * // Использование в навигации
+ * router.push("/create-decks")
+ */
 export default function CreateDecksScreen() {
+  // --------------------------- Навигация ---------------------------
   const router = useRouter();
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
 
-  // 1. Стейт для управления видимостью модалки
-  const [visibleColorPalette, setVisibleColorPalette] = useState(false);
-
+  // --------------------------- Хуки ---------------------------
   const { createNewDeck } = useDecks();
 
-  // 2. Стейт для хранения выбранного цвета (по умолчанию ставим, например, colors.red1)
-  const [selectedColor, setSelectedColor] = useState(colors.red1);
+  // --------------------------- Состояния ---------------------------
+  /**
+   * Название колоды
+   */
+  const [name, setName] = useState<string>("");
 
-  const handleDescriptionChange = (text: string) => {
+  /**
+   * Описание колоды
+   */
+  const [description, setDescription] = useState<string>("");
+
+  /**
+   * Флаг загрузки при создании колоды
+   */
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  /**
+   * Управление видимостью модального окна палитры цветов
+   */
+  const [visibleColorPalette, setVisibleColorPalette] = useState<boolean>(false);
+
+  /**
+   * Выбранный цвет для колоды
+   */
+  const [selectedColor, setSelectedColor] = useState<string>(colors.red1);
+
+  // --------------------------- Обработчики ---------------------------
+  /**
+   * Обрабатывает изменение описания колоды
+   * Ограничивает количество строк до 4
+   * 
+   * @param {string} text - Новый текст описания
+   */
+  const handleDescriptionChange = (text: string): void => {
     const lines = text.split("\n");
     if (lines.length <= 4) {
       setDescription(text);
     }
   };
 
-  const handleCreateDecks = async () => {
+  /**
+   * Создает новую колоду с валидацией полей
+   * @async
+   */
+  const handleCreateDecks = async (): Promise<void> => {
     const trimmedName = name.trim();
     if (!trimmedName) {
       Toast.show({
@@ -83,11 +146,14 @@ export default function CreateDecksScreen() {
     }
   };
 
-
-  const handleColorModalToggle = () => {
+  /**
+   * Открывает/закрывает модальное окно палитры цветов
+   */
+  const handleColorModalToggle = (): void => {
     setVisibleColorPalette((prev) => !prev);
   };
 
+  // --------------------------- Отрисовка ---------------------------
   return (
     <View
       style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}
@@ -141,7 +207,6 @@ export default function CreateDecksScreen() {
               style={[commonStyles.mainBox, styles.colorBox]}
               onPress={handleColorModalToggle}
             >
-              {/* 4. МеняемbackgroundColor на выбранный стейт selectedColor */}
               <View
                 style={[
                   styles.colorEllipse,
@@ -171,14 +236,13 @@ export default function CreateDecksScreen() {
         </View>
       </View>
 
-      {/* 5. Подключаем модальное окно */}
+      {/* Модальное окно палитры цветов */}
       {visibleColorPalette && (
         <ColorPalette
           onCancel={handleColorModalToggle}
-          onSelectColor={setSelectedColor} // Передаем функцию изменения цвета
+          onSelectColor={setSelectedColor}
         />
       )}
     </View>
   );
 }
-
