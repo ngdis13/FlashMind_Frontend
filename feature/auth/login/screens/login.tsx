@@ -1,10 +1,7 @@
-import React, { useState, useEffect } from "react";
-import { Image } from "react-native";
+import React, { useState} from "react";
 import { useRouter } from "expo-router";
 import { AxiosError } from "axios";
 import { View, Pressable } from "react-native";
-import * as WebBrowser from "expo-web-browser";
-import * as Linking from "expo-linking";
 import { useAuthStore } from "../../../../store/auth.store";
 import { login } from "../api/login.api";
 
@@ -15,7 +12,6 @@ import { Input } from "@/components/Input";
 import { Logo } from "@/components/Logo";
 import { OpenEyesIcon } from "../../assets/Icons/OpenEyesIcon";
 import { CloseEyesIcon } from "../../assets/Icons/CloseEyesIcon";
-import tgIcon from "@/feature-profile/assets/TgIcon.png";
 
 // --------------------------- Вспомогательные функции ---------------------------
 import { isValidEmail } from "../../validators/email.validator";
@@ -24,7 +20,6 @@ import { isValidEmail } from "../../validators/email.validator";
 import { styles } from "../styles/login.styles";
 import { Typography } from "@/styles/Typography";
 import { commonStyles } from "@/styles/Common";
-import { colors } from "@/styles/Colors";
 
 
 

@@ -1,4 +1,7 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+// --------------------------- React ---------------------------
+import React, { useEffect, useState, useCallback, useRef } from "react";
+
+// --------------------------- React Native ---------------------------
 import {
   View,
   Pressable,
@@ -11,45 +14,92 @@ import {
   useWindowDimensions,
   RefreshControl,
 } from "react-native";
+
+// --------------------------- Expo ---------------------------
 import { useFocusEffect } from "expo-router";
+import { useRouter } from "expo-router";
+
+// --------------------------- Сторонние библиотеки ---------------------------
+import Toast from "react-native-toast-message";
+
+// --------------------------- Стили ---------------------------
 import { commonStyles } from "@/styles/Common";
 import { Typography } from "@/styles/Typography";
+import { colors } from "@/styles/Colors";
+import { styles } from "@/feature-decks/deck-list/styles/MainDecks.styles";
+
+// --------------------------- Компоненты ---------------------------
 import { Input } from "@/components/Input";
 import { MainButton } from "@/components/MainButton";
 import DecksView from "@/feature-decks/deck-list/components/DecksView";
-import { styles } from "@/feature-decks/deck-list/styles/MainDecks.styles";
+
+// --------------------------- Ассеты ---------------------------
 import searchButton from "@/feature-decks/assets/searchButton.png";
-import { colors } from "@/styles/Colors";
-import { useRouter } from "expo-router";
+
+// --------------------------- Хуки и хранилища ---------------------------
 import { useDecks } from "@/storage/hooks/useDecks";
-import { getPluralCards } from "@/utils/helpers/getPluralCards";
-import { Deck } from "@/storage/types/types";
-import Toast from "react-native-toast-message";
 import { useCards } from "@/storage/hooks/useCards";
 
+// --------------------------- Типы и утилиты ---------------------------
+import { Deck } from "@/storage/types/types";
+import { getPluralCards } from "@/utils/helpers/getPluralCards";
 
+
+
+/**
+ * Главный экран со списком колод пользователя
+ * 
+ * @component
+ * @returns {JSX.Element} React компонент экрана колод
+ * 
+ * @description
+ * Экран отображает:
+ * - Заголовок "Мои колоды"
+ * - Поле поиска по колодам
+ * - Список колод в виде сетки (адаптивная ширина)
+ * - Кнопку "Добавить колоду"
+ * - Модальное окно с выбором действия (создать новую или импортировать)
+ * - Pull-to-refresh для обновления списка
+ * 
+ * @example
+ * // Использование в навигации
+ * <MainDecksScreen />
+ */
 export default function MainDecksScreen() {
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [search, setSearch] = useState("");
-  const [refreshing, setRefreshing] = useState(false);
+  // --------------------------- Состояния ---------------------------
+  const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+  const [search, setSearch] = useState<string>("");
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+
+  // --------------------------- Навигация ---------------------------
   const router = useRouter();
 
+  // --------------------------- Хуки ---------------------------
   const { decks, loading, refreshDecks, loadDecksData } = useDecks();
   const { getDeckCards } = useCards();
 
+  // --------------------------- Анимация ---------------------------
   const modalAnim = useRef(new Animated.Value(0)).current;
+
+  // --------------------------- Окно ---------------------------
   const { width } = useWindowDimensions();
   const currentContentWidth = Math.min(width, 800);
   const numColumns = Math.max(2, Math.floor((currentContentWidth - 20) / 180));
 
+
+  /**
+   * Загрузка данных при монтировании компонента
+   */
   useEffect(() => {
     loadDecksData();
   }, []);
 
-
+  /**
+   * Перезагрузка данных при фокусе экрана
+   */
   useFocusEffect(
     useCallback(() => {
-      const checkAndLoadData = async () => {
+      const checkAndLoadData = async (): Promise<void> => {
         try {
           await loadDecksData(); // Берет данные из памяти, если они там уже есть
         } catch (error) {
@@ -61,15 +111,21 @@ export default function MainDecksScreen() {
     }, [loadDecksData])
   );
 
-  // Для ручного стягивания экрана (Pull-to-refresh) принудительный сброс кэша уместен
-  const onRefresh = useCallback(async () => {
+  /**
+   * Обработчик обновления списка (Pull-to-refresh)
+   * Принудительно обновляет данные из хранилища
+   * 
+   * @async
+   * @returns {Promise<void>}
+   */
+  const onRefresh = useCallback(async (): Promise<void> => {
     setRefreshing(true);
     try {
-      await refreshDecks(); // Здесь force-запрос оправдан действием пользователя
+      await refreshDecks(); 
 
       Toast.show({
         type: "success",
-        text1: "Колоды updated",
+        text1: "Колоды обновлены",
         position: "bottom",
         visibilityTime: 1500,
       });
@@ -86,7 +142,10 @@ export default function MainDecksScreen() {
     }
   }, [refreshDecks]);
 
-  const handleAddDecks = () => {
+  /**
+   * Открывает модальное окно для добавления колоды
+   */
+  const handleAddDecks = (): void => {
     setIsModalVisible(true);
     Animated.timing(modalAnim, {
       toValue: 1,
@@ -95,7 +154,10 @@ export default function MainDecksScreen() {
     }).start();
   };
 
-  const closeItems = useCallback(() => {
+  /**
+   * Закрывает модальное окно с анимацией
+   */
+  const closeItems = useCallback((): void => {
     Animated.timing(modalAnim, {
       toValue: 0,
       duration: 250,
@@ -105,15 +167,23 @@ export default function MainDecksScreen() {
     });
   }, [modalAnim]);
 
-  const filteredDecks = search.trim()
-    ? decks.filter((deck) =>
-        deck.name.toLowerCase().includes(search.toLowerCase()),
-      )
-    : decks;
-
-  const handleEditDecks = (id: string) => router.push(`/decks/${id}`);
+  /**
+   * Обработчик перехода на экран редактирования колоды
+   * 
+   * @param {string} id - ID колоды
+   */
+  const handleEditDecks = (id: string): void => {
+    router.push(`/decks/${id}`);
+  };
   
-  const handleDeckPress = useCallback(async (id: string) => {
+  /**
+   * Обработчик нажатия на колоду для начала изучения
+   * Загружает карточки и переходит на экран изучения
+   * 
+   * @param {string} id - ID колоды
+   * @async
+   */
+  const handleDeckPress = useCallback(async (id: string): Promise<void> => {
     try {
       await getDeckCards(id);
       router.push(`/decks/${id}/study`);
@@ -122,9 +192,25 @@ export default function MainDecksScreen() {
     }
   }, [getDeckCards, router]);
 
+  /**
+   * Получает цвет колоды из настроек или возвращает цвет по умолчанию
+   * 
+   * @param {Deck} deck - Объект колоды
+   * @returns {string} HEX-код цвета
+   */
   const getDeckColor = (deck: Deck): string => {
     return deck.settings?.color || colors.mainColor;
   };
+
+
+  /**
+   * Отфильтрованные колоды по поисковому запросу
+   */
+  const filteredDecks: Deck[] = search.trim()
+    ? decks.filter((deck: Deck): boolean =>
+        deck.name.toLowerCase().includes(search.toLowerCase()),
+      )
+    : decks;
 
   return (
     <View
@@ -142,7 +228,7 @@ export default function MainDecksScreen() {
             <FlatList
               key={numColumns}
               data={filteredDecks}
-              keyExtractor={(item) => item.id}
+              keyExtractor={(item: Deck): string => item.id}
               numColumns={numColumns}
               columnWrapperStyle={styles.columnWrapper}
               contentContainerStyle={styles.listContentContainer}
@@ -182,7 +268,7 @@ export default function MainDecksScreen() {
                   </Typography>
                 </View>
               )}
-              renderItem={({ item, index }) => {
+              renderItem={({ item, index }: { item: Deck; index: number }) => {
                 return (
                   <View style={styles.deckItemWrapper}>
                     <DecksView
@@ -207,6 +293,7 @@ export default function MainDecksScreen() {
           </View>
         )}
 
+        {/* Модальное окно выбора действия */}
         <Modal
           visible={isModalVisible}
           transparent={true}
