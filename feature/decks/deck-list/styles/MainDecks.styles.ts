@@ -11,27 +11,24 @@ export const styles = StyleSheet.create({
   headerContainer: {
     paddingHorizontal: 0,
     marginHorizontal: 0,
-    marginTop: 20, 
+    marginTop: 20,
     width: "100%",
   },
-  
+
   listContentContainer: {
     paddingTop: 0,
     paddingBottom: 20,
     width: "100%",
-    gap: 16,               
+    gap: 12,
   },
 
-  // Адаптивная сетка рядов
   columnWrapper: {
-    gap: 9,                
+    gap: 12,
     justifyContent: "flex-start",
     width: "100%",
   },
   deckItemWrapper: {
-    flex: 1, 
-    minWidth: 160, 
-    maxWidth: 240, 
+    width: 182,
   },
 
   searchBox: {
@@ -48,9 +45,9 @@ export const styles = StyleSheet.create({
 
   addDecksButton: {
     width: "100%",
-    alignSelf: "center",  
-    marginTop: "auto",    
-    marginBottom: 80,     
+    alignSelf: "center",
+    marginTop: "auto",
+    marginBottom: 80,
   },
 
   modalOverlay: {
@@ -63,7 +60,7 @@ export const styles = StyleSheet.create({
   },
   modalContent: {
     width: "95%",
-    maxWidth: 400, 
+    maxWidth: 400,
     backgroundColor: colors.mainColor,
     paddingHorizontal: 12,
     paddingVertical: 24,

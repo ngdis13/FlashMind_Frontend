@@ -232,6 +232,7 @@ export default function MainDecksScreen() {
               numColumns={numColumns}
               columnWrapperStyle={styles.columnWrapper}
               contentContainerStyle={styles.listContentContainer}
+              showsVerticalScrollIndicator={false} 
               refreshControl={
                 <RefreshControl
                   refreshing={refreshing}
