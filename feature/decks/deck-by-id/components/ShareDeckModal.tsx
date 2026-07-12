@@ -1,4 +1,7 @@
+// --------------------------- React ---------------------------
 import React, { useState } from "react";
+
+// --------------------------- React Native ---------------------------
 import {
   Modal,
   View,
@@ -7,30 +10,98 @@ import {
   Image,
   Pressable,
 } from "react-native";
+
+// --------------------------- Стили ---------------------------
 import { Typography } from "@/styles/Typography";
+import { colors } from "@/styles/Colors";
+
+// --------------------------- Компоненты ---------------------------
 import { MainButton } from "@/components/MainButton";
 import { SecondButton } from "@/components/SecondButton";
-import { colors } from "@/styles/Colors";
 import { LogoCuteStar } from "@/components/LogoCuteStar";
 
+/**
+ * Пропсы для компонента ShareDeckModal
+ * @interface ShareDeckModalProps
+ * @property {boolean} visible - Управляет видимостью модального окна
+ * @property {() => void} onClose - Колбэк при закрытии модального окна
+ * @property {() => void} onCopyLink - Колбэк при копировании ссылки
+ * @property {() => Promise<boolean> | boolean} onMakePublic - Колбэк при публикации колоды
+ * @property {boolean} [isAuthor] - Флаг, является ли пользователь автором колоды
+ */
 interface ShareDeckModalProps {
   visible: boolean;
   onClose: () => void;
   onCopyLink: () => void;
   onMakePublic: () => Promise<boolean> | boolean;
-  isAuthor?: boolean; // ✅ Добавляем флаг
+  isAuthor?: boolean;
 }
 
+/**
+ * Компонент модального окна для управления доступом к колоде
+ * 
+ * @component
+ * @param {ShareDeckModalProps} props - Свойства компонента
+ * @param {boolean} props.visible - Управляет видимостью модального окна
+ * @param {() => void} props.onClose - Колбэк при закрытии модального окна
+ * @param {() => void} props.onCopyLink - Колбэк при копировании ссылки
+ * @param {() => Promise<boolean> | boolean} props.onMakePublic - Колбэк при публикации колоды
+ * @param {boolean} [props.isAuthor=false] - Флаг автора колоды
+ * @returns {JSX.Element} React компонент модального окна шаринга
+ * 
+ * @description
+ * Компонент отображает модальное окно с двумя режимами:
+ * 
+ * Для автора колоды:
+ * - Шаг 1: Копирование ссылки или публикация в каталог
+ * - Шаг 2: Ожидание модерации после публикации
+ * 
+ * Для пользователя (не автора):
+ * - Упрощенный режим с только копированием ссылки
+ * - Информация о том, что изменения не синхронизируются с оригиналом
+ * 
+ * @example
+ * // Для автора колоды
+ * <ShareDeckModal
+ *   visible={isShareModalVisible}
+ *   onClose={() => setIsShareModalVisible(false)}
+ *   onCopyLink={handleCopyLink}
+ *   onMakePublic={handleMakePublic}
+ *   isAuthor={true}
+ * />
+ * 
+ * @example
+ * // Для пользователя (не автора)
+ * <ShareDeckModal
+ *   visible={isShareModalVisible}
+ *   onClose={() => setIsShareModalVisible(false)}
+ *   onCopyLink={handleCopyLink}
+ *   onMakePublic={handleMakePublic}
+ *   isAuthor={false}
+ * />
+ */
 export const ShareDeckModal = ({
   visible,
   onClose,
   onCopyLink,
   onMakePublic,
-  isAuthor = false, // По умолчанию false
-}: ShareDeckModalProps) => {
+  isAuthor = false,
+}: ShareDeckModalProps): JSX.Element => {
+  // --------------------------- Состояния ---------------------------
+  /**
+   * Текущий шаг модального окна для автора
+   * - "private": приватный доступ (шаг 1)
+   * - "moderation": ожидание модерации (шаг 2)
+   */
   const [step, setStep] = useState<"private" | "moderation">("private");
 
-  const handleMakePublicPress = async () => {
+  // --------------------------- Обработчики ---------------------------
+  /**
+   * Обрабатывает нажатие на кнопку публикации колоды
+   * При успешной публикации переключает на шаг модерации
+   * @async
+   */
+  const handleMakePublicPress = async (): Promise<void> => {
     try {
       const isSuccess = await onMakePublic();
       if (isSuccess === true) {
@@ -41,11 +112,15 @@ export const ShareDeckModal = ({
     }
   };
 
-  const handleClose = () => {
+  /**
+   * Закрывает модальное окно и сбрасывает шаг на "private"
+   */
+  const handleClose = (): void => {
     setStep("private");
     onClose();
   };
 
+  // --------------------------- Отрисовка ---------------------------
   return (
     <Modal
       visible={visible}
@@ -168,13 +243,24 @@ export const ShareDeckModal = ({
   );
 };
 
+// --------------------------- Стили ---------------------------
+/**
+ * Стили для компонента ShareDeckModal
+ * @constant
+ */
 const styles = StyleSheet.create({
+  /**
+   * Стиль полупрозрачного фона, перекрывающего весь экран
+   */
   overlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.4)",
     justifyContent: "center",
     alignItems: "center",
   },
+  /**
+   * Стиль контейнера модального окна
+   */
   container: {
     backgroundColor: "#FFFFFF",
     borderRadius: 28,
@@ -189,34 +275,55 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 5,
   },
+  /**
+   * Стиль контейнера для логотипа
+   */
   logoContainer: {
     alignItems: "center",
     marginBottom: 8,
   },
+  /**
+   * Стиль заголовка для автора
+   */
   title: {
     textAlign: "center",
     marginBottom: 16,
   },
+  /**
+   * Стиль заголовка для пользователя (не автора)
+   */
   title2: {
     textAlign: "center",
     marginBottom: 8,
   },
+  /**
+   * Стиль подсказки (выравнивание по левому краю)
+   */
   hint: {
     textAlign: "left",
     marginTop: 6,
     paddingHorizontal: 4,
   },
+  /**
+   * Стиль подсказки для пользователя (выравнивание по центру)
+   */
   hint2: {
     textAlign: "center",
     paddingBottom: 16,
     width: 340
   },
+  /**
+   * Стиль текста на шаге модерации
+   */
   moderationText: {
     textAlign: "center",
     marginBottom: 24,
     lineHeight: 22,
     fontWeight: "500",
   },
+  /**
+   * Стиль кнопки отмены
+   */
   cancelButton: {
     alignSelf: "center",
     marginTop: 24,
