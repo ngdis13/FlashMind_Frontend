@@ -28,10 +28,12 @@ export default function FourthStepScreen() {
   };
 
   // Функция отвечает за выбор аватара из галереи устройства и его сжатие
+  // FourthStepScreen.tsx
+
   const handlePickAvatar = async () => {
     try {
-      // Запрашиваем разрешение на доступ к галерее
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
 
       if (status !== "granted") {
         alert("Нужно разрешение на доступ к галерее");
@@ -41,44 +43,47 @@ export default function FourthStepScreen() {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],
         allowsEditing: true,
-        aspect:[1, 1],
-        quality: 0.9,   // Исходное качество перед сжатием
+        aspect: [1, 1],
+        quality: 0.9,
       });
 
-      // Если пользователь НЕ нажал "Отмена"
       if (!result.canceled) {
         const asset = result.assets[0];
         let selectedUri = asset.uri;
 
-        console.log("Исходный аватар:", selectedUri);
+        console.log("📸 Исходный аватар:", selectedUri);
 
-        // Блок сжатия изображения
+        // Сжатие
         try {
           const manipResult = await ImageManipulator.manipulateAsync(
             selectedUri,
-            [{ resize: { width: 800 } }], // Пропорционально ужимаем ширину до 800px
-            { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }, // Качество 70% в формате JPEG
+            [{ resize: { width: 800 } }],
+            { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG },
           );
-
           selectedUri = manipResult.uri;
-          console.log("Сжатый аватар готов:", selectedUri);
+          console.log("✅ Сжатый аватар:", selectedUri);
         } catch (manipError) {
-          console.error(
-            "Не удалось сжать картинку, используем оригинал:",
-            manipError,
-          );
+          console.warn("⚠️ Не удалось сжать, используем оригинал");
         }
 
-        // Обновляем локальное состояние экрана для красивого отображения картинки
-        setAvatarUri(selectedUri);
-        
-        // Сохраняем сжатый URI в глобальный Zustand/Redux стор для последующей отправки
-        setAvatarFile(selectedUri);
+        // 👇 Получаем имя файла из URI
+        const filename = selectedUri.split("/").pop() || "avatar.jpg";
+        const match = /\.(\w+)$/.exec(filename);
+        const type = match ? `image/${match[1]}` : "image/jpeg";
 
-        console.log("Аватар успешно сохранен в стор приложения:", selectedUri);
+        const avatarFile = {
+          uri: selectedUri,
+          name: filename,
+          type: type,
+        };
+
+        console.log("📦 Сохраняем в стор:", avatarFile);
+
+        setAvatarUri(selectedUri);
+        setAvatarFile(selectedUri); // Это должно сохранить avatarFile в сторе
       }
     } catch (error) {
-      console.error("Ошибка при выборе или обработке изображения:", error);
+      console.error("❌ Ошибка:", error);
     }
   };
 
@@ -86,7 +91,6 @@ export default function FourthStepScreen() {
     <View style={commonStyles.viewContainer}>
       <View style={commonStyles.container}>
         <View style={styles.container}>
-          
           {/* Индикатор прогресса */}
           <View style={styles.progressLineBox}>
             <ProgressLineAnimated currentStep={4} />
@@ -96,21 +100,19 @@ export default function FourthStepScreen() {
           <View style={styles.content}>
             <Pressable onPress={handlePickAvatar}>
               {avatarUri ? (
-                <Image
-                  source={{ uri: avatarUri }}
-                  style={styles.avatarImage}
-                />
+                <Image source={{ uri: avatarUri }} style={styles.avatarImage} />
               ) : (
                 <AddAvatar />
               )}
             </Pressable>
-            
+
             <Typography variant="h1" style={styles.title}>
               Сделаем твой профиль еще красивее?
             </Typography>
 
             <Typography variant="h2" style={styles.subtitle}>
-              Добавь свою фотографию сейчас или позже в режиме редактирования профиля
+              Добавь свою фотографию сейчас или позже в режиме редактирования
+              профиля
             </Typography>
           </View>
 
@@ -118,7 +120,6 @@ export default function FourthStepScreen() {
           <View style={styles.buttonContainer}>
             <MainButton title="Вперед к знаниям" onPress={handleNextStep} />
           </View>
-
         </View>
       </View>
     </View>

@@ -314,116 +314,249 @@ export const useUserStore = create<UserState>((set, get) => ({
       user: state.user ? { ...state.user, avatarUrl: uri } : null,
     })),
 
-  setAvatarFile: (uri) => {
-    // Защита от null или undefined
+  // В userStore.ts
+
+  setAvatarFile: (uri: string) => {
     if (!uri) {
-      console.error("setAvatarFile вызван с пустым uri");
+      console.error("❌ setAvatarFile вызван с пустым uri");
       return;
     }
 
     try {
-      // Создаем объект файла из URI
       const filename = uri.split("/").pop() || "avatar.jpg";
       const match = /\.(\w+)$/.exec(filename);
       const type = match ? `image/${match[1]}` : "image/jpeg";
 
       const avatarFile = {
-        uri,
+        uri: uri,
         name: filename,
-        type,
+        type: type,
       };
 
-      console.log("Сохраняем файл в сторе:", avatarFile);
+      console.log("📦 Сохраняем файл в сторе:", avatarFile);
 
-      set((state) => ({
-        user: state.user
-          ? { ...state.user, avatarFile }
-          : {
-              firstName: "",
-              lastName: "",
-              bio: "",
-              avatarUrl: null,
-              avatarFile,
-            },
-      }));
+      set((state) => {
+        const currentUser = state.user || {
+          firstName: "",
+          lastName: "",
+          bio: "",
+          avatarUrl: null,
+          review_series: 0,
+          total_reviews: 0,
+          max_review_series: 0,
+          daily_review_counts: {},
+        };
+
+        return {
+          user: {
+            ...currentUser,
+            avatarFile: avatarFile,
+          },
+          isActual: state.isActual || true,
+          expiresAt: state.expiresAt || calculateProfileExpiryTime(),
+        };
+      });
+
+      // 👇 СОХРАНЯЕМ НА ДИСК СРАЗУ
+      const state = get();
+      if (state.user) {
+        const storageData: ProfileStorageState = {
+          isActual: state.isActual || true,
+          expiresAt: state.expiresAt || calculateProfileExpiryTime(),
+          profile: state.user,
+        };
+        saveProfile(storageData)
+          .then(() => console.log("✅ Аватар сохранен на диск"))
+          .catch((err) =>
+            console.error("❌ Ошибка сохранения аватара на диск:", err),
+          );
+      }
     } catch (error) {
-      console.error("Ошибка при создании объекта файла:", error);
+      console.error("❌ Ошибка при создании объекта файла:", error);
     }
   },
   clearUser: () => set({ user: null }),
 
-  submitOnbordingData: async () => {
+  // В userStore.ts
+
+  submitOnbordingData: async (): Promise<ProfileResponse> => {
+    console.log("🚀 submitOnbordingData начал выполнение");
+
+    // Проверяем текущее состояние
+    const currentState = get();
+    console.log("📊 Текущее состояние стора:", {
+      hasUser: !!currentState.user,
+      isLoading: currentState.isLoading,
+      isActual: currentState.isActual,
+      expiresAt: currentState.expiresAt,
+    });
+
     set({ isLoading: true, error: null });
 
     try {
-      const state = get();
-      const { user } = state;
+      // ШАГ 1: Проверяем пользователя
+      const { user } = get();
+      console.log(
+        "👤 Проверка пользователя:",
+        user ? `Есть: ${user.firstName}` : "Нет",
+      );
 
       if (!user) {
         throw new Error("Нет данных пользователя в сторе");
       }
 
-      console.log("📤 Отправляем данные из стора:", {
+      console.log("📤 Отправляем данные онбординга:", {
         firstName: user.firstName,
         lastName: user.lastName,
         hasAvatarFile: user.avatarFile ? "Да" : "Нет",
+        avatarFile: user.avatarFile,
       });
 
+      // ШАГ 2: Создаем FormData
+      console.log("📦 Создаем FormData...");
       const formData = new FormData();
       formData.append("first_name", user.firstName || "");
       formData.append("last_name", user.lastName || "");
       formData.append("bio", user.bio || "");
+      console.log("✅ Текстовые поля добавлены");
 
+      // ШАГ 3: Добавляем файл
       if (user.avatarFile) {
-        const uri = user.avatarFile.uri;
-        const response = await fetch(uri);
-        const blob = await response.blob();
-        formData.append("avatar_file", blob, user.avatarFile.name);
-        console.log("📸 Добавляем файл из стора:", user.avatarFile);
+        const { uri, name, type } = user.avatarFile;
+        console.log("📸 Добавляем файл:", {
+          uri: uri?.substring(0, 50),
+          name,
+          type,
+        });
+
+        if (uri) {
+          try {
+            console.log("🔄 Загружаем файл через fetch...");
+            const response = await fetch(uri);
+            console.log("✅ Fetch выполнен, статус:", response.status);
+
+            const blob = await response.blob();
+            console.log("✅ Blob получен, размер:", blob.size);
+
+            formData.append("avatar_file", blob, name || "avatar.jpg");
+            console.log("✅ Файл добавлен в FormData через blob");
+          } catch (error) {
+            console.error("❌ Ошибка загрузки blob:", error);
+            // Пробуем добавить как есть
+            formData.append("avatar_file", {
+              uri: uri,
+              name: name || "avatar.jpg",
+              type: type || "image/jpeg",
+            } as any);
+            console.log("⚠️ Файл добавлен как объект (fallback)");
+          }
+        } else {
+          console.warn("⚠️ URI аватара пустой!");
+        }
+      } else {
+        console.log("ℹ️ Нет файла аватара");
       }
 
-      const resp = await updateUserProfile(formData);
+      // ШАГ 4: Отправляем запрос
+      console.log("📤 Отправка запроса на сервер...");
+      console.log("🔗 URL: /users/profile");
 
-      // Обновляем стор с данными от сервера
-      const updatedUser = {
-        firstName: resp.first_name,
-        lastName: resp.last_name,
-        bio: resp.bio,
-        avatarUrl: resp.avatar_url || null,
-        avatarFile: null,
-      };
+      try {
+        const resp = await updateUserProfile(formData);
+        console.log(
+          "✅ Ответ сервера получен полностью:",
+          JSON.stringify(resp, null, 2),
+        );
 
-      // 👇 ВАЖНО: Сохраняем isActual и expiresAt
-      const currentState = get();
-      const storageData: ProfileStorageState = {
-        isActual: currentState.isActual, // Сохраняем текущий флаг
-        expiresAt: currentState.expiresAt || calculateProfileExpiryTime(),
-        profile: { ...currentState.user, ...updatedUser },
-      };
+        // ШАГ 5: Проверяем ответ
+        if (!resp) {
+          throw new Error("Сервер вернул пустой ответ");
+        }
 
-      // Сохраняем на диск
-      await saveProfile(storageData);
+        console.log("📊 Поля ответа:", {
+          first_name: resp.first_name,
+          last_name: resp.last_name,
+          avatar_url: resp.avatar_url,
+          has_avatar: !!resp.avatar_url,
+        });
 
-      // Обновляем Zustand
-      set({
-        user: { ...currentState.user, ...updatedUser },
-        isLoading: false,
-        lastFetched: Date.now(),
-      });
+        // ШАГ 6: Обновляем профиль
+        console.log("🔄 Обновляем профиль в сторе...");
+        const updatedUser = {
+          ...user,
+          firstName: resp.first_name || user.firstName,
+          lastName: resp.last_name || user.lastName,
+          bio: resp.bio || user.bio,
+          avatarUrl: resp.avatar_url || null,
+          avatarFile: null,
+        };
 
-      console.log(
-        "✅ Онбординг успешно завершен, получен avatarUrl:",
-        resp.avatar_url,
-      );
-      return resp;
+        console.log("👤 Обновленный пользователь:", {
+          firstName: updatedUser.firstName,
+          lastName: updatedUser.lastName,
+          hasAvatarUrl: !!updatedUser.avatarUrl,
+          avatarUrl: updatedUser.avatarUrl?.substring(0, 50),
+        });
+
+        // ШАГ 7: Сохраняем на диск
+        console.log("💾 Сохраняем на диск...");
+        const expiresAt = calculateProfileExpiryTime();
+        const storageData: ProfileStorageState = {
+          isActual: true,
+          expiresAt: expiresAt,
+          profile: updatedUser,
+        };
+
+        await saveProfile(storageData);
+        console.log("✅ Профиль сохранен на диск");
+
+        // ШАГ 8: Обновляем Zustand
+        console.log("🔄 Обновляем Zustand...");
+        set({
+          user: updatedUser,
+          isLoading: false,
+          lastFetched: Date.now(),
+          isActual: true,
+          expiresAt: expiresAt,
+        });
+
+        console.log("✅ Онбординг успешно завершен!");
+        return resp;
+      } catch (apiError) {
+        console.error("❌ Ошибка API запроса:", apiError);
+
+        // Детали ошибки
+        if (apiError instanceof Error) {
+          console.error("📦 Тип ошибки:", apiError.name);
+          console.error("📦 Сообщение:", apiError.message);
+          console.error("📦 Стек:", apiError.stack);
+        }
+
+        // Проверяем, есть ли response
+        if ((apiError as any).response) {
+          console.error("📦 Ответ ошибки:", {
+            status: (apiError as any).response?.status,
+            data: (apiError as any).response?.data,
+            headers: (apiError as any).response?.headers,
+          });
+        }
+
+        throw apiError;
+      }
     } catch (err) {
-      const errorMessage =
-        err instanceof Error
-          ? err.message
-          : "Ошибка отправки данных онбординга";
-      console.error("❌ Ошибка отправки:", errorMessage);
+      console.error("❌ КРИТИЧЕСКАЯ ОШИБКА в submitOnbordingData:", err);
+
+      if (err instanceof Error) {
+        console.error("📦 Имя ошибки:", err.name);
+        console.error("📦 Сообщение:", err.message);
+        console.error("📦 Стек:", err.stack);
+      }
+
       set({
-        error: errorMessage,
+        error:
+          err instanceof Error
+            ? err.message
+            : "Ошибка отправки данных онбординга",
         isLoading: false,
       });
       throw err;

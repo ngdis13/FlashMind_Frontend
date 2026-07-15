@@ -22,7 +22,7 @@ import { useUserStore } from '@/store/userStore';
  */
 export default function WelcomeScreen() {
   const router = useRouter();
-  const { user, submitOnbordingData, isLoading } = useUserStore();
+  const { user, submitOnbordingData } = useUserStore();
 
     // Проверяем данные перед отправкой
   useEffect(() => {
