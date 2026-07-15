@@ -13,7 +13,7 @@ import Toast from "react-native-toast-message";
 import { AxiosError } from "axios";
 
 export default function EditProfile() {
-  const { user, updateProfile, submitOnbordingData } = useUserStore();
+  const { user, updateProfile} = useUserStore();
   const router = useRouter();
 
   const [name, setName] = useState(user?.firstName || "");
@@ -44,12 +44,12 @@ export default function EditProfile() {
     }
 
     try {
+      // ✅ ТОЛЬКО updateProfile - он сам сохранит в стор и на диск
       await updateProfile({
         firstName: trimmedName,
         lastName: trimmedLastname,
         bio: bio.trim(),
       });
-      await submitOnbordingData();
 
       Toast.show({
         type: "success",

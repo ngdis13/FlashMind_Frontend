@@ -1,5 +1,11 @@
 // --------------------------- React ---------------------------
-import React, { useEffect, useState, useMemo, useRef, useCallback } from "react";
+import React, {
+  useEffect,
+  useState,
+  useMemo,
+  useRef,
+  useCallback,
+} from "react";
 
 // --------------------------- React Native ---------------------------
 import {
@@ -9,6 +15,8 @@ import {
   ActivityIndicator,
   Animated,
 } from "react-native";
+
+import { useUserStore } from "@/store/userStore";
 
 // --------------------------- Expo ---------------------------
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -28,7 +36,11 @@ import { RatingButton } from "@/feature-decks/deck-study-process/components/Rati
 import ReturnIcon from "@/assets/icons/ReturnIcon.png";
 
 // --------------------------- API ---------------------------
-import { getStudyCard, postCardRating, StudyCard } from "@/feature-decks/deck-study-process/api/api";
+import {
+  getStudyCard,
+  postCardRating,
+  StudyCard,
+} from "@/feature-decks/deck-study-process/api/api";
 
 // --------------------------- Хуки и хранилища ---------------------------
 import { useDecks } from "@/storage/hooks/useDecks";
@@ -38,7 +50,7 @@ import { useDeckStore } from "@/store/deck.store";
 // --------------------------- Вспомогательные функции ---------------------------
 /**
  * Форматирует время в миллисекундах в читаемый вид
- * 
+ *
  * @param {number} ms - Время в миллисекундах
  * @returns {string} Отформатированное время (например, "5 мин. 30 сек." или "45 сек.")
  */
@@ -55,10 +67,10 @@ const formatTotalTime = (ms: number): string => {
 
 /**
  * Экран процесса изучения карточек в колоде
- * 
+ *
  * @component
  * @returns {JSX.Element} React компонент экрана изучения
- * 
+ *
  * @description
  * Экран предоставляет:
  * - Пошаговое изучение карточек с переворотом
@@ -68,7 +80,7 @@ const formatTotalTime = (ms: number): string => {
  * - Индикатор прогресса (текущая карточка / всего)
  * - Обновление статуса колоды после завершения
  * - Отображение итогового времени обучения
- * 
+ *
  * @example
  * // Использование в навигации с параметрами
  * router.push(`/decks/${deckId}/study?addCount=10`)
@@ -87,22 +99,22 @@ export default function StudyDecksScreen() {
    * Список карточек для изучения
    */
   const [cards, setCards] = useState<StudyCard[]>([]);
-  
+
   /**
    * Общее количество карточек для изучения
    */
   const [totalToStudy, setTotalToStudy] = useState<number>(0);
-  
+
   /**
    * Флаг загрузки карточек
    */
   const [loading, setLoading] = useState<boolean>(true);
-  
+
   /**
    * Флаг отправки оценки (блокировка кнопок)
    */
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  
+
   /**
    * Количество пройденных карточек
    */
@@ -113,7 +125,7 @@ export default function StudyDecksScreen() {
    * Анимация прозрачности при смене карточки
    */
   const fadeAnim = useRef(new Animated.Value(1)).current;
-  
+
   /**
    * Анимация слайда при смене карточки
    */
@@ -133,16 +145,18 @@ export default function StudyDecksScreen() {
    * Время начала ответа на текущую карточку
    */
   const [cardStartTime, setCardStartTime] = useState<number>(Date.now());
-  
+
   /**
    * Время начала сессии обучения
    */
   const sessionStartTime = useRef<number>(Date.now());
-  
+
   /**
    * Итоговое время сессии (строка)
    */
   const [totalSessionTimeStr, setTotalSessionTimeStr] = useState<string>("");
+
+  const { incrementDailyReviews } = useUserStore();
 
   // --------------------------- Effects ---------------------------
   /**
@@ -198,10 +212,10 @@ export default function StudyDecksScreen() {
 
   /**
    * Обрабатывает оценку карточки пользователем
-   * 
+   *
    * @param {number} rating - Оценка сложности (1-4)
    * @async
-   * 
+   *
    * @description
    * Процесс:
    * 1. Записывает время ответа
@@ -211,14 +225,14 @@ export default function StudyDecksScreen() {
    * 5. Обновляет счетчик изученных карточек в сторе
    * 6. Переходит к следующей карточке с анимацией
    */
-  const handleRate = useCallback(
+const handleRate = useCallback(
     async (rating: number): Promise<void> => {
       if (cards.length === 0 || isSubmitting) return;
 
       const currentCard = cards[0];
       setIsSubmitting(true);
 
-      const durationMs = Date.now() - cardStartTime; //время ответа
+      const durationMs = Date.now() - cardStartTime;
       console.log("время ответа", durationMs);
 
       Animated.parallel([
@@ -234,8 +248,10 @@ export default function StudyDecksScreen() {
         }),
       ]).start(async () => {
         try {
+          await incrementDailyReviews();
+          console.log("📊 Статистика профиля обновлена после успешного ответа");
+
           // Вызывается строго ПОСЛЕ КАЖДОЙ карточки.
-          // Как только пользователь нажал кнопку рейтинга — мы сразу помечаем колоду как неактуальную.
           if (id) {
             console.log(
               `Карточка оценена. Инвалидируем колоду ${id} (isActual -> false)`,
@@ -248,19 +264,19 @@ export default function StudyDecksScreen() {
             rating,
             durationMs,
           );
+          
           if (response?.status === 200) {
             const updatedCard = response.data;
             setCards((prev) => [...prev.slice(1), updatedCard]);
           } else {
             setCards((prev) => prev.slice(1));
             setFinishedCount((prev) => prev + 1);
-            // Карточка успешно пройдена и удалена из списка текущей сессии.
-            // Посылаем сигнал декремента счетчика repeat_cards в стор колод на главной!
             if (id) {
               useDeckStore.getState().updateDeckReviewCount(id, "decrement");
             }
           }
         } catch (error) {
+          console.error("❌ Ошибка при обработке карточки:", error);
           setCards((prev) => {
             const updated = [...prev];
             const failed = updated.shift();
@@ -295,6 +311,7 @@ export default function StudyDecksScreen() {
       cardStartTime,
       id,
       invalidateDeckCards,
+      incrementDailyReviews, 
     ],
   );
 

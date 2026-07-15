@@ -63,7 +63,8 @@ export default function ProfileScreen() {
     setAvatarFile,
     isLoading,
     updateAvatar,
-    fetchUser, // Добавляем метод fetchUser из стора
+    fetchUser,
+    loadFromStorage, // Добавляем метод fetchUser из стора
   } = useUserStore();
 
   // Состояние для отслеживания первой загрузки
@@ -77,16 +78,46 @@ export default function ProfileScreen() {
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null); // Хранит dateStr активной звезды
   const globalTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // ✅ ЗАГРУЖАЕМ ДАННЫЕ ПРИ ПЕРВОМ ЗАХОДЕ НА ЭКРАН
   useEffect(() => {
     const loadUserData = async () => {
       try {
-        // Если данных нет в сторе, загружаем с сервера
-        if (!user) {
+        console.log("🚀 Загрузка данных профиля...");
+
+        // ШАГ 1: Загружаем с диска
+        await loadFromStorage();
+
+        // ШАГ 2: Проверяем актуальность
+        const state = useUserStore.getState();
+        const { isActual, expiresAt, user: currentUser } = state;
+
+        // 👇 ПРОСТОЙ ЛОГ КАК В КОЛОДАХ
+        let remainingSeconds = 0;
+        if (expiresAt) {
+          remainingSeconds = Math.max(
+            0,
+            Math.floor((expiresAt - Date.now()) / 1000),
+          );
+        }
+
+        console.log(
+          `[Profile Cache Check] Проверка кэша профиля. До 00:10 осталось ${remainingSeconds} секунд. Флаг актуальности: ${isActual}`,
+        );
+
+        // ШАГ 3: Решаем, нужен ли сетевой запрос
+        const shouldFetchFromServer =
+          !currentUser || !isActual || (expiresAt && Date.now() >= expiresAt);
+
+        if (shouldFetchFromServer) {
+          console.log(
+            "🌐 Данные устарели или отсутствуют, загружаем с сервера...",
+          );
           await fetchUser();
+          console.log("✅ Данные обновлены с сервера");
+        } else {
+          console.log("💾 Используем кэшированные данные");
         }
       } catch (error) {
-        console.error("Ошибка загрузки профиля:", error);
+        console.error("❌ Ошибка загрузки профиля:", error);
         Toast.show({
           type: "error",
           text1: "Ошибка загрузки",
@@ -100,7 +131,7 @@ export default function ProfileScreen() {
     };
 
     loadUserData();
-  }, []); // Пустой массив зависимостей - выполняется только при монтировании
+  }, []);
 
   // Автоматическое закрытие подсказки через 5 секунд
   useEffect(() => {

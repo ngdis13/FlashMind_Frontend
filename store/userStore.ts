@@ -4,10 +4,11 @@ import { getUserProfile } from "@/feature/profile/api/profile.api";
 import { create } from "zustand";
 
 import {
-  ProfileStorageState,
   saveProfile,
   loadProfile,
+  ProfileStorageState,
   calculateProfileExpiryTime,
+  invalidateProfileInStorage,
 } from "@/storage/service/profileStorage";
 
 export type UserProfile = {
@@ -39,13 +40,13 @@ export type UserProfile = {
  */
 type UserState = {
   user: UserProfile | null;
-  isActual: boolean; //Флаг актуальности кэша профиля
-  expiresAt: number; //Метка времени
+
   isLoading: boolean; // добавим для отслеживания загрузки
   error: string | null; // добавим для ошибок
   lastFetched: number | null;
 
-  setUserState: (newState: )
+  isActual: boolean;
+  expiresAt: number | null;
 
   /**
    * Устанавливает данные пользователя
@@ -65,16 +66,35 @@ type UserState = {
    */
   setAvatar: (uri: string) => void;
 
+  /**
+   * Устанавливает локальный файл аватара для загрузки
+   * @param {string} uri - Локальный URI файла
+   */
   setAvatarFile: (uri: string) => void;
 
+  /**
+   * Очищает данные пользователя
+   */
   clearUser: () => void;
 
+  /**
+   * Загружает профиль пользователя с сервера
+   * @param {boolean} [force=false] - Принудительная загрузка, игнорируя кэш
+   * @returns {Promise<void>}
+   */
   fetchUser: () => Promise<void>;
 
+  /**
+   * Отправляет данные онбординга на сервер
+   * @returns {Promise<ProfileResponse>} Ответ сервера с обновленными данными
+   * @throws {Error} Если нет данных пользователя или ошибка отправки
+   */
   submitOnbordingData: () => Promise<ProfileResponse>;
   updateAvatar: (uri: string) => Promise<ProfileResponse>;
 
-  invalidateProfile: () => void;
+  loadFromStorage: () => Promise<void>;
+  invalidateProfile: () => Promise<void>;
+
   incrementDailyReviews: () => Promise<void>;
 };
 
@@ -114,28 +134,109 @@ export const useUserStore = create<UserState>((set, get) => ({
   error: null,
   lastFetched: null,
 
+  isActual: false,
+  expiresAt: null,
+
   setUser: (user) => {
-    set({ user, lastFetched: Date.now() });
+    const expiresAt = calculateProfileExpiryTime();
+    const storageData: ProfileStorageState = {
+      isActual: true,
+      expiresAt: expiresAt,
+      profile: user,
+    };
+
+    saveProfile(storageData).catch((err) => {
+      console.error("Ошибка сохранения профиля на диск", err);
+    });
+    set({
+      user,
+      lastFetched: Date.now(),
+      isActual: true,
+      expiresAt: expiresAt,
+    });
+  },
+
+  loadFromStorage: async () => {
+    console.log("📂 Загружаем профиль с диска...");
+    try {
+      const storageData = await loadProfile();
+
+      if (storageData && storageData.profile) {
+        console.log("✅ Профиль загружен с диска:", {
+          firstName: storageData.profile.firstName,
+          isActual: storageData.isActual,
+          expiresAt: new Date(storageData.expiresAt).toLocaleString(),
+        });
+
+        set({
+          user: storageData.profile,
+          isActual: storageData.isActual,
+          expiresAt: storageData.expiresAt,
+          lastFetched: Date.now(),
+        });
+      } else {
+        console.log("ℹ️ Профиль на диске не найден");
+      }
+    } catch (error) {
+      console.error("❌ Ошибка загрузки профиля с диска:", error);
+    }
+  },
+  invalidateProfile: async () => {
+    console.log("🔄 Инвалидация профиля...");
+
+    const state = get();
+
+    // Если профиля нет в памяти, ничего не делаем
+    if (!state.user) {
+      console.log("ℹ️ Профиль не найден в памяти, инвалидация пропущена");
+      return;
+    }
+
+    try {
+      // 1. Инвалидируем на диске
+      await invalidateProfileInStorage();
+
+      // 2. Обновляем состояние в памяти
+      set({
+        isActual: false,
+        // user и expiresAt остаются нетронутыми
+      });
+
+      console.log("✅ Профиль успешно инвалидирован (isActual: false)");
+    } catch (error) {
+      console.error("❌ Ошибка при инвалидации профиля:", error);
+      throw error;
+    }
   },
 
   fetchUser: async (force = false) => {
     const state = get();
-    if (!force && state.user) {
-      console.log("Данные уже есть в сторе, использую их");
-      return;
+
+    // 👇 ВАЖНО: Проверяем ВСЕ условия
+    const shouldFetch =
+      force ||
+      !state.user ||
+      !state.isActual ||
+      (state.expiresAt && Date.now() >= state.expiresAt);
+
+    if (!shouldFetch) {
+      console.log("💾 Данные валидны, используем кэш, запрос не делаем");
+      return; // 👈 ВОЗВРАЩАЕМСЯ, НЕ ДЕЛАЕМ ЗАПРОС
     }
 
     if (state.isLoading) {
-      console.log("Уже загружается...");
+      console.log("⏳ Уже загружается...");
       return;
     }
 
     set({ isLoading: true, error: null });
 
     try {
+      console.log("🌐 Загружаем свежие данные с сервера...");
       const response = await getUserProfile();
+
       const mappedUserProfile: UserProfile = {
-        id: response.user_id, // если есть в ответе
+        id: response.user_id,
         firstName: response.first_name || "Star",
         lastName: response.last_name || "1234",
         bio: response.bio || "О себе",
@@ -145,39 +246,68 @@ export const useUserStore = create<UserState>((set, get) => ({
         max_review_series: response.max_review_series ?? 0,
         daily_review_counts: response.daily_review_counts || {},
       };
-      set({
-        user: mappedUserProfile,
-        isLoading: false,
-        lastFetched: Date.now(),
-      });
+
+      // Сохраняем через setUser (это установит isActual: true и expiresAt)
+      get().setUser(mappedUserProfile);
+
+      console.log("✅ Профиль обновлен и сохранен на диск");
     } catch (err) {
+      console.error("❌ Ошибка загрузки профиля:", err);
       set({
         error: err instanceof Error ? err.message : "Ошибка загрузки профиля",
         isLoading: false,
       });
+      throw err;
     }
   },
 
-  updateProfile: (data) =>
-    set((state) => {
-      if (state.user) {
-        return { user: { ...state.user, ...data } };
-      }
-      // Если user не существует - создаем с дефолтными значениями
-      return {
-        user: {
-          firstName: data.firstName || "",
-          lastName: data.lastName || "",
-          bio: data.bio || "",
-          avatarUrl: data.avatarUrl || null,
-          review_series: 0,
-          total_reviews: 0,
-          max_review_series: 0,
-          daily_review_counts: {},
-          ...data,
-        },
+  updateProfile: (data) => {
+    const state = get();
+    if (!state.user) {
+      const newUser = {
+        firstName: data.firstName || "",
+        lastName: data.lastName || "",
+        bio: data.bio || "",
+        avatarUrl: data.avatarUrl || null,
+        review_series: 0,
+        total_reviews: 0,
+        max_review_series: 0,
+        daily_review_counts: {},
+        ...data,
       };
-    }),
+      const expiresAt = calculateProfileExpiryTime();
+      const storageData: ProfileStorageState = {
+        isActual: true,
+        expiresAt: expiresAt,
+        profile: newUser,
+      };
+
+      saveProfile(storageData).catch((err) => {
+        console.error("Ошибка сохранения профиля на диск", err);
+      });
+
+      set({
+        user: newUser,
+        isActual: true,
+        expiresAt: expiresAt,
+      });
+      return;
+    }
+
+    // Обновляем существующего пользователя
+    const updatedUser = { ...state.user, ...data };
+    const storageData: ProfileStorageState = {
+      isActual: state.isActual,
+      expiresAt: state.expiresAt || calculateProfileExpiryTime(),
+      profile: updatedUser,
+    };
+
+    saveProfile(storageData).catch((err) => {
+      console.error("Ошибка сохранения профиля на диск:", err);
+    });
+
+    set({ user: updatedUser });
+  },
 
   setAvatar: (uri) =>
     set((state) => ({
@@ -226,7 +356,6 @@ export const useUserStore = create<UserState>((set, get) => ({
     set({ isLoading: true, error: null });
 
     try {
-      // 👈 Берем данные прямо из стора через get()
       const state = get();
       const { user } = state;
 
@@ -240,29 +369,19 @@ export const useUserStore = create<UserState>((set, get) => ({
         hasAvatarFile: user.avatarFile ? "Да" : "Нет",
       });
 
-      // Создаем FormData для отправки
       const formData = new FormData();
-
-      // Добавляем текстовые поля из стора
       formData.append("first_name", user.firstName || "");
       formData.append("last_name", user.lastName || "");
       formData.append("bio", user.bio || "");
 
-      // Добавляем файл аватара, если он есть в сторе
       if (user.avatarFile) {
         const uri = user.avatarFile.uri;
-
-        // Загружаем файл с локального URI
         const response = await fetch(uri);
-        const blob = await response.blob(); // получаем Blob
-
-        // Добавляем файл в FormData с именем
+        const blob = await response.blob();
         formData.append("avatar_file", blob, user.avatarFile.name);
-
         console.log("📸 Добавляем файл из стора:", user.avatarFile);
       }
 
-      // Отправляем запрос с FormData
       const resp = await updateUserProfile(formData);
 
       // Обновляем стор с данными от сервера
@@ -271,11 +390,23 @@ export const useUserStore = create<UserState>((set, get) => ({
         lastName: resp.last_name,
         bio: resp.bio,
         avatarUrl: resp.avatar_url || null,
-        avatarFile: null, // очищаем локальный файл, теперь есть URL
+        avatarFile: null,
       };
 
+      // 👇 ВАЖНО: Сохраняем isActual и expiresAt
+      const currentState = get();
+      const storageData: ProfileStorageState = {
+        isActual: currentState.isActual, // Сохраняем текущий флаг
+        expiresAt: currentState.expiresAt || calculateProfileExpiryTime(),
+        profile: { ...currentState.user, ...updatedUser },
+      };
+
+      // Сохраняем на диск
+      await saveProfile(storageData);
+
+      // Обновляем Zustand
       set({
-        user: updatedUser,
+        user: { ...currentState.user, ...updatedUser },
         isLoading: false,
         lastFetched: Date.now(),
       });
@@ -290,9 +421,7 @@ export const useUserStore = create<UserState>((set, get) => ({
         err instanceof Error
           ? err.message
           : "Ошибка отправки данных онбординга";
-
       console.error("❌ Ошибка отправки:", errorMessage);
-
       set({
         error: errorMessage,
         isLoading: false,
@@ -306,24 +435,32 @@ export const useUserStore = create<UserState>((set, get) => ({
 
     try {
       const formData = new FormData();
-
-      // Загружаем файл
       const response = await fetch(uri);
       const blob = await response.blob();
-
       const filename = uri.split("/").pop() || "avatar.jpg";
-
-      // Добавляем ТОЛЬКО аватар
       formData.append("avatar_file", blob, filename);
 
-      // Отправляем PATCH запрос только с аватаром
       const resp = await updateUserProfile(formData);
 
-      // Обновляем стор
-      set((state) => ({
-        user: state.user ? { ...state.user, avatarUrl: resp.avatar_url } : null,
-        isLoading: false,
-      }));
+      const state = get();
+      if (state.user) {
+        const updatedUser = { ...state.user, avatarUrl: resp.avatar_url };
+
+        // Сохраняем на диск
+        const storageData: ProfileStorageState = {
+          isActual: state.isActual,
+          expiresAt: state.expiresAt || calculateProfileExpiryTime(),
+          profile: updatedUser,
+        };
+
+        await saveProfile(storageData);
+
+        // Обновляем Zustand
+        set({
+          user: updatedUser,
+          isLoading: false,
+        });
+      }
 
       return resp;
     } catch (err) {
@@ -333,5 +470,60 @@ export const useUserStore = create<UserState>((set, get) => ({
       });
       throw err;
     }
+  },
+
+  incrementDailyReviews: async () => {
+    const state = get();
+    const { user, isActual, expiresAt } = state;
+
+    if (!user) {
+      console.warn("⚠️ Профиль не загружен");
+      return;
+    }
+
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+
+    const updatedUser = { ...user };
+    updatedUser.total_reviews = (user.total_reviews || 0) + 1;
+
+    const todayCount = user.daily_review_counts?.[today] || 0;
+
+    if (todayCount > 0) {
+      // Сценарий А: Сегодня уже были повторения
+      updatedUser.daily_review_counts = {
+        ...user.daily_review_counts,
+        [today]: todayCount + 1,
+      };
+    } else {
+      // Сценарий B: Первое повторение за сегодня
+      updatedUser.daily_review_counts = {
+        ...user.daily_review_counts,
+        [today]: 1,
+      };
+
+      const newSeries = (user.review_series || 0) + 1;
+      updatedUser.review_series = newSeries;
+
+      const maxSeries = user.max_review_series || 0;
+      if (newSeries > maxSeries) {
+        updatedUser.max_review_series = newSeries;
+        console.log(`🏆 Новый рекорд: ${newSeries} дней`);
+      }
+    }
+
+    // Сохраняем в кэш
+    const storageData: ProfileStorageState = {
+      isActual: isActual,
+      expiresAt: expiresAt || calculateProfileExpiryTime(),
+      profile: updatedUser,
+    };
+
+    await saveProfile(storageData);
+    set({ user: updatedUser });
+
+    console.log(
+      `📊 Статистика: +1 повторение (всего: ${updatedUser.total_reviews}, серия: ${updatedUser.review_series} дн., сегодня: ${updatedUser.daily_review_counts[today]})`,
+    );
   },
 }));
