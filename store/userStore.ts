@@ -3,6 +3,13 @@ import { ProfileResponse } from "@/feature/onboarding/types/api.types";
 import { getUserProfile } from "@/feature/profile/api/profile.api";
 import { create } from "zustand";
 
+import {
+  ProfileStorageState,
+  saveProfile,
+  loadProfile,
+  calculateProfileExpiryTime,
+} from "@/storage/service/profileStorage";
+
 export type UserProfile = {
   id?: string;
   firstName: string;
@@ -32,10 +39,13 @@ export type UserProfile = {
  */
 type UserState = {
   user: UserProfile | null;
-
+  isActual: boolean; //Флаг актуальности кэша профиля
+  expiresAt: number; //Метка времени
   isLoading: boolean; // добавим для отслеживания загрузки
   error: string | null; // добавим для ошибок
   lastFetched: number | null;
+
+  setUserState: (newState: )
 
   /**
    * Устанавливает данные пользователя
@@ -55,31 +65,17 @@ type UserState = {
    */
   setAvatar: (uri: string) => void;
 
-  /**
-   * Устанавливает локальный файл аватара для загрузки
-   * @param {string} uri - Локальный URI файла
-   */
   setAvatarFile: (uri: string) => void;
 
-  /**
-   * Очищает данные пользователя
-   */
   clearUser: () => void;
 
-  /**
-   * Загружает профиль пользователя с сервера
-   * @param {boolean} [force=false] - Принудительная загрузка, игнорируя кэш
-   * @returns {Promise<void>}
-   */
   fetchUser: () => Promise<void>;
 
-  /**
-   * Отправляет данные онбординга на сервер
-   * @returns {Promise<ProfileResponse>} Ответ сервера с обновленными данными
-   * @throws {Error} Если нет данных пользователя или ошибка отправки
-   */
   submitOnbordingData: () => Promise<ProfileResponse>;
   updateAvatar: (uri: string) => Promise<ProfileResponse>;
+
+  invalidateProfile: () => void;
+  incrementDailyReviews: () => Promise<void>;
 };
 
 /**
@@ -174,11 +170,11 @@ export const useUserStore = create<UserState>((set, get) => ({
           lastName: data.lastName || "",
           bio: data.bio || "",
           avatarUrl: data.avatarUrl || null,
-          review_series: 0, 
-          total_reviews: 0, 
+          review_series: 0,
+          total_reviews: 0,
           max_review_series: 0,
-          daily_review_counts: {}, 
-          ...data, 
+          daily_review_counts: {},
+          ...data,
         },
       };
     }),
