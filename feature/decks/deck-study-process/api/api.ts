@@ -28,7 +28,7 @@ export async function getStudyCard(
     const accessToken = useAuthStore.getState().accessToken;
 
     const resp = await apiClient.post(
-      getMainServiceApiUrl("/api/v1/study"),
+      getMainServiceApiUrl("/api/v1/flashmind/study"),
       {
         deck_id: deckId,
         total: total,
@@ -53,7 +53,7 @@ export async function postCardRating(
     const accessToken = useAuthStore.getState().accessToken;
 
     const resp = await apiClient.patch(
-      getMainServiceApiUrl("/api/v1/study"),
+      getMainServiceApiUrl("/api/v1/flashmind/study"),
       {
         card_id: cardId,
         rating: rating,

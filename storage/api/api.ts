@@ -32,10 +32,7 @@ interface CardsResponse {
   total?: number;
 }
 
-// ✅ Тип для полной карточки
-interface FullCardResponse extends Card {
-  // Полная карточка с back
-}
+
 
 interface UpdateDeckPayload {
   name: string;
@@ -64,7 +61,7 @@ export const fetchUserDecks = async (): Promise<Deck[]> => {
     console.log("🌐 Загружаем колоды с сервера...");
 
     const resp = await apiClient.get<DecksResponse>(
-      getMainServiceApiUrl("/api/v1/decks"),
+      getMainServiceApiUrl("/api/v1/flashmind/decks"),
       { headers: { Authorization: `Bearer ${accessToken}` } },
     );
 
@@ -99,7 +96,7 @@ export const updateDeck = async (deckId: string, payload: UpdateDeckPayload): Pr
     console.log(`📤 Payload:`, payload);
     
     await apiClient.put(
-      getMainServiceApiUrl(`/api/v1/decks/${deckId}`), 
+      getMainServiceApiUrl(`/api/v1/flashmind/decks/${deckId}`), 
       payload,
       { 
         headers: { 
@@ -131,7 +128,7 @@ export const deleteDeckOnServer = async (deckId: string): Promise<void> => {
     console.log(`🗑️ Удаление колоды ${deckId}...`);
 
     await apiClient.delete(
-      getMainServiceApiUrl(`/api/v1/decks/${deckId}`),
+      getMainServiceApiUrl(`/api/v1/flashmind/decks/${deckId}`),
       { headers: { Authorization: `Bearer ${accessToken}` } }
     );
 
@@ -150,22 +147,16 @@ interface CreateDeckPayload {
 }
 
 
-interface CreateDeckResponse {
-  id: string;
-  name: string;
-  description: string;
-  color: string;
-}
 
 
-export async function createNewDeck(payload: CreateDeckPayload): Promise<CreateDeckResponse> {
+export async function createNewDeck(payload: CreateDeckPayload): Promise<Deck> {
   try {
     const accessToken = useAuthStore.getState().accessToken;
     if (!accessToken) {
       console.log("Токен доступа отсутствует");
     }
     const resp = await apiClient.post(
-      getMainServiceApiUrl("/api/v1/decks"),
+      getMainServiceApiUrl("/api/v1/flashmind/decks"),
       payload,
       { headers: { Authorization: `Bearer ${accessToken}` } },
     );
@@ -213,7 +204,7 @@ export const fetchCards = async (
     );
 
     const resp = await apiClient.get<CardsResponse>(
-      getMainServiceApiUrl(`/api/v1/cards${queryString}`),
+      getMainServiceApiUrl(`/api/v1/flashmind/cards${queryString}`),
       { headers: { Authorization: `Bearer ${accessToken}` } },
     );
 
@@ -263,7 +254,7 @@ export const fetchCardById = async (cardId: string): Promise<Card> => {
     console.log(`🔍 Загружаем ПОЛНУЮ карточку ${cardId}...`);
 
     const resp = await apiClient.get<Card>(
-      getMainServiceApiUrl(`/api/v1/cards/${cardId}`),
+      getMainServiceApiUrl(`/api/v1/flashmind/cards/${cardId}`),
       { headers: { Authorization: `Bearer ${accessToken}` } },
     );
 
@@ -300,7 +291,7 @@ export const createCard = async (
     console.log(`📝 Создание карточки в колоде ${deckId}...`);
 
     const resp = await apiClient.post(
-      getMainServiceApiUrl(`/api/v1/cards`),
+      getMainServiceApiUrl(`/api/v1/flashmind/cards`),
       {
         deck_id: deckId,
         front: data.front,
@@ -351,7 +342,7 @@ export const updateCardOnServer = async (
     console.log(`📝 Обновляем карточку ${cardId}...`);
 
     const resp = await apiClient.put(
-      getMainServiceApiUrl(`/api/v1/cards/${cardId}`),
+      getMainServiceApiUrl(`/api/v1/flashmind/cards/${cardId}`),
       {
         front: data.front,
         back: data.back,
@@ -382,7 +373,7 @@ export const deleteCard = async (cardId: string): Promise<void> => {
     console.log(`🗑️ Удаление карточки ${cardId}...`);
 
     await apiClient.delete(
-      getMainServiceApiUrl(`/api/v1/cards/${cardId}`),
+      getMainServiceApiUrl(`/api/v1/flashmind/cards/${cardId}`),
       { headers: { Authorization: `Bearer ${accessToken}` } }
     );
 
@@ -412,7 +403,7 @@ export const makeDeckPublicApi = async (deckId: string): Promise<CloudDeckShareR
     console.log(`☁️ Отправка колоды ${deckId} на публикацию...`);
 
     const response = await apiClient.post<CloudDeckShareResponse>(
-      getMainServiceApiUrl("/api/v1/cloud_decks/share"),
+      getMainServiceApiUrl("/api/v1/flashmind/cloud_decks/share"),
       {
         deck_id: deckId,
         type: "PUBLIC",
@@ -446,7 +437,7 @@ export const importDeckApi = async (cloudUuid: string): Promise<CloudDeckImportR
     console.log(`☁️ Импортируем облачную колоду ${cloudUuid}...`);
 
     const response = await apiClient.post<CloudDeckImportResponse>(
-      getMainServiceApiUrl("/api/v1/cloud_decks/import"),
+      getMainServiceApiUrl("/api/v1/flashmind/cloud_decks/import"),
       {
         cloud_uuid: cloudUuid
       },

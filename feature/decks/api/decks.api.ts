@@ -22,7 +22,7 @@ export async function getUserDecks(): Promise<DecksResponse> {
       console.log("Токен доступа отсутствует");
     }
     const resp = await apiClient.get(
-      getMainServiceApiUrl("/api/v1/decks"),
+      getMainServiceApiUrl("/api/v1/flashmind/decks"),
       { headers: { Authorization: `Bearer ${accessToken}` } },
     );
     console.log(resp.data)

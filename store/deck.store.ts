@@ -24,7 +24,10 @@ type DeckState = {
   setDecksState: (newState: DecksStorageState) => void;
 
   // Методы мутаций (Оптимистичные с автоматическим Rollback)
-  createNewDeck: (title: string, options?: { description?: string; color?: string }) => Promise<Deck>;
+  createNewDeck: (
+    title: string,
+    options?: { description?: string; color?: string },
+  ) => Promise<Deck>;
   updateDeck: (id: string, fields: Partial<Deck>) => Promise<Deck>;
   deleteDeck: (id: string) => Promise<void>;
 
@@ -34,9 +37,10 @@ type DeckState = {
     action: "increment" | "decrement",
   ) => void;
 
-  updateDeckReviewCount: (deckId: string, countOrAction: number | 'decrement') => void;
-  
-
+  updateDeckReviewCount: (
+    deckId: string,
+    countOrAction: number | "decrement",
+  ) => void;
 };
 
 export const useDeckStore = create<DeckState>((set, get) => {
@@ -171,21 +175,28 @@ export const useDeckStore = create<DeckState>((set, get) => {
       }
     },
 
-
     // 4. Создание новой колоды (Оптимистичное добавление полноценного объекта по типам проекта)
-    createNewDeck: async (title: string, options?: { description?: string; color?: string }) => {
+    createNewDeck: async (
+      title: string,
+      options?: { description?: string; color?: string },
+    ) => {
       set({ isLoading: true, error: null });
       try {
-        const { createNewDeck: apiCreateNewDeck } = await import("@/storage/api/api"); 
-        
+        const { createNewDeck: apiCreateNewDeck } =
+          await import("@/storage/api/api");
+
         // Отправляем на сервер полные данные из инпутов экрана
         const serverResponse = await apiCreateNewDeck({
           name: title,
-          description: options?.description || "",   
-          color: options?.color || "#ffffff"   
-        }); 
+          description: options?.description || "",
+          color: options?.color || "#ffffff",
+        });
 
-        const currentRecord = get().decksState || { isActual: true, expiresAt: calculateExpiryTime(), decks: [] };
+        const currentRecord = get().decksState || {
+          isActual: true,
+          expiresAt: calculateExpiryTime(),
+          decks: [],
+        };
         validateFormat(currentRecord);
 
         // Собираем полноценную модель Deck для локального кэша
@@ -193,40 +204,39 @@ export const useDeckStore = create<DeckState>((set, get) => {
           id: serverResponse.id,
           name: serverResponse.name,
           description: serverResponse.description,
-          total_cards: 0,   
+          total_cards: 0,
           repeat_cards: 0,
           settings: {
-            color: serverResponse.color,
+            color: serverResponse.settings?.color,
             desired_retention: 0.9,
-            maximum_interval: 365
+            maximum_interval: 365,
           },
           cloud_info: {
             is_approved: false,
             is_cloud_deck: false,
-            needs_sync: false
-          }
+            needs_sync: false,
+          },
         };
 
         const updatedState: DecksStorageState = {
           ...currentRecord,
           isActual: true, // Блокируем лишний GET-запрос всего списка
-          decks: [...currentRecord.decks, fullyTypedNewDeck] // Пушим новую колоду в оперативку и кэш
+          decks: [...currentRecord.decks, fullyTypedNewDeck], // Пушим новую колоду в оперативку и кэш
         };
 
         get().setDecksState(updatedState);
         set({ isLoading: false });
-        
+
         return fullyTypedNewDeck;
       } catch (error) {
-        set({ 
-          error: error instanceof Error ? error.message : 'Ошибка создания колоды',
-          isLoading: false 
+        set({
+          error:
+            error instanceof Error ? error.message : "Ошибка создания колоды",
+          isLoading: false,
         });
         throw error;
       }
     },
-
-
 
     // 5. Обновление колоды (Оптимистичное, без костылей и any, строго по типам проекта)
     updateDeck: async (

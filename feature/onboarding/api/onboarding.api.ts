@@ -10,7 +10,7 @@ export async function updateUserProfile(userData: ProfilePayload): Promise<Profi
   if (!accessToken) throw new Error("Нет токена для авторизации");
 
   try {
-    const resp = await apiClient.patch(getMainServiceApiUrl("/api/v1/users/profile"), userData, {
+    const resp = await apiClient.patch(getMainServiceApiUrl("/api/v1/flashmind/users/profile"), userData, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "multipart/form-data"

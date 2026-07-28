@@ -9,7 +9,7 @@ import { router } from "expo-router";
 export async function logoutUser(accessToken: string | null): Promise<void> {
   try {
     await apiClient.post(
-      getAuthApiUrl("/logout"),
+      getAuthApiUrl("/api/v1/auth/logout"),
       {},
       {
         headers: { Authorization: `Bearer ${accessToken}` },
@@ -26,7 +26,7 @@ export async function logoutUser(accessToken: string | null): Promise<void> {
 
 export async function updateProfile(accessToken: string| null, userData: ProfilePayload): Promise<ProfileResponse> {
   try {
-    const resp = await apiClient.patch(getMainServiceApiUrl('/api/v1/users/profile'), userData, {
+    const resp = await apiClient.patch(getMainServiceApiUrl('/api/v1/flashmind/users/profile'), userData, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "multipart/form-data"

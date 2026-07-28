@@ -21,7 +21,7 @@ export async function login(payload: LoginPayload): Promise<LoginResponse> {
 
     // Отправляем запрос на сервер для авторизации
     const resp = await apiClient.post<LoginResponse>(
-      getAuthApiUrl("/api/v1/auth/login"),
+      getAuthApiUrl("/api/v1/auth/email/login"),
       payload, 
       {withCredentials: true}
     );
@@ -63,7 +63,7 @@ export async function logout(): Promise<unknown>{
   try {
     // Отправляем запрос на сервер для выхода
     const resp = await apiClient.post(
-      getMainServiceApiUrl("/logout"),
+      getMainServiceApiUrl("api/v1/auth/logout"),
       {},
       {withCredentials: true}
     );

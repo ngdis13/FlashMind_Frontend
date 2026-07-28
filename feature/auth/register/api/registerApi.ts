@@ -16,7 +16,7 @@ export async function startRegistration(
   payload: RegisterPayload
 ): Promise<void> {
   try {
-    await apiClient.post(getAuthApiUrl("/api/v1/auth/register"), 
+    await apiClient.post(getAuthApiUrl("/api/v1/auth/email/register"), 
       payload,
     );
   } catch (err: unknown) {
@@ -54,7 +54,7 @@ export async function verifyCode(
 ): Promise<{ access_token: string }> {
   try {
     const resp = await apiClient.post<{ access_token: string }>(
-      getAuthApiUrl("/api/v1/auth/register/verify-code"),
+      getAuthApiUrl("/api/v1/auth/email/register/verify-code"),
       payload
     );
     const setAccessToken = useAuthStore.getState().setAccessToken; // получаем функцию стора
@@ -80,7 +80,7 @@ export async function verifyCode(
  */
 export async function resendCode(payload: ResendCodePayload): Promise<void> {
   try {
-    await apiClient.post(getAuthApiUrl("/api/v1/auth/register/resend-code"), payload);
+    await apiClient.post(getAuthApiUrl("/api/v1/auth/email/register/resend-code"), payload);
   } catch (err: unknown) {
     if (err instanceof AxiosError) {
       const errorData = err.response?.data as ApiError | undefined;

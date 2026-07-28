@@ -59,7 +59,7 @@ function handleApiError(err: unknown, defaultMessage: string): never {
 export async function resetPassword(payload: ForgotPasswordPayload): Promise<ForgotPasswordResponse> {
   try {
     const resp = await apiClient.post<ForgotPasswordResponse>(
-      getAuthApiUrl("/api/v1/auth/forgot-password"),
+      getAuthApiUrl("/api/v1/auth/email/forgot-password"),
       payload
     );
     return resp.data;
@@ -79,7 +79,7 @@ export async function resetPassword(payload: ForgotPasswordPayload): Promise<For
 export async function verifyResetCode(payload: VerifyCodePayload): Promise<VerifyCodeResponse> {
   try {
     const resp = await apiClient.post<VerifyCodeResponse>(
-      getAuthApiUrl("/api/v1/auth/forgot-password/verify-code"),
+      getAuthApiUrl("/api/v1/auth/email/forgot-password/verify-code"),
       payload
     );
     return resp.data;
@@ -99,7 +99,7 @@ export async function verifyResetCode(payload: VerifyCodePayload): Promise<Verif
 export async function resendResetCode(payload: { email: string }): Promise<{ message: string }> {
   try {
     const resp = await apiClient.post<{ message: string }>(
-      getAuthApiUrl("/api/v1/auth/forgot-password/resend-code"),
+      getAuthApiUrl("/api/v1/auth/email/forgot-password/resend-code"),
       payload
     );
     return resp.data;
@@ -122,7 +122,7 @@ export async function changePassword(payload: ChangePasswordPayload): Promise<Ch
 
   try {
     const resp = await apiClient.post<{ message: string }>(
-      getAuthApiUrl("/api/v1/auth/forgot-password/change-password"),
+      getAuthApiUrl("/api/v1/auth/email/forgot-password/change-password"),
       payload,
       {
         headers: {

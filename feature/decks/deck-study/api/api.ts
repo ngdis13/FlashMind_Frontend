@@ -24,7 +24,7 @@ export async function getStudyInfo(deckId:string): Promise<StudyResponse> {
         const accessToken = useAuthStore.getState().accessToken
 
         const resp = await apiClient.get(
-            getMainServiceApiUrl('/api/v1/study'),
+            getMainServiceApiUrl('/api/v1/flashmind/study'),
             {
                 headers: {Authorization: `Bearer ${accessToken}`},
                 params: {deck_id: deckId}

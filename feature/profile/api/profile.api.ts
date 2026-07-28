@@ -54,7 +54,7 @@ export async function getUserProfile(): Promise<ProfileResponse> {
     }
     console.log('Tokenn:', accessToken)
     const resp = await apiClient.get(
-      getMainServiceApiUrl("/api/v1/users/profile"),
+      getMainServiceApiUrl("/api/v1/flashmind/users/profile"),
       { headers: { Authorization: `Bearer ${accessToken}` } },
     );
     return resp.data; 
