@@ -9,7 +9,7 @@ export const fetchCloudDeckPreview = async (cloudDeckId: string) => {
     
     // Делаем GET-запрос к вашему бэкенду для получения метаданных облачной колоды
     const response = await apiClient.get(
-      getMainServiceApiUrl(`/api/v1/cloud_decks/${cloudDeckId}`),
+      getMainServiceApiUrl(`/api/v1/flashmind/cloud_decks/${cloudDeckId}`),
       { headers: { Authorization: `Bearer ${accessToken}` } }
     );
     
@@ -29,7 +29,7 @@ export const fetchCloudDeckCard = async (cloudCardId: string) => {
     const accessToken = useAuthStore.getState().accessToken;
 
     const response = await apiClient.get(
-      getMainServiceApiUrl(`/api/v1/cloud_decks/cards/${cloudCardId}`),
+      getMainServiceApiUrl(`/api/v1/flashmind/cloud_decks/cards/${cloudCardId}`),
       { headers: { Authorization: `Bearer ${accessToken}` } }
     );
     
@@ -49,7 +49,7 @@ export const fetchCloudDecks = async (): Promise<FetchCloudDecksResponse> => {
     const accessToken = useAuthStore.getState().accessToken;
     
     const response = await apiClient.get(
-      getMainServiceApiUrl("/api/v1/cloud_decks"),
+      getMainServiceApiUrl("/api/v1/flashmind/cloud_decks"),
       { headers: { Authorization: `Bearer ${accessToken}` } }
     );
     
