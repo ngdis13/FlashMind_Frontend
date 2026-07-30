@@ -58,7 +58,7 @@ type UserState = {
    * Частично обновляет профиль пользователя
    * @param {Partial<UserProfile>} data - Объект с обновляемыми полями
    */
-  updateProfile: (data: Partial<UserProfile>) => void;
+  updateProfile: (data: Partial<UserProfile>) => Promise<void>;
 
   /**
    * Устанавливает URL аватара
@@ -261,7 +261,7 @@ export const useUserStore = create<UserState>((set, get) => ({
     }
   },
 
-  updateProfile: (data) => {
+  updateProfile: async (data) => {
     const state = get();
     if (!state.user) {
       const newUser = {
@@ -294,11 +294,28 @@ export const useUserStore = create<UserState>((set, get) => ({
       return;
     }
 
-    // Обновляем существующего пользователя
-    const updatedUser = { ...state.user, ...data };
+    // 🔥 Отправляем данные на сервер
+    const formData = new FormData();
+    if (data.firstName !== undefined)
+      formData.append("first_name", data.firstName);
+    if (data.lastName !== undefined)
+      formData.append("last_name", data.lastName);
+    if (data.bio !== undefined) formData.append("bio", data.bio);
+
+    const resp = await updateUserProfile(formData);
+
+    // Обновляем пользователя данными с сервера
+    const updatedUser = {
+      ...state.user,
+      firstName: resp.first_name ?? state.user.firstName,
+      lastName: resp.last_name ?? state.user.lastName,
+      bio: resp.bio ?? state.user.bio,
+      avatarUrl: resp.avatar_url ?? state.user.avatarUrl,
+    };
+
     const storageData: ProfileStorageState = {
-      isActual: state.isActual,
-      expiresAt: state.expiresAt || calculateProfileExpiryTime(),
+      isActual: true,
+      expiresAt: calculateProfileExpiryTime(),
       profile: updatedUser,
     };
 
@@ -306,7 +323,7 @@ export const useUserStore = create<UserState>((set, get) => ({
       console.error("Ошибка сохранения профиля на диск:", err);
     });
 
-    set({ user: updatedUser });
+    set({ user: updatedUser, isActual: true });
   },
 
   setAvatar: (uri) =>

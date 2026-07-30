@@ -44,12 +44,12 @@ export default function EditProfile() {
     }
 
     try {
-      // ✅ ТОЛЬКО updateProfile - он сам сохранит в стор и на диск
       await updateProfile({
         firstName: trimmedName,
         lastName: trimmedLastname,
         bio: bio.trim(),
       });
+      console.log('Профиль успешно обновлен на диске и сервере')
 
       Toast.show({
         type: "success",
