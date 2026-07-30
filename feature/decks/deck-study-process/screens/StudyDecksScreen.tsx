@@ -175,7 +175,7 @@ export default function StudyDecksScreen() {
    */
   useEffect(() => {
     if (cards.length > 0) {
-      setCardStartTime(Date.now);
+      setCardStartTime(Date.now());
     }
   }, [cards]);
 
@@ -225,9 +225,8 @@ export default function StudyDecksScreen() {
    * 1. Записывает время ответа
    * 2. Запускает анимацию ухода карточки
    * 3. Отправляет оценку на сервер
-   * 4. Инвалидирует кэш колоды
-   * 5. Обновляет счетчик изученных карточек в сторе
-   * 6. Переходит к следующей карточке с анимацией
+   * 4. Обновляет счетчик изученных карточек в сторе
+   * 5. Переходит к следующей карточке с анимацией
    */
   const handleRate = useCallback(
     async (rating: number): Promise<void> => {
@@ -307,7 +306,6 @@ export default function StudyDecksScreen() {
       slideAnim,
       cardStartTime,
       id,
-      invalidateDeckCards,
       incrementDailyReviews,
     ],
   );

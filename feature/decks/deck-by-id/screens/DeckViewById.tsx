@@ -43,13 +43,14 @@ import { useCards } from "@/storage/hooks/useCards";
 
 // --------------------------- Типы и утилиты ---------------------------
 import { StoreCard } from "@/store/card.store";
+import { useDeckStore } from "@/store/deck.store";
 
 /**
  * Экран просмотра колоды по ID
- * 
+ *
  * @component
  * @returns {JSX.Element} React компонент экрана колоды
- * 
+ *
  * @description
  * Экран отображает:
  * - Информацию о колоде (название, описание)
@@ -59,7 +60,7 @@ import { StoreCard } from "@/store/card.store";
  * - Список карточек с возможностью поиска
  * - Кнопку добавления новой карточки
  * - Индикаторы статуса облачной синхронизации
- * 
+ *
  * @example
  * // Использование в навигации с параметром id
  * router.push(`/decks/${deckId}`)
@@ -70,15 +71,10 @@ export default function DeckViewById() {
   const router = useRouter();
 
   // --------------------------- Хуки ---------------------------
-  const {
-    decks,
-    makeDeckPublic,
-    importDeck,
-    refreshDecks,
-    loadDecksData,
-  } = useDecks();
+  const { decks, makeDeckPublic, importDeck, refreshDecks, loadDecksData } =
+    useDecks();
 
-  const { getDeckCards, removeCard} = useCards();
+  const { getDeckCards, removeCard } = useCards();
 
   // --------------------------- Состояния ---------------------------
   const [name, setName] = useState<string>("");
@@ -128,12 +124,15 @@ export default function DeckViewById() {
   const showCloudOk = isCloudDeck && !needsSync;
 
   // --------------------------- Состояния модальных окон ---------------------------
-  const [isShareModalVisible, setIsShareModalVisible] = useState<boolean>(false);
+  const [isShareModalVisible, setIsShareModalVisible] =
+    useState<boolean>(false);
   const [cachedCloudUuid, setCachedCloudUuid] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [isSyncModalVisible, setIsSyncModalVisible] = useState<boolean>(false);
-  const [isAccessModalVisible, setIsAccessModalVisible] = useState<boolean>(false);
-  const [isAddedAccessModalVisible, setIsAddedAccessModalVisible] = useState<boolean>(false);
+  const [isAccessModalVisible, setIsAccessModalVisible] =
+    useState<boolean>(false);
+  const [isAddedAccessModalVisible, setIsAddedAccessModalVisible] =
+    useState<boolean>(false);
 
   // --------------------------- Effects ---------------------------
   /**
@@ -152,7 +151,7 @@ export default function DeckViewById() {
   // ============================================
   /**
    * Загружает данные колоды и карточек
-   * 
+   *
    * @param {boolean} forceRefresh - Принудительное обновление данных
    * @async
    */
@@ -167,22 +166,27 @@ export default function DeckViewById() {
 
       try {
         isLoadingRef.current = true;
-        console.log(`📱 Загружаем данные для колоды ${id}, force: ${forceRefresh}`);
+        console.log(
+          `📱 Загружаем данные для колоды ${id}, force: ${forceRefresh}`,
+        );
 
-        // 1. Загружаем колоды только если их вообще нет в памяти
-        if (decks.length === 0) {
+        // ✅ Получаем decks напрямую из стора, без подписки на изменения
+        const currentDecks = useDeckStore.getState().decksState?.decks || [];
+
+        if (currentDecks.length === 0) {
           console.log("🔄 Локальный стор колод пуст, подгружаем...");
           await loadDecksData();
         }
 
-        // 2. Загружаем карточки через наш новый умный метод
         console.log("🃏 Запрашиваем карточки через useCards...");
         const fetchedCards = await getDeckCards(id as string);
         setCards(fetchedCards);
-        console.log(`✅ Метод getDeckCards вернул ${fetchedCards.length} карточек`);
+        console.log(
+          `✅ Метод getDeckCards вернул ${fetchedCards.length} карточек`,
+        );
 
-        // 3. Обновляем информацию о колоде
-        const updatedDeck = decks.find((d) => d.id === id);
+        const freshDecks = useDeckStore.getState().decksState?.decks || [];
+        const updatedDeck = freshDecks.find((d) => d.id === id);
         if (updatedDeck) {
           setName(updatedDeck.name);
           setDescription(updatedDeck.description || "");
@@ -200,7 +204,7 @@ export default function DeckViewById() {
         isFirstLoadRef.current = false;
       }
     },
-    [id, decks, loadDecksData, getDeckCards],
+    [id, loadDecksData, getDeckCards], 
   );
 
   // ============================================
@@ -214,7 +218,6 @@ export default function DeckViewById() {
       loadData(false);
     }
   }, [id, loadData]);
-
 
   // ============================================
   // ⭐ Обновляем данные при возврате на экран (useFocusEffect)
@@ -552,13 +555,16 @@ export default function DeckViewById() {
    * @param {string} [deckId] - ID колоды (опционально)
    * @async
    */
-  const handleDeleteCard = async (cardId: string, deckId?: string): Promise<void> => {
+  const handleDeleteCard = async (
+    cardId: string,
+    deckId?: string,
+  ): Promise<void> => {
     // Определяем правильный id колоды
     const currentDeckId = deckId || (id as string);
 
     try {
       console.log(`🗑️ Удаляем карточку ${cardId} из колоды ${currentDeckId}`);
-      
+
       await removeCard(cardId, currentDeckId);
 
       // Мгновенно убираем карточку из локального стейта экрана, чтобы UI не ждал
@@ -586,7 +592,6 @@ export default function DeckViewById() {
       console.error("Ошибка при удалении карточки:", error);
     }
   };
-
 
   // ============================================
   // ⭐ СИНХРОНИЗАЦИЯ
@@ -739,7 +744,6 @@ export default function DeckViewById() {
       });
     }
   };
-
 
   // ============================================
   // ⭐ ФИЛЬТРАЦИЯ И СОРТИРОВКА КАРТОЧЕК
