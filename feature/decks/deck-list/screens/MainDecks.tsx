@@ -44,14 +44,12 @@ import { useCards } from "@/storage/hooks/useCards";
 import { Deck } from "@/storage/types/types";
 import { getPluralCards } from "@/utils/helpers/getPluralCards";
 
-
-
 /**
  * Главный экран со списком колод пользователя
- * 
+ *
  * @component
  * @returns {JSX.Element} React компонент экрана колод
- * 
+ *
  * @description
  * Экран отображает:
  * - Заголовок "Мои колоды"
@@ -60,7 +58,7 @@ import { getPluralCards } from "@/utils/helpers/getPluralCards";
  * - Кнопку "Добавить колоду"
  * - Модальное окно с выбором действия (создать новую или импортировать)
  * - Pull-to-refresh для обновления списка
- * 
+ *
  * @example
  * // Использование в навигации
  * <MainDecksScreen />
@@ -86,7 +84,6 @@ export default function MainDecksScreen() {
   const currentContentWidth = Math.min(width, 800);
   const numColumns = Math.max(2, Math.floor((currentContentWidth - 20) / 180));
 
-
   /**
    * Загрузка данных при монтировании компонента
    */
@@ -103,25 +100,25 @@ export default function MainDecksScreen() {
         try {
           await loadDecksData(); // Берет данные из памяти, если они там уже есть
         } catch (error) {
-          console.error('❌ Ошибка загрузки данных при фокусе:', error);
+          console.error("❌ Ошибка загрузки данных при фокусе:", error);
         }
       };
-      
+
       checkAndLoadData();
-    }, [loadDecksData])
+    }, [loadDecksData]),
   );
 
   /**
    * Обработчик обновления списка (Pull-to-refresh)
    * Принудительно обновляет данные из хранилища
-   * 
+   *
    * @async
    * @returns {Promise<void>}
    */
   const onRefresh = useCallback(async (): Promise<void> => {
     setRefreshing(true);
     try {
-      await refreshDecks(); 
+      await refreshDecks();
 
       Toast.show({
         type: "success",
@@ -169,39 +166,41 @@ export default function MainDecksScreen() {
 
   /**
    * Обработчик перехода на экран редактирования колоды
-   * 
+   *
    * @param {string} id - ID колоды
    */
   const handleEditDecks = (id: string): void => {
     router.push(`/decks/${id}`);
   };
-  
+
   /**
    * Обработчик нажатия на колоду для начала изучения
    * Загружает карточки и переходит на экран изучения
-   * 
+   *
    * @param {string} id - ID колоды
    * @async
    */
-  const handleDeckPress = useCallback(async (id: string): Promise<void> => {
-    try {
-      await getDeckCards(id);
-      router.push(`/decks/${id}/study`);
-    } catch (error) {
-      console.error("Ошибка при подготовке карточек перед обучением:", error);
-    }
-  }, [getDeckCards, router]);
+  const handleDeckPress = useCallback(
+    async (id: string): Promise<void> => {
+      try {
+        await getDeckCards(id);
+        router.push(`/decks/${id}/study`);
+      } catch (error) {
+        console.error("Ошибка при подготовке карточек перед обучением:", error);
+      }
+    },
+    [getDeckCards, router],
+  );
 
   /**
    * Получает цвет колоды из настроек или возвращает цвет по умолчанию
-   * 
+   *
    * @param {Deck} deck - Объект колоды
    * @returns {string} HEX-код цвета
    */
   const getDeckColor = (deck: Deck): string => {
     return deck.settings?.color || colors.mainColor;
   };
-
 
   /**
    * Отфильтрованные колоды по поисковому запросу
@@ -225,6 +224,27 @@ export default function MainDecksScreen() {
           />
         ) : (
           <View style={styles.wrapper}>
+            {/* Заголовок и поиск — отдельно от FlatList, чтобы не зависели от отступов сетки */}
+            <View style={styles.headerContainer}>
+              <Typography variant="h1" style={{ marginBottom: 16 }}>
+                Мои колоды
+              </Typography>
+              <View style={styles.searchBox}>
+                <Input
+                  style={{ textAlign: "left" }}
+                  placeholder={"Поиск"}
+                  value={search}
+                  onChangeText={setSearch}
+                />
+                <Pressable style={styles.searchButton}>
+                  <Image
+                    source={searchButton}
+                    style={{ width: 18, height: 18 }}
+                  />
+                </Pressable>
+              </View>
+            </View>
+
             <FlatList
               key={numColumns}
               data={filteredDecks}
@@ -232,7 +252,7 @@ export default function MainDecksScreen() {
               numColumns={numColumns}
               columnWrapperStyle={styles.columnWrapper}
               contentContainerStyle={styles.listContentContainer}
-              showsVerticalScrollIndicator={false} 
+              showsVerticalScrollIndicator={false}
               refreshControl={
                 <RefreshControl
                   refreshing={refreshing}
@@ -240,27 +260,6 @@ export default function MainDecksScreen() {
                   colors={[colors.mainColor]}
                   tintColor={colors.mainColor}
                 />
-              }
-              ListHeaderComponent={
-                <View style={styles.headerContainer}>
-                  <Typography variant="h1" style={{ marginBottom: 16 }}>
-                    Мои колоды
-                  </Typography>
-                  <View style={styles.searchBox}>
-                    <Input
-                      style={{ textAlign: "left" }}
-                      placeholder={"Поиск"}
-                      value={search}
-                      onChangeText={setSearch}
-                    />
-                    <Pressable style={styles.searchButton}>
-                      <Image
-                        source={searchButton}
-                        style={{ width: 18, height: 18 }}
-                      />
-                    </Pressable>
-                  </View>
-                </View>
               }
               ListEmptyComponent={() => (
                 <View style={{ marginTop: 8, alignItems: "center" }}>
@@ -314,7 +313,7 @@ export default function MainDecksScreen() {
                       transform: [
                         {
                           scale: modalAnim.interpolate({
-                            inputRange:[0,1],
+                            inputRange: [0, 1],
                             outputRange: [0.9, 1],
                           }),
                         },

@@ -28,7 +28,8 @@ export const styles = StyleSheet.create({
     width: "100%",
   },
   deckItemWrapper: {
-    width: 182,
+    flex: 1,
+    maxWidth: 182,
   },
 
   searchBox: {
