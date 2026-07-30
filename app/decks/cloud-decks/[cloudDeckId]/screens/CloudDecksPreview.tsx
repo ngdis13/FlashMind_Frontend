@@ -73,11 +73,6 @@ export default function CloudDecksPreview() {
     try {
       setIsImporting(true);
 
-      Toast.show({
-        type: "info",
-        text1: "Добавление колоды...",
-        position: "bottom",
-      });
 
       const result = await importDeck(cloudDeckId);
 
