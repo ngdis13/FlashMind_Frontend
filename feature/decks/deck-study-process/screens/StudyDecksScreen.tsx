@@ -207,6 +207,10 @@ export default function StudyDecksScreen() {
    * Возвращает на экран подготовки к изучению
    */
   const handleBack = (): void => {
+    if (id) {
+      console.log(`Выход из обучения. Инвалидируем кэш карточек колоды ${id}`);
+      invalidateDeckCards(id);
+    }
     router.push(`/decks/${id}/study`);
   };
 
@@ -225,7 +229,7 @@ export default function StudyDecksScreen() {
    * 5. Обновляет счетчик изученных карточек в сторе
    * 6. Переходит к следующей карточке с анимацией
    */
-const handleRate = useCallback(
+  const handleRate = useCallback(
     async (rating: number): Promise<void> => {
       if (cards.length === 0 || isSubmitting) return;
 
@@ -251,20 +255,13 @@ const handleRate = useCallback(
           await incrementDailyReviews();
           console.log("📊 Статистика профиля обновлена после успешного ответа");
 
-          // Вызывается строго ПОСЛЕ КАЖДОЙ карточки.
-          if (id) {
-            console.log(
-              `Карточка оценена. Инвалидируем колоду ${id} (isActual -> false)`,
-            );
-            invalidateDeckCards(id);
-          }
 
           const response = await postCardRating(
             currentCard.id,
             rating,
             durationMs,
           );
-          
+
           if (response?.status === 200) {
             const updatedCard = response.data;
             setCards((prev) => [...prev.slice(1), updatedCard]);
@@ -311,7 +308,7 @@ const handleRate = useCallback(
       cardStartTime,
       id,
       invalidateDeckCards,
-      incrementDailyReviews, 
+      incrementDailyReviews,
     ],
   );
 
