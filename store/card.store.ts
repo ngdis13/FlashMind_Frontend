@@ -233,6 +233,7 @@ export const useCardStore = create<CardState>((set, get) => {
 
       await saveDeckCards(data.deck_id, updatedState);
       useDeckStore.getState().updateDeckTotalCards(data.deck_id, 'increment');
+      useDeckStore.getState().markDeckNeedsSync(data.deck_id);
       return newCard;
     },
 
@@ -264,6 +265,7 @@ export const useCardStore = create<CardState>((set, get) => {
         }));
 
         await saveDeckCards(deckId, updatedState);
+        useDeckStore.getState().markDeckNeedsSync(deckId);
       }
 
       return updated;
@@ -286,6 +288,7 @@ export const useCardStore = create<CardState>((set, get) => {
 
         await saveDeckCards(deckId, updatedState);
         useDeckStore.getState().updateDeckTotalCards(deckId, 'decrement');
+        useDeckStore.getState().markDeckNeedsSync(deckId);
       }
     },
 

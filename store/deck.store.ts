@@ -41,6 +41,10 @@ type DeckState = {
     deckId: string,
     countOrAction: number | "decrement",
   ) => void;
+
+  // Точечная установка needs_sync=true при мутации карточек автором облачной колоды
+  markDeckNeedsSync: (deckId: string) => void;
+  markDeckSynced: (deckId: string) => void;
 };
 
 export const useDeckStore = create<DeckState>((set, get) => {
@@ -420,6 +424,60 @@ export const useDeckStore = create<DeckState>((set, get) => {
         ...currentRecord,
         decks: updatedDecks,
       });
+    },
+
+    // 9. Точечная установка needs_sync = true при мутации карточек автором облачной колоды
+    markDeckNeedsSync: (deckId: string) => {
+      const currentRecord = get().decksState;
+      if (!currentRecord) return;
+
+      const deck = currentRecord.decks.find((d) => d.id === deckId);
+      if (!deck) return;
+
+      // Только для облачных колод, где пользователь — автор
+      if (!deck.cloud_info?.is_cloud_deck || !deck.cloud_info?.is_author) {
+        return;
+      }
+
+      // Если needs_sync уже true — не дёргаем лишний раз
+      if (deck.cloud_info.needs_sync === true) return;
+
+      console.log(
+        `🔄 markDeckNeedsSync: Колода "${deck.name}" помечена needs_sync=true`,
+      );
+
+      const updatedDecks = currentRecord.decks.map((d) => {
+        if (d.id === deckId) {
+          return {
+            ...d,
+            cloud_info: {
+              ...d.cloud_info,
+              needs_sync: true,
+            },
+          };
+        }
+        return d;
+      });
+
+      get().setDecksState({
+        ...currentRecord,
+        decks: updatedDecks,
+      });
+    },
+
+    // 10. Сброс needs_sync после успешной синхронизации
+    markDeckSynced: (deckId: string) => {
+      const currentRecord = get().decksState;
+      if (!currentRecord) return;
+      const deck = currentRecord.decks.find((d) => d.id === deckId);
+      if (!deck?.cloud_info?.needs_sync) return;
+      console.log(`✅ markDeckSynced: "${deck.name}" — needs_sync=false`);
+      const updatedDecks = currentRecord.decks.map((d) =>
+        d.id === deckId
+          ? { ...d, cloud_info: { ...d.cloud_info, needs_sync: false } }
+          : d,
+      );
+      get().setDecksState({ ...currentRecord, decks: updatedDecks });
     },
   };
 });

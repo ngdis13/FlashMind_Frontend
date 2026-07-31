@@ -62,14 +62,6 @@ export const useDecks = () => {
   // 6. Публикация колоды в облако (сбрасываем актуальность, так как на сервере меняется cloud_info)
   const makeDeckPublic = useCallback(
     async (deckId: string) => {
-      const deck = decks.find((d) => d.id === deckId);
-      if (deck?.cloud_info?.cloud_deck_id) {
-        return {
-          cloud_uuid: deck.cloud_info.cloud_deck_id,
-          status: "EXISTING",
-          message: "Колода уже опубликована",
-        };
-      }
 
       const { makeDeckPublicApi } = await import("../api/api");
       const result = await makeDeckPublicApi(deckId);
@@ -84,7 +76,7 @@ export const useDecks = () => {
 
       return result;
     },
-    [decks, deckStore],
+    [deckStore],
   );
 
   // 7. Импорт облачной колоды (Логика Димы: сброс актуальности)

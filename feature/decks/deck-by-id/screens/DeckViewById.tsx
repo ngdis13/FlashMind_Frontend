@@ -318,6 +318,7 @@ export default function DeckViewById() {
           if (cloudUuid) {
             setCachedCloudUuid(cloudUuid);
             setIsShareModalVisible(true);
+            useDeckStore.getState().markDeckSynced(id)
 
             Toast.show({
               type: "success",
@@ -631,6 +632,7 @@ export default function DeckViewById() {
 
         const response = await makeDeckPublic(id);
         console.log("📤 Ответ от makeDeckPublic:", response);
+        useDeckStore.getState().markDeckSynced(id)
 
         Toast.show({
           type: "success",
@@ -966,7 +968,9 @@ export default function DeckViewById() {
         onCancel={() => setIsAccessModalVisible(false)}
         message={"Колода синхронизирована"}
         metaMessage={
-          "На этой колоде установлена самая свежая версия. Обновления не требуются."
+          isAuthor
+            ? "Облачная версия колоды соответствует этой. Обновления не требуются."
+            : "На этой колоде установлена самая свежая версия. Обновления не требуются."
         }
         confirmText={"Понятно"}
         onConfirm={() => setIsAccessModalVisible(false)}
