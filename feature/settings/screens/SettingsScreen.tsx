@@ -14,6 +14,10 @@ import { colors } from "@/styles/Colors";
 import ThemeSwitch from "../components/themeSwitch";
 import { logoutUser } from "../api/settings.api";
 import { useAuthStore } from "@/store/auth.store";
+import { useUserStore } from "@/store/userStore";
+import { useDeckStore } from "@/store/deck.store";
+import { useCardStore } from "@/store/card.store";
+import { clearAllData } from "@/storage/service/decksStorage";
 import ReturnIcon from "@/assets/icons/ReturnIcon.png";
 import Toast from "react-native-toast-message"; 
 import { AxiosError } from "axios";
@@ -37,6 +41,16 @@ export default function SettingsScreens() {
   const getLogout = async () => {
     try {
       await logoutUser(accessToken);
+
+      // Очищаем весь кэш на диске (колоды, карточки, профиль)
+      await clearAllData();
+
+      // Сбрасываем все Zustand store'ы в памяти
+      useAuthStore.getState().logout();
+      useUserStore.getState().clearUser();
+      useDeckStore.setState({ decksState: null, isLoading: false, error: null });
+      useCardStore.getState().clearCards();
+
       Toast.show({
         type: "success",
         text1: "Вы успешно вышли из аккаунта",

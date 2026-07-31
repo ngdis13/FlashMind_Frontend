@@ -193,12 +193,12 @@ export const updateCardInDeck = async (
 export const clearAllData = async (): Promise<void> => {
   try {
     const keys = await AsyncStorage.getAllKeys();
-    const flashcardKeys = keys.filter(key => key.startsWith('@flashcards/'));
-    await AsyncStorage.multiRemove(flashcardKeys);
+    const ourKeys = keys.filter(key =>
+      key.startsWith('@flashcards/') || key === '@profile'
+    );
+    await AsyncStorage.multiRemove(ourKeys);
     console.log('Все данные очищены');
   } catch (error) {
     console.error('Ошибка при очистке:', error);
   }
 };
-
-
