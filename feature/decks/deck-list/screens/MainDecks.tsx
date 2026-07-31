@@ -40,6 +40,8 @@ import reloadButton from "@/assets/icons/ReloadIcon.png";
 // --------------------------- Хуки и хранилища ---------------------------
 import { useDecks } from "@/storage/hooks/useDecks";
 import { useCards } from "@/storage/hooks/useCards";
+import { useCardStore } from "@/store/card.store";
+import { useUserStore } from "@/store/userStore";
 
 // --------------------------- Типы и утилиты ---------------------------
 import { Deck } from "@/storage/types/types";
@@ -110,8 +112,8 @@ export default function MainDecksScreen() {
   );
 
   /**
-   * Обработчик обновления списка (Pull-to-refresh)
-   * Принудительно обновляет данные из хранилища
+   * Обработчик обновления списка (Pull-to-refresh + кнопка reload)
+   * Инвалидирует кэш колод, карточек и профиля, затем подтягивает свежие данные
    *
    * @async
    * @returns {Promise<void>}
@@ -119,11 +121,18 @@ export default function MainDecksScreen() {
   const onRefresh = useCallback(async (): Promise<void> => {
     setRefreshing(true);
     try {
+      // 1. Обновляем список колод (инвалидация + запрос к API)
       await refreshDecks();
+
+      // 2. Инвалидируем кэш карточек всех колод (isActual → false в памяти и на диске)
+      await useCardStore.getState().invalidateAllCards();
+
+      // 3. Инвалидируем кэш профиля пользователя (isActual → false в памяти и на диске)
+      await useUserStore.getState().invalidateProfile();
 
       Toast.show({
         type: "success",
-        text1: "Колоды обновлены",
+        text1: "Данные синхронизированы",
         position: "bottom",
         visibilityTime: 1500,
       });

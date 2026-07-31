@@ -35,6 +35,7 @@ type CardState = {
 
   getCards: (deckId: string) => Promise<StoreCard[]>;
   invalidateCards: (deckId: string) => void;
+  invalidateAllCards: () => Promise<void>;
   getCardById: (cardId: string) => Promise<Card | null>;
   createCard: (data: {
     deck_id: string;
@@ -165,6 +166,35 @@ export const useCardStore = create<CardState>((set, get) => {
         set((state) => ({ cards: { ...state.cards, [deckId]: updatedState } }));
         saveDeckCards(deckId, updatedState);
       }
+    },
+
+    /**
+     * Массовая инвалидация кэша карточек для всех колод.
+     * Используется при Pull-to-Refresh для полной синхронизации данных.
+     */
+    invalidateAllCards: async () => {
+      const allCards = get().cards;
+      const deckIds = Object.keys(allCards);
+
+      if (deckIds.length === 0) {
+        console.log("ℹ️ invalidateAllCards: Нет закэшированных карточек для инвалидации");
+        return;
+      }
+
+      console.log(`🚨 invalidateAllCards: Сбрасываем актуальность для ${deckIds.length} колод`);
+
+      for (const deckId of deckIds) {
+        const record = allCards[deckId];
+        if (record && record.isActual) {
+          const updatedState: DeckCardsStorage = { ...record, isActual: false };
+          set((state) => ({
+            cards: { ...state.cards, [deckId]: updatedState },
+          }));
+          await saveDeckCards(deckId, updatedState);
+        }
+      }
+
+      console.log(`✅ invalidateAllCards: Готово. ${deckIds.length} колод инвалидированы.`);
     },
 
     getCardById: async (cardId: string): Promise<Card | null> => {
