@@ -14,6 +14,11 @@ export const styles = StyleSheet.create({
     marginTop: 20,
     width: "100%",
   },
+  headerBox: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center"
+  },
 
   listContentContainer: {
     paddingTop: 0,

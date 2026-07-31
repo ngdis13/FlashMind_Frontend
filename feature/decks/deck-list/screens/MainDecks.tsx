@@ -35,6 +35,7 @@ import DecksView from "@/feature-decks/deck-list/components/DecksView";
 
 // --------------------------- Ассеты ---------------------------
 import searchButton from "@/feature-decks/assets/searchButton.png";
+import reloadButton from "@/assets/icons/ReloadIcon.png";
 
 // --------------------------- Хуки и хранилища ---------------------------
 import { useDecks } from "@/storage/hooks/useDecks";
@@ -226,9 +227,18 @@ export default function MainDecksScreen() {
           <View style={styles.wrapper}>
             {/* Заголовок и поиск — отдельно от FlatList, чтобы не зависели от отступов сетки */}
             <View style={styles.headerContainer}>
-              <Typography variant="h1" style={{ marginBottom: 16 }}>
-                Мои колоды
-              </Typography>
+              <View style={styles.headerBox}>
+                <Typography variant="h1" style={{ marginBottom: 16 }}>
+                  Мои колоды
+                </Typography>
+                <Pressable onPress={onRefresh}>
+                  <Image
+                    source={reloadButton}
+                    style={{ width: 20, height: 20 }}
+                  />
+                </Pressable>
+              </View>
+
               <View style={styles.searchBox}>
                 <Input
                   style={{ textAlign: "left" }}
