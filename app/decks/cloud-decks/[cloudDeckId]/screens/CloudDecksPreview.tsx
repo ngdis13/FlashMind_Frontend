@@ -17,6 +17,8 @@ import { Input } from "@/components/Input";
 import searchButton from "@/feature/decks/assets/searchButton.png";
 import { Logo } from "@/components/Logo";
 import { MainButton } from "@/components/MainButton";
+import { CustomAlert } from "@/components/CustomAlert";
+import { LogoSadStar } from "@/components/LogoSadStar";
 import { useDecks } from "@/storage/hooks/useDecks";
 import { useAuthStore } from "@/store/auth.store";
 import { getUserIdFromToken } from "@/utils/helpers/getUserIdFromToken";
@@ -26,29 +28,31 @@ export default function CloudDecksPreview() {
   const { cloudDeckId } = useLocalSearchParams<{ cloudDeckId: string }>();
   const [search, setSearch] = useState("");
   const [isImporting, setIsImporting] = useState(false);
-  const { importDeck } = useDecks();
-  
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const { importDeck, decks } = useDecks();
 
   const accessToken = useAuthStore((state) => state.accessToken);
+  const isAuthorized = Boolean(accessToken);
   const currentUserId = getUserIdFromToken(accessToken);
 
   const [deckPreview, setDeckPreview] =
     useState<CloudDeckPreviewResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Проверяем, является ли текущий пользователь автором
-  const isAuthor = deckPreview?.author?.user_id 
-    ? currentUserId === deckPreview.author.user_id 
+  const isAuthor = deckPreview?.author?.user_id
+    ? currentUserId === deckPreview.author.user_id
     : false;
+
+  const isAlreadyAdded = decks.some(
+    (d) => d.cloud_info?.cloud_deck_id === cloudDeckId,
+  );
 
   useEffect(() => {
     const loadData = async () => {
       if (!cloudDeckId) return;
-
       try {
         setIsLoading(true);
         const data = await fetchCloudDeckPreview(cloudDeckId);
-        console.log("данные о колоде", data);
         setDeckPreview(data);
       } catch (error) {
         console.error("Ошибка при загрузке превью с сервера:", error);
@@ -62,32 +66,25 @@ export default function CloudDecksPreview() {
         setIsLoading(false);
       }
     };
-
     loadData();
   }, [cloudDeckId]);
 
-  // Обработчик добавления колоды
   const handleAddToMyDecks = async () => {
+    if (!isAuthorized) {
+      router.push("/login");
+      return;
+    }
     if (!cloudDeckId) return;
-
     try {
       setIsImporting(true);
-
-
-      const result = await importDeck(cloudDeckId);
-
-      console.log("Результат импорта:", result);
-
+      await importDeck(cloudDeckId);
       Toast.show({
         type: "success",
-        text1: `Колода добавлена!`,
+        text1: "Колода добавлена!",
         position: "bottom",
         visibilityTime: 3000,
       });
-
-      setTimeout(() => {
-        router.push("/decks");
-      }, 2000);
+      setTimeout(() => router.push("/decks"), 2000);
     } catch (error) {
       console.error("Ошибка при добавлении колоды:", error);
       Toast.show({
@@ -102,29 +99,94 @@ export default function CloudDecksPreview() {
     }
   };
 
-  const handleBack = () => {
-    router.push("/decks/cloud-decks");
+  const handleSync = async () => {
+    if (!cloudDeckId) return;
+    try {
+      setIsImporting(true);
+      await importDeck(cloudDeckId);
+      Toast.show({
+        type: "success",
+        text1: "Колода синхронизирована!",
+        position: "bottom",
+        visibilityTime: 3000,
+      });
+    } catch (error) {
+      console.error("Ошибка синхронизации:", error);
+      Toast.show({
+        type: "error",
+        text1: "Ошибка",
+        text2:
+          error instanceof Error
+            ? error.message
+            : "Не удалось синхронизировать",
+        position: "bottom",
+      });
+    } finally {
+      setIsImporting(false);
+    }
   };
+
+  const handleDeleteFromCloud = () => {
+    setShowDeleteModal(false);
+  };
+
+  const renderBottomButton = () => {
+    if (isLoading || !deckPreview) return null;
+
+    if (isAuthor) {
+      return (
+        <MainButton
+          title="Удалить из облака"
+          onPress={() => setShowDeleteModal(true)}
+          style={styles.addButton}
+        />
+      );
+    }
+    if (isAlreadyAdded) {
+      return (
+        <MainButton
+          title={isImporting ? "Синхронизация..." : "Синхронизировать"}
+          onPress={handleSync}
+          disabled={isImporting}
+          style={styles.addButton}
+        />
+      );
+    }
+    return (
+      <MainButton
+        title={isImporting ? "Добавление..." : "Добавить к своим колодам"}
+        onPress={handleAddToMyDecks}
+        disabled={isImporting}
+        style={styles.addButton}
+      />
+    );
+  };
+
+  const handleBack = () => router.push("/decks/cloud-decks");
 
   const updatedTime = getDaysAgoText(deckPreview?.last_synced_at ?? "");
   const formattedDownloads = formatDownloadsCount(deckPreview?.downloaded);
   const authorFullName =
     `${deckPreview?.author.first_name} ${deckPreview?.author.last_name}`.trim() ||
     "Пользователь FlashMind";
-  const hasCards = deckPreview?.total_cards > 0 ;
+  const hasCards = (deckPreview?.total_cards ?? 0) > 0;
+  const hasDescription = Boolean(deckPreview?.description?.trim());
+  const hasAuthorBio = Boolean(deckPreview?.author?.bio);
 
   const filteredCards =
     deckPreview?.cards?.filter((card) =>
       card.front.toLowerCase().includes(search.toLowerCase()),
     ) || [];
 
-const handleCardPress = (cardId: string) => {
-  router.push(`/decks/cloud-decks/card/${cardId}?cloudDeckId=${cloudDeckId}`);
-};
+  const handleCardPress = (cardId: string) => {
+    router.push(`/decks/cloud-decks/card/${cardId}?cloudDeckId=${cloudDeckId}`);
+  };
 
-
-  // Компонент для отрисовки одной карточки
-  const renderCardItem = ({ item }: { item: any }) => (
+  const renderCardItem = ({
+    item,
+  }: {
+    item: { id: string; front: string };
+  }) => (
     <Pressable onPress={() => handleCardPress(item.id)}>
       <View style={[commonStyles.mainBox, styles.cardItem]}>
         <Typography variant="h2" style={styles.cardText}>
@@ -134,41 +196,33 @@ const handleCardPress = (cardId: string) => {
     </Pressable>
   );
 
-  // Компонент для верхней части (хедер, инфо, автор)
   const renderHeader = () => (
     <>
-      {/* Хедер */}
       <View style={[commonStyles.header, styles.header]}>
         <View style={styles.headerName}>
           <Pressable onPress={handleBack}>
             <Image source={ReturnIcon} style={{ width: 12, height: 22 }} />
           </Pressable>
-
           <Typography variant="h1" style={{ marginBottom: 0 }}>
             Вернуться к колодам
           </Typography>
         </View>
       </View>
 
-      {/* Информация о колоде */}
       <View style={[commonStyles.mainBox, styles.deckCard]}>
         <View style={styles.deckCardContent}>
           <View style={styles.purpleLine} />
-
           <View style={styles.deckInfo}>
             <Typography variant="h2" style={{ fontWeight: 700 }}>
               {deckPreview?.name}
             </Typography>
-
-            {deckPreview?.description?.trim() && (
-              <Typography variant="h3">{deckPreview.description}</Typography>
+            {hasDescription && (
+              <Typography variant="h3">{deckPreview!.description}</Typography>
             )}
-
             <View style={styles.deckMeta}>
               <Typography style={{ fontSize: 10 }} color={colors.darkGray}>
                 Обновлено: {updatedTime}
               </Typography>
-
               <View style={styles.downloadBox}>
                 <Image
                   source={IconDownloadPreview}
@@ -183,7 +237,6 @@ const handleCardPress = (cardId: string) => {
         </View>
       </View>
 
-      {/* Секция "Об авторе" */}
       <View style={styles.authorSection}>
         <View style={styles.authorHeader}>
           <Typography variant="h2">Об авторе</Typography>
@@ -197,31 +250,28 @@ const handleCardPress = (cardId: string) => {
           ) : (
             <UserAvatar size={60} />
           )}
-
           <View style={styles.authorBioBox}>
             <Typography variant="h2">{authorFullName}</Typography>
-            {deckPreview?.author?.bio && (
+            {hasAuthorBio && (
               <Typography
                 variant="h3"
                 style={{ color: colors.darkGray }}
                 numberOfLines={3}
                 ellipsizeMode="tail"
               >
-                {deckPreview.author.bio}
+                {deckPreview!.author.bio}
               </Typography>
             )}
           </View>
         </View>
       </View>
 
-      {/* Заголовок карточек */}
       <View style={styles.cardsHeader}>
         <Typography variant="h2">
           Карточки ({deckPreview?.total_cards || 0})
         </Typography>
       </View>
 
-      {/* Поиск */}
       <View style={styles.searchBox}>
         <View style={{ flex: 1, width: "100%" }}>
           <Input
@@ -238,7 +288,6 @@ const handleCardPress = (cardId: string) => {
     </>
   );
 
-  // Компонент для пустого состояния
   const renderEmptyComponent = () => (
     <View style={styles.emptyDeck}>
       <Logo size={144} style={{ marginBottom: 16 }} />
@@ -248,7 +297,6 @@ const handleCardPress = (cardId: string) => {
     </View>
   );
 
-  // Компонент для отсутствия результатов поиска
   const renderEmptySearch = () => (
     <View style={styles.emptyDeck}>
       <Typography color={colors.darkGray} style={{ textAlign: "center" }}>
@@ -305,16 +353,18 @@ const handleCardPress = (cardId: string) => {
             )}
           </View>
         </View>
-        
-        {/* Кнопка "Добавить к моим колодам" - показываем только если не автор */}
-        {!isAuthor && !isLoading && deckPreview && (
-          <MainButton
-            title={isImporting ? "Добавление..." : "Добавить к моим колодам"}
-            onPress={handleAddToMyDecks}
-            disabled={isImporting || !deckPreview || isLoading}
-            style={styles.addButton}
-          />
-        )}
+
+        {renderBottomButton()}
+
+        <CustomAlert
+          visible={showDeleteModal}
+          message="Удалить колоду из облака?"
+          confirmText="Удалить из облака"
+          cancelText="Отмена"
+          onConfirm={handleDeleteFromCloud}
+          onCancel={() => setShowDeleteModal(false)}
+          icon={<LogoSadStar size={128} />}
+        />
       </View>
     </View>
   );
