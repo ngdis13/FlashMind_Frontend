@@ -34,10 +34,14 @@ export const fetchCloudDeckPreview = async (cloudDeckId: string) => {
     );
 
     const accessToken = useAuthStore.getState().accessToken;
+    const headers: Record<string, string> = {};
+    if (accessToken) {
+      headers.Authorization = `Bearer ${accessToken}`;
+    }
 
     const response = await apiClient.get(
       getMainServiceApiUrl(`/api/v1/flashmind/cloud_decks/${cloudDeckId}`),
-      { headers: { Authorization: `Bearer ${accessToken}` } },
+      { headers },
     );
 
     // Шаг 3: сохраняем в AsyncStorage
@@ -60,12 +64,16 @@ export const fetchCloudDeckPreview = async (cloudDeckId: string) => {
 export const fetchCloudDeckCard = async (cloudCardId: string) => {
   try {
     const accessToken = useAuthStore.getState().accessToken;
+    const headers: Record<string, string> = {};
+    if (accessToken) {
+      headers.Authorization = `Bearer ${accessToken}`;
+    }
 
     const response = await apiClient.get(
       getMainServiceApiUrl(
         `/api/v1/flashmind/cloud_decks/cards/${cloudCardId}`,
       ),
-      { headers: { Authorization: `Bearer ${accessToken}` } },
+      { headers },
     );
 
     return response.data;
@@ -81,10 +89,14 @@ export const fetchCloudDeckCard = async (cloudCardId: string) => {
 export const fetchCloudDecks = async (): Promise<FetchCloudDecksResponse> => {
   try {
     const accessToken = useAuthStore.getState().accessToken;
+    const headers: Record<string, string> = {};
+    if (accessToken) {
+      headers.Authorization = `Bearer ${accessToken}`;
+    }
 
     const response = await apiClient.get(
       getMainServiceApiUrl("/api/v1/flashmind/cloud_decks"),
-      { headers: { Authorization: `Bearer ${accessToken}` } },
+      { headers },
     );
 
     return response.data;
