@@ -18,8 +18,7 @@ const TYPOGRAPHY = {
 };
 
 // ============================================================================
-// HTML — редактор + тулбар внутри. Защита от потери фокуса через
-// touchstart/mousedown preventDefault на кнопках.
+// HTML — редактор + тулбар внутри
 // ============================================================================
 const EDITOR_HTML = (placeholder: string): string => `
 <!DOCTYPE html>
@@ -47,9 +46,10 @@ const EDITOR_HTML = (placeholder: string): string => `
     margin-bottom: 8px;
     user-select: none;
     -webkit-user-select: none;
+    align-items: center;
   }
   .btn {
-    padding: 6px 12px;
+    padding: 6px 10px;
     border: 1px solid #ccc;
     border-radius: 6px;
     background: #fff;
@@ -57,12 +57,13 @@ const EDITOR_HTML = (placeholder: string): string => `
     font-weight: ${TYPOGRAPHY.fontWeight};
     font-size: 14px;
     cursor: pointer;
-    min-width: 36px;
+    min-width: 34px;
     text-align: center;
     color: ${TYPOGRAPHY.color};
     -webkit-tap-highlight-color: transparent;
   }
   .btn:active { background: #dde; border-color: #99f; }
+  .separator { width: 1px; height: 24px; background: #ddd; margin: 0 2px; }
   #editor {
     min-height: 100px;
     outline: none;
@@ -71,6 +72,8 @@ const EDITOR_HTML = (placeholder: string): string => `
     -webkit-user-select: text;
   }
   #editor b, #editor strong { font-weight: 700; }
+  #editor ul, #editor ol { padding-left: 24px; margin: 4px 0; }
+  #editor li { margin: 2px 0; }
   #editor:empty::before {
     content: attr(data-placeholder);
     color: ${TYPOGRAPHY.placeholderColor};
@@ -83,6 +86,9 @@ const EDITOR_HTML = (placeholder: string): string => `
     <button class="btn" data-cmd="bold"><b>B</b></button>
     <button class="btn" data-cmd="italic"><i>I</i></button>
     <button class="btn" data-cmd="underline"><u>U</u></button>
+    <span class="separator"></span>
+    <button class="btn" data-cmd="insertUnorderedList" title="Маркированный список">•</button>
+    <button class="btn" data-cmd="insertOrderedList" title="Нумерованный список">1.</button>
   </div>
   <div id="editor" contenteditable="true" data-placeholder="${placeholder.replace(/"/g, '"')}"></div>
 
@@ -96,7 +102,6 @@ const EDITOR_HTML = (placeholder: string): string => `
       editor.addEventListener('input', send);
       editor.addEventListener('click', function() { editor.focus(); });
 
-      // ---- Кнопки: preventDefault на touchstart и mousedown, чтобы НЕ терять фокус ----
       toolbar.addEventListener('touchstart', function(e) {
         e.preventDefault();
         var btn = e.target.closest('.btn');
@@ -117,7 +122,6 @@ const EDITOR_HTML = (placeholder: string): string => `
 
       document.addEventListener('gesturestart', function(e) { e.preventDefault(); });
 
-      // Приём начального состояния
       window.addEventListener('message', function(event) {
         try {
           var data = JSON.parse(event.data);
@@ -199,7 +203,6 @@ function WebRichTextEditor({ placeholder, value, onChange }: RichTextEditorProps
     }
   }, [value]);
 
-  // preventDefault на mousedown → не теряем выделение
   const handleBtnMouseDown = useCallback((e: React.MouseEvent, cmd: string) => {
     e.preventDefault();
     editorRef.current?.focus();
@@ -212,15 +215,12 @@ function WebRichTextEditor({ placeholder, value, onChange }: RichTextEditorProps
       <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet" />
 
       <div style={webStyles.toolbar}>
-        <button type="button" onMouseDown={(e) => handleBtnMouseDown(e, 'bold')} style={webStyles.btn}>
-          <b>B</b>
-        </button>
-        <button type="button" onMouseDown={(e) => handleBtnMouseDown(e, 'italic')} style={webStyles.btn}>
-          <i>I</i>
-        </button>
-        <button type="button" onMouseDown={(e) => handleBtnMouseDown(e, 'underline')} style={webStyles.btn}>
-          <u>U</u>
-        </button>
+        <button type="button" onMouseDown={(e) => handleBtnMouseDown(e, 'bold')} style={webStyles.btn}><b>B</b></button>
+        <button type="button" onMouseDown={(e) => handleBtnMouseDown(e, 'italic')} style={webStyles.btn}><i>I</i></button>
+        <button type="button" onMouseDown={(e) => handleBtnMouseDown(e, 'underline')} style={webStyles.btn}><u>U</u></button>
+        <span style={webStyles.separator} />
+        <button type="button" onMouseDown={(e) => handleBtnMouseDown(e, 'insertUnorderedList')} style={webStyles.btn} title="Маркированный список">•</button>
+        <button type="button" onMouseDown={(e) => handleBtnMouseDown(e, 'insertOrderedList')} style={webStyles.btn} title="Нумерованный список">1.</button>
       </div>
 
       <div ref={editorRef} contentEditable={true} data-placeholder={placeholder} onInput={handleInput} style={webStyles.editor} />
@@ -231,18 +231,24 @@ function WebRichTextEditor({ placeholder, value, onChange }: RichTextEditorProps
           color: ${TYPOGRAPHY.placeholderColor};
           font-weight: ${TYPOGRAPHY.fontWeight};
         }
+        [contentEditable=true] ul, [contentEditable=true] ol { padding-left: 24px; margin: 4px 0; }
+        [contentEditable=true] li { margin: 2px 0; }
       `}</style>
     </View>
   );
 }
 
 const webStyles: Record<string, React.CSSProperties> = {
-  toolbar: { display: 'flex', gap: '4px', padding: '6px 0', borderBottom: '1px solid #ddd', marginBottom: '8px', userSelect: 'none' },
-  btn: {
-    padding: '6px 12px', border: '1px solid #ccc', borderRadius: '6px', background: '#fff',
-    fontFamily: TYPOGRAPHY.fontFamily, fontWeight: TYPOGRAPHY.fontWeight, fontSize: '14px',
-    cursor: 'pointer', minWidth: '36px', textAlign: 'center', color: TYPOGRAPHY.color,
+  toolbar: {
+    display: 'flex', gap: '4px', padding: '6px 0', borderBottom: '1px solid #ddd',
+    marginBottom: '8px', userSelect: 'none', alignItems: 'center',
   },
+  btn: {
+    padding: '6px 10px', border: '1px solid #ccc', borderRadius: '6px', background: '#fff',
+    fontFamily: TYPOGRAPHY.fontFamily, fontWeight: TYPOGRAPHY.fontWeight, fontSize: '14px',
+    cursor: 'pointer', minWidth: '34px', textAlign: 'center', color: TYPOGRAPHY.color,
+  },
+  separator: { width: '1px', height: '24px', background: '#ddd', margin: '0 2px' } as React.CSSProperties,
   editor: {
     fontFamily: TYPOGRAPHY.fontFamily, fontWeight: 400, fontSize: TYPOGRAPHY.fontSize,
     color: TYPOGRAPHY.color, outline: 'none', lineHeight: '1.5', padding: '0',

@@ -160,8 +160,6 @@ const styles = StyleSheet.create({
     width: "100%",
     minHeight: 373,
     maxWidth: 373,
-    borderColor: colors.lightGray,
-    borderWidth: 2,
     alignItems: "center",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },

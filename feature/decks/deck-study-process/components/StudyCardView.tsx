@@ -8,11 +8,14 @@ import {
   ScrollView,
   View,
   Animated,
+  useWindowDimensions,
 } from "react-native";
+
+// --------------------------- Сторонние библиотеки ---------------------------
+import RenderHtml from "react-native-render-html";
 
 // --------------------------- Стили ---------------------------
 import { commonStyles } from "@/styles/Common";
-import { Typography } from "@/styles/Typography";
 
 // --------------------------- Компоненты ---------------------------
 import { UserHint } from "@/components/UserHint";
@@ -20,22 +23,33 @@ import { UserHint } from "@/components/UserHint";
 // --------------------------- Типы ---------------------------
 import { StudyCard } from "@/feature-decks/deck-study-process/api/api";
 
+const systemFont = 'MontserratSemiBold';
+const textColor = '#282B54';
+
 /**
- * Убирает HTML-теги, оставляя только чистый текст
+ * Стили HTML — соответствуют редактору:
+ * - body: Regular (400) по умолчанию, по центру
+ * - <b>/<strong>: Bold (700)
+ * - <i>/<em>: курсив
+ * - <u>: подчёркнутый
+ * - списки: отступы, текст слева
  */
-const stripHtml = (html: string): string => {
-  if (!html) return '';
-  return html
-    .replace(/<br\s*\/?>/gi, ' ')
-    .replace(/<\/(div|p|h[1-6])>/gi, ' ')
-    .replace(/<[^>]*>/g, '')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&/g, '&')
-    .replace(/</g, '<')
-    .replace(/>/g, '>')
-    .replace(/"/g, '"')
-    .replace(/\s+/g, ' ')
-    .trim();
+const tagsStyles = {
+  body: {
+    fontFamily: 'Montserrat',
+    fontWeight: '400' as const,
+    fontSize: 16,
+    color: textColor,
+    textAlign: 'center' as const,
+  },
+  b: { fontWeight: '700' as const },
+  strong: { fontWeight: '700' as const },
+  i: { fontStyle: 'italic' as const },
+  em: { fontStyle: 'italic' as const },
+  u: { textDecorationLine: 'underline' as const },
+  ul: { textAlign: 'left' as const, paddingLeft: 24, marginVertical: 4 },
+  ol: { textAlign: 'left' as const, paddingLeft: 24, marginVertical: 4 },
+  li: { marginVertical: 2 },
 };
 
 interface Props {
@@ -51,6 +65,8 @@ export const StudyCardView = ({ card, isFirstCard }: Props) => {
   const flipAnim = useRef(new Animated.Value(0)).current;
   const hintOpacity = useRef(new Animated.Value(0)).current;
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { width: screenWidth } = useWindowDimensions();
+  const contentWidth = Math.min(screenWidth - 80, 600);
 
   const getDifficultyLevel = (): number => {
     if (!card?.difficulty) return 0;
@@ -143,10 +159,7 @@ export const StudyCardView = ({ card, isFirstCard }: Props) => {
           {[1, 2, 3, 4, 5].map((index) => {
             const isActive = index <= difficultyLevel;
             return (
-              <View
-                key={index}
-                style={[styles.dot, { backgroundColor: isActive ? activeColor : "#BBBBBB" }]}
-              />
+              <View key={index} style={[styles.dot, { backgroundColor: isActive ? activeColor : "#BBBBBB" }]} />
             );
           })}
         </View>
@@ -154,10 +167,22 @@ export const StudyCardView = ({ card, isFirstCard }: Props) => {
     );
   };
 
+  const renderCardContent = (html: string) => (
+    <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      {html ? (
+        <RenderHtml
+          contentWidth={contentWidth}
+          source={{ html }}
+          tagsStyles={tagsStyles}
+          systemFonts={[systemFont, 'Montserrat']}
+        />
+      ) : null}
+    </ScrollView>
+  );
+
   return (
     <View style={styles.container}>
       <Pressable style={styles.touchArea} onPress={handleFlip}>
-        {/* ПЕРЕДНЯЯ СТОРОНА */}
         <Animated.View
           style={[
             commonStyles.mainBox, styles.card, styles.cardFront,
@@ -165,39 +190,23 @@ export const StudyCardView = ({ card, isFirstCard }: Props) => {
           ]}
         >
           {renderDifficultyDots()}
-
           <UserHint
             visible={showUserHint}
             text="Сложность карточки рассчитывается нашей ИИ-моделью. Алгоритм анализирует твои ответы и сам решает, когда повторить материал!"
             onClose={handleCloseHint}
             style={styles.absoluteHint}
           />
-
-          <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-            <Typography variant="h2" style={[styles.mainText, { fontWeight: "800" }]}>
-              {stripHtml(card?.front || '')}
-            </Typography>
-          </ScrollView>
-
-          <Animated.View style={{ opacity: hintOpacity }}>
-            <Typography variant="h3" color="gray" style={styles.hintTextInside}>
-              Нажми, чтобы перевернуть
-            </Typography>
-          </Animated.View>
+          {renderCardContent(card?.front || '')}
+          <Animated.View style={{ opacity: hintOpacity }} />
         </Animated.View>
 
-        {/* ЗАДНЯЯ СТОРОНА */}
         <Animated.View
           style={[
             commonStyles.mainBox, styles.card, styles.cardBack,
             { transform: [{ rotateY: backInterpolate }], opacity: backOpacity },
           ]}
         >
-          <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-            <Typography variant="h2" style={styles.mainText}>
-              {stripHtml(card?.back || '')}
-            </Typography>
-          </ScrollView>
+          {renderCardContent(card?.back || '')}
         </Animated.View>
       </Pressable>
     </View>
@@ -211,8 +220,6 @@ const styles = StyleSheet.create({
   cardFront: { backgroundColor: "#FFFFFF", position: "relative", width: '100%' },
   cardBack: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%', backgroundColor: "#FFFFFF" },
   scrollContent: { flexGrow: 1, justifyContent: "center", padding: 20, width: '100%' },
-  mainText: { textAlign: "center", width: '100%' },
-  hintTextInside: { textAlign: "center", paddingBottom: 10, width: '100%' },
   dotsPressArea: { width: "100%", alignItems: "center", marginTop: 12, zIndex: 101 },
   dotsContainer: { flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 8, width: "100%" },
   dot: { width: 10, height: 10, borderRadius: 5 },
