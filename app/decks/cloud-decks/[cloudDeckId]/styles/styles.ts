@@ -115,17 +115,13 @@ export const styles = StyleSheet.create({
   cardItem: {
     minHeight: 40,
     padding: 16,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 16,
     marginBottom: 12,
     backgroundColor: colors.white,
   },
   cardText: {
     fontSize: 15,
     flex: 1,
+    lineHeight: 20,
   },
   cardArrow: {
     marginLeft: 12,

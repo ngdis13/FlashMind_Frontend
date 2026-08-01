@@ -24,6 +24,21 @@ import { useAuthStore } from "@/store/auth.store";
 import { getUserIdFromToken } from "@/utils/helpers/getUserIdFromToken";
 import { SyncDeckModal } from "@/feature/decks/components/SyncDeckModal";
 
+const stripHtml = (html: string): string => {
+  if (!html) return '';
+  return html
+    .replace(/<br\s*\/?>/gi, ' ')
+    .replace(/<\/(div|p|h[1-6])>/gi, ' ')
+    .replace(/<[^>]*>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&/g, '&')
+    .replace(/</g, '<')
+    .replace(/>/g, '>')
+    .replace(/"/g, '"')
+    .replace(/\s+/g, ' ')
+    .trim();
+};
+
 export default function CloudDecksPreview() {
   const router = useRouter();
   const { cloudDeckId } = useLocalSearchParams<{ cloudDeckId: string }>();
@@ -190,8 +205,8 @@ export default function CloudDecksPreview() {
   }) => (
     <Pressable onPress={() => handleCardPress(item.id)}>
       <View style={[commonStyles.mainBox, styles.cardItem]}>
-        <Typography variant="h2" style={styles.cardText}>
-          {item.front}
+        <Typography variant="h2" style={styles.cardText} numberOfLines={3}>
+          {stripHtml(item.front)}
         </Typography>
       </View>
     </Pressable>

@@ -14,6 +14,7 @@ import IconGo from "../assets/IconGo.png";
 import { useRouter } from "expo-router";
 import { useState, useEffect, useMemo } from "react";
 import { Input } from "@/components/Input";
+import { useAuthStore } from "@/store/auth.store";
 
 import searchButton from "@/feature-decks/assets/searchButton.png";
 import CloudDeckView from "../components/CloudDecksView";
@@ -49,6 +50,7 @@ export default function CloudDecksScreen() {
   const [search, setSearch] = useState("");
   const { width } = useWindowDimensions();
   const currentContentWidth = Math.min(width, 800);
+  const isAuthorized = Boolean(useAuthStore((state) => state.accessToken));
 
   const [decks, setDecks] = useState<CloudDeckItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -79,7 +81,11 @@ export default function CloudDecksScreen() {
   }, []);
 
   const handleBack = () => {
-    router.push("/decks");
+    if (isAuthorized) {
+      router.push("/decks");
+    } else {
+      router.replace("/login");
+    }
   };
 
   const validateAndExtractId = (input: string): string | null => {
