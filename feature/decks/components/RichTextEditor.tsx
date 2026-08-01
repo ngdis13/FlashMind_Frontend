@@ -18,7 +18,10 @@ const TYPOGRAPHY = {
 };
 
 // ============================================================================
-// HTML — редактор + тулбар внутри
+// HTML-шаблон редактора
+// - Selection/Range API для B/I/U (современный подход)
+// - execCommand для списков (надёжный кросс-браузерный)
+// - Debounce 150ms на postMessage
 // ============================================================================
 const EDITOR_HTML = (placeholder: string): string => `
 <!DOCTYPE html>
@@ -32,44 +35,28 @@ const EDITOR_HTML = (placeholder: string): string => `
     font-family: ${TYPOGRAPHY.fontFamily};
     font-weight: 400;
     font-size: ${TYPOGRAPHY.fontSize};
-    margin: 0;
-    padding: 8px;
+    margin: 0; padding: 8px;
     background: transparent;
     -webkit-text-size-adjust: 100%;
     color: ${TYPOGRAPHY.color};
   }
   #toolbar {
-    display: flex;
-    gap: 4px;
-    padding: 6px 0;
-    border-bottom: 1px solid #ddd;
-    margin-bottom: 8px;
-    user-select: none;
-    -webkit-user-select: none;
-    align-items: center;
+    display: flex; gap: 4px; padding: 6px 0;
+    border-bottom: 1px solid #ddd; margin-bottom: 8px;
+    user-select: none; -webkit-user-select: none; align-items: center;
   }
   .btn {
-    padding: 6px 10px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    background: #fff;
-    font-family: ${TYPOGRAPHY.fontFamily};
-    font-weight: ${TYPOGRAPHY.fontWeight};
-    font-size: 14px;
-    cursor: pointer;
-    min-width: 34px;
-    text-align: center;
-    color: ${TYPOGRAPHY.color};
-    -webkit-tap-highlight-color: transparent;
+    padding: 6px 10px; border: 1px solid #ccc; border-radius: 6px;
+    background: #fff; font-family: ${TYPOGRAPHY.fontFamily};
+    font-weight: ${TYPOGRAPHY.fontWeight}; font-size: 14px;
+    cursor: pointer; min-width: 34px; text-align: center;
+    color: ${TYPOGRAPHY.color}; -webkit-tap-highlight-color: transparent;
   }
   .btn:active { background: #dde; border-color: #99f; }
   .separator { width: 1px; height: 24px; background: #ddd; margin: 0 2px; }
   #editor {
-    min-height: 100px;
-    outline: none;
-    line-height: 1.5;
-    word-wrap: break-word;
-    -webkit-user-select: text;
+    min-height: 100px; outline: none; line-height: 1.5;
+    word-wrap: break-word; -webkit-user-select: text;
   }
   #editor b, #editor strong { font-weight: 700; }
   #editor ul, #editor ol { padding-left: 24px; margin: 4px 0; }
@@ -87,8 +74,8 @@ const EDITOR_HTML = (placeholder: string): string => `
     <button class="btn" data-cmd="italic"><i>I</i></button>
     <button class="btn" data-cmd="underline"><u>U</u></button>
     <span class="separator"></span>
-    <button class="btn" data-cmd="insertUnorderedList" title="Маркированный список">•</button>
-    <button class="btn" data-cmd="insertOrderedList" title="Нумерованный список">1.</button>
+    <button class="btn" data-cmd="insertUnorderedList" title="Список">•</button>
+    <button class="btn" data-cmd="insertOrderedList" title="Нумерованный">1.</button>
   </div>
   <div id="editor" contenteditable="true" data-placeholder="${placeholder.replace(/"/g, '"')}"></div>
 
@@ -96,37 +83,77 @@ const EDITOR_HTML = (placeholder: string): string => `
     (function() {
       var editor = document.getElementById('editor');
       var toolbar = document.getElementById('toolbar');
+      var sendTimer = null;
 
-      function send() { window.ReactNativeWebView.postMessage(editor.innerHTML); }
+      function scheduleSend() {
+        clearTimeout(sendTimer);
+        sendTimer = setTimeout(function() {
+          window.ReactNativeWebView.postMessage(editor.innerHTML);
+        }, 150);
+      }
+      function sendNow() {
+        clearTimeout(sendTimer);
+        window.ReactNativeWebView.postMessage(editor.innerHTML);
+      }
 
-      editor.addEventListener('input', send);
+      editor.addEventListener('input', scheduleSend);
       editor.addEventListener('click', function() { editor.focus(); });
+
+      // ---- Selection/Range API для B/I/U ----
+      function toggleInlineTag(tagName) {
+        editor.focus();
+        var sel = window.getSelection();
+        if (!sel || !sel.rangeCount || sel.isCollapsed) return;
+        var range = sel.getRangeAt(0);
+        if (!range || range.collapsed) return;
+
+        var ancestor = range.commonAncestorContainer;
+        var wrapper = ancestor.nodeType === 1
+          ? ancestor.closest(tagName)
+          : (ancestor.parentNode && ancestor.parentNode.closest ? ancestor.parentNode.closest(tagName) : null);
+
+        if (wrapper && editor.contains(wrapper)) {
+          var parent = wrapper.parentNode;
+          while (wrapper.firstChild) parent.insertBefore(wrapper.firstChild, wrapper);
+          parent.removeChild(wrapper);
+          parent.normalize();
+        } else {
+          var el = document.createElement(tagName);
+          el.appendChild(range.extractContents());
+          range.insertNode(el);
+        }
+        sel.removeAllRanges();
+        sendNow();
+      }
+
+      function handleAction(cmd) {
+        if (cmd === 'bold') { toggleInlineTag('B'); return; }
+        if (cmd === 'italic') { toggleInlineTag('I'); return; }
+        if (cmd === 'underline') { toggleInlineTag('U'); return; }
+        // Списки через execCommand
+        editor.focus();
+        document.execCommand(cmd, false, null);
+        sendNow();
+      }
 
       toolbar.addEventListener('touchstart', function(e) {
         e.preventDefault();
         var btn = e.target.closest('.btn');
-        if (!btn || !btn.dataset.cmd) return;
-        editor.focus();
-        document.execCommand(btn.dataset.cmd, false, null);
-        send();
+        if (btn && btn.dataset.cmd) handleAction(btn.dataset.cmd);
       });
-
       toolbar.addEventListener('mousedown', function(e) {
         e.preventDefault();
         var btn = e.target.closest('.btn');
-        if (!btn || !btn.dataset.cmd) return;
-        editor.focus();
-        document.execCommand(btn.dataset.cmd, false, null);
-        send();
+        if (btn && btn.dataset.cmd) handleAction(btn.dataset.cmd);
       });
 
       document.addEventListener('gesturestart', function(e) { e.preventDefault(); });
 
       window.addEventListener('message', function(event) {
         try {
-          var data = JSON.parse(event.data);
-          if (data.type === 'LOAD_STATE' && typeof data.payload === 'string') {
-            editor.innerHTML = data.payload;
+          var d = JSON.parse(event.data);
+          if (d.type === 'LOAD_STATE' && typeof d.payload === 'string') {
+            editor.innerHTML = d.payload;
           }
         } catch(e) {}
       });
@@ -164,9 +191,7 @@ function MobileRichTextEditor({ placeholder, value, onChange }: RichTextEditorPr
     );
   }, [value]);
 
-  if (!WebViewComponent) {
-    return <View style={styles.container} />;
-  }
+  if (!WebViewComponent) return <View style={styles.container} />;
 
   return (
     <View style={styles.container}>
@@ -188,27 +213,67 @@ function MobileRichTextEditor({ placeholder, value, onChange }: RichTextEditorPr
 }
 
 // ============================================================================
-// Веб-версия
+// Веб-версия — нативный contentEditable
 // ============================================================================
 function WebRichTextEditor({ placeholder, value, onChange }: RichTextEditorProps) {
   const editorRef = useRef<HTMLDivElement | null>(null);
+  const sendTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleInput = useCallback(() => {
-    if (editorRef.current) onChange(editorRef.current.innerHTML);
+    if (sendTimerRef.current) clearTimeout(sendTimerRef.current);
+    sendTimerRef.current = setTimeout(() => {
+      if (editorRef.current) onChange(editorRef.current.innerHTML);
+    }, 150);
   }, [onChange]);
 
   useEffect(() => {
     if (editorRef.current && editorRef.current.innerHTML !== value) {
       editorRef.current.innerHTML = value;
     }
+    return () => { if (sendTimerRef.current) clearTimeout(sendTimerRef.current); };
   }, [value]);
+
+  const toggleInlineTag = useCallback((tagName: string) => {
+    const editor = editorRef.current;
+    if (!editor) return;
+
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount || sel.isCollapsed) return;
+    const range = sel.getRangeAt(0);
+    if (!range || range.collapsed) return;
+
+    const ancestor = range.commonAncestorContainer;
+    let wrapper: Element | null = null;
+    if (ancestor.nodeType === 1) {
+      wrapper = (ancestor as Element).closest(tagName);
+    } else if (ancestor.parentNode) {
+      wrapper = (ancestor.parentNode as Element).closest(tagName);
+    }
+
+    if (wrapper && editor.contains(wrapper)) {
+      const parent = wrapper.parentNode!;
+      while (wrapper.firstChild) parent.insertBefore(wrapper.firstChild, wrapper);
+      parent.removeChild(wrapper);
+      parent.normalize();
+    } else {
+      const el = document.createElement(tagName);
+      el.appendChild(range.extractContents());
+      range.insertNode(el);
+    }
+    sel.removeAllRanges();
+    editor.focus();
+    handleInput();
+  }, [handleInput]);
 
   const handleBtnMouseDown = useCallback((e: React.MouseEvent, cmd: string) => {
     e.preventDefault();
+    if (cmd === 'bold') { toggleInlineTag('b'); return; }
+    if (cmd === 'italic') { toggleInlineTag('i'); return; }
+    if (cmd === 'underline') { toggleInlineTag('u'); return; }
     editorRef.current?.focus();
     document.execCommand(cmd, false, undefined);
     handleInput();
-  }, [handleInput]);
+  }, [toggleInlineTag, handleInput]);
 
   return (
     <View style={styles.container}>
@@ -219,8 +284,8 @@ function WebRichTextEditor({ placeholder, value, onChange }: RichTextEditorProps
         <button type="button" onMouseDown={(e) => handleBtnMouseDown(e, 'italic')} style={webStyles.btn}><i>I</i></button>
         <button type="button" onMouseDown={(e) => handleBtnMouseDown(e, 'underline')} style={webStyles.btn}><u>U</u></button>
         <span style={webStyles.separator} />
-        <button type="button" onMouseDown={(e) => handleBtnMouseDown(e, 'insertUnorderedList')} style={webStyles.btn} title="Маркированный список">•</button>
-        <button type="button" onMouseDown={(e) => handleBtnMouseDown(e, 'insertOrderedList')} style={webStyles.btn} title="Нумерованный список">1.</button>
+        <button type="button" onMouseDown={(e) => handleBtnMouseDown(e, 'insertUnorderedList')} style={webStyles.btn} title="Список">•</button>
+        <button type="button" onMouseDown={(e) => handleBtnMouseDown(e, 'insertOrderedList')} style={webStyles.btn} title="Нумерованный">1.</button>
       </div>
 
       <div ref={editorRef} contentEditable={true} data-placeholder={placeholder} onInput={handleInput} style={webStyles.editor} />
@@ -263,14 +328,8 @@ export function RichTextEditor(props: RichTextEditorProps) {
 
 const styles = StyleSheet.create({
   container: {
-    width: '100%',
-    height: 160,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-    marginBottom: 20,
-    overflow: 'hidden',
-    borderRadius: 8,
-    backgroundColor: '#fff',
+    width: '100%', height: 160, borderBottomWidth: 1, borderBottomColor: '#ccc',
+    marginBottom: 20, overflow: 'hidden', borderRadius: 8, backgroundColor: '#fff',
   },
   webview: { backgroundColor: 'transparent' },
 });

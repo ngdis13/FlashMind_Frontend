@@ -201,13 +201,11 @@ export default function CloudDecksPreview() {
     <>
       <View style={[commonStyles.header, styles.header]}>
         <View style={styles.headerName}>
-          {isAuthorized && (
-            <Pressable onPress={handleBack}>
-              <Image source={ReturnIcon} style={{ width: 12, height: 22 }} />
-            </Pressable>
-          )}
+          <Pressable onPress={handleBack}>
+            <Image source={ReturnIcon} style={{ width: 12, height: 22 }} />
+          </Pressable>
           <Typography variant="h1" style={{ marginBottom: 0 }}>
-            {isAuthorized ? "Вернуться к колодам" : "Превью колоды"}
+            Вернуться к колодам
           </Typography>
         </View>
       </View>
