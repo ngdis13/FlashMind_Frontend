@@ -22,6 +22,7 @@ import { LogoSadStar } from "@/components/LogoSadStar";
 import { useDecks } from "@/storage/hooks/useDecks";
 import { useAuthStore } from "@/store/auth.store";
 import { getUserIdFromToken } from "@/utils/helpers/getUserIdFromToken";
+import { SyncDeckModal } from "@/feature/decks/components/SyncDeckModal";
 
 export default function CloudDecksPreview() {
   const router = useRouter();
@@ -358,14 +359,14 @@ export default function CloudDecksPreview() {
 
         {renderBottomButton()}
 
-        <CustomAlert
+        <SyncDeckModal
           visible={showDeleteModal}
-          message="Удалить колоду из облака?"
-          confirmText="Удалить из облака"
-          cancelText="Отмена"
+          onClose={() => setShowDeleteModal(false)}
           onConfirm={handleDeleteFromCloud}
-          onCancel={() => setShowDeleteModal(false)}
-          icon={<LogoSadStar size={128} />}
+          logo={<LogoSadStar size={150} />}
+          title="Ты действительно хочешь удалить колоду из облака?"
+          confirmText="Удалить"
+          cancelText="Отмена"
         />
       </View>
     </View>

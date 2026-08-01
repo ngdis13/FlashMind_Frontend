@@ -624,12 +624,6 @@ export default function DeckViewById() {
         console.log("📤 Синхронизация через /share (АВТОР)");
         console.log(`📤 Локальный ID колоды: ${id}`);
 
-        Toast.show({
-          type: "info",
-          text1: "Публикация изменений...",
-          position: "bottom",
-        });
-
         const response = await makeDeckPublic(id);
         console.log("📤 Ответ от makeDeckPublic:", response);
         useDeckStore.getState().markDeckSynced(id)
@@ -951,7 +945,7 @@ export default function DeckViewById() {
       <SyncDeckModal
         visible={isSyncModalVisible}
         onClose={() => setIsSyncModalVisible(false)}
-        onSync={handleSyncConfirm}
+        onConfirm={handleSyncConfirm}
         type={isAuthor ? "user_updated" : "author_updated"}
       />
 
