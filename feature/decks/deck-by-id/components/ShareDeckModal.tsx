@@ -154,7 +154,7 @@ export const ShareDeckModal = ({
                         />
                       }
                     />
-                    <Typography color={colors.darkGray} style={styles.hint}>
+                    <Typography variant="h3" color={colors.darkGray} style={styles.hint}>
                       Сейчас колоду видишь только ты и те, с кем ты поделишься
                       ссылкой
                     </Typography>
