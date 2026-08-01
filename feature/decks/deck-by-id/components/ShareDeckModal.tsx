@@ -39,7 +39,7 @@ interface ShareDeckModalProps {
 
 /**
  * Компонент модального окна для управления доступом к колоде
- * 
+ *
  * @component
  * @param {ShareDeckModalProps} props - Свойства компонента
  * @param {boolean} props.visible - Управляет видимостью модального окна
@@ -48,18 +48,18 @@ interface ShareDeckModalProps {
  * @param {() => Promise<boolean> | boolean} props.onMakePublic - Колбэк при публикации колоды
  * @param {boolean} [props.isAuthor=false] - Флаг автора колоды
  * @returns {JSX.Element} React компонент модального окна шаринга
- * 
+ *
  * @description
  * Компонент отображает модальное окно с двумя режимами:
- * 
+ *
  * Для автора колоды:
  * - Шаг 1: Копирование ссылки или публикация в каталог
  * - Шаг 2: Ожидание модерации после публикации
- * 
+ *
  * Для пользователя (не автора):
  * - Упрощенный режим с только копированием ссылки
  * - Информация о том, что изменения не синхронизируются с оригиналом
- * 
+ *
  * @example
  * // Для автора колоды
  * <ShareDeckModal
@@ -69,7 +69,7 @@ interface ShareDeckModalProps {
  *   onMakePublic={handleMakePublic}
  *   isAuthor={true}
  * />
- * 
+ *
  * @example
  * // Для пользователя (не автора)
  * <ShareDeckModal
@@ -120,6 +120,10 @@ export const ShareDeckModal = ({
     onClose();
   };
 
+  const onBecomeAuthor = () => {
+    console.log("стать автором");
+  };
+
   // --------------------------- Отрисовка ---------------------------
   return (
     <Modal
@@ -154,7 +158,11 @@ export const ShareDeckModal = ({
                         />
                       }
                     />
-                    <Typography variant="h3" color={colors.darkGray} style={styles.hint}>
+                    <Typography
+                      variant="h3"
+                      color={colors.darkGray}
+                      style={styles.hint}
+                    >
                       Сейчас колоду видишь только ты и те, с кем ты поделишься
                       ссылкой
                     </Typography>
@@ -171,7 +179,11 @@ export const ShareDeckModal = ({
                         }
                       />
                     </View>
-                    <Typography variant="h3"  color={colors.darkGray} style={styles.hint}>
+                    <Typography
+                      variant="h3"
+                      color={colors.darkGray}
+                      style={styles.hint}
+                    >
                       Колода появится в общем каталоге и будет доступна для
                       поиска всем пользователям
                     </Typography>
@@ -228,6 +240,52 @@ export const ShareDeckModal = ({
                     }
                   />
 
+                  <View style={styles.separator} />
+
+                  {/* Добавленный блок условий для становления автором */}
+                  <View style={styles.authorBlock}>
+                    <Typography variant="h3" style={styles.authorBlockTitle}>
+                      Если ты хочешь поделиться колодой со своими карточками, то
+                      ты можешь стать автором колоды
+                    </Typography>
+
+                    <Typography variant="h3" style={styles.authorBlockSubtitle}>
+                      Чтобы стать автором нужно:
+                    </Typography>
+
+                    {/* Список условий (подставьте ваши переменные состояния вместо true) */}
+                    <View style={styles.checkListItem}>
+                      <Typography style={styles.checkIcon}>✅</Typography>
+                      <Typography variant="h3" >
+                        Изменить описание
+                      </Typography>
+                    </View>
+
+                    <View style={styles.checkListItem}>
+                      <Typography style={styles.checkIcon}>✅</Typography>
+                      <Typography variant="h3" >
+                        Добавить/изменить 20% карточек
+                      </Typography>
+                    </View>
+                  </View>
+
+                  {/* Основная кнопка действия (Стать автором) */}
+                  <Pressable
+                    onPress={onBecomeAuthor} // Замените на вашу функцию
+                    style={({ pressed }) => [
+                      styles.primaryButton,
+                      pressed && { opacity: 0.8 },
+                    ]}
+                  >
+                    <Image
+                      source={require("@/feature-decks/assets/IconAuthor.png")} // Путь к иконке карандаша
+                      style={styles.primaryButtonIcon}
+                    />
+                    <Typography color="#FFFFFF" variant="h2">
+                      Стать автором колоды
+                    </Typography>
+                  </Pressable>
+
                   <Pressable onPress={handleClose} style={styles.cancelButton}>
                     <Typography color={colors.mainColor} variant="h2">
                       Отмена
@@ -265,7 +323,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderRadius: 28,
     paddingVertical: 30,
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
+    minWidth: 373,
     width: "100%",
     maxWidth: 370,
     alignItems: "center",
@@ -310,7 +369,7 @@ const styles = StyleSheet.create({
   hint2: {
     textAlign: "center",
     paddingBottom: 16,
-    width: 340
+    width: 340,
   },
   /**
    * Стиль текста на шаге модерации
@@ -326,7 +385,82 @@ const styles = StyleSheet.create({
    */
   cancelButton: {
     alignSelf: "center",
-    marginTop: 24,
     paddingVertical: 4,
+  },
+
+  separator: {
+    height: 2, 
+    backgroundColor: colors.mainColor, 
+    width: "100%", 
+    marginTop: 16, 
+
+  },
+
+  /**
+   * Контейнер для информационного блока автора
+   */
+  authorBlock: {
+    marginTop: 24,
+    marginBottom: 16,
+    marginHorizontal: 4
+
+  },
+  /**
+   * Главный текст информационного блока
+   */
+  authorBlockTitle: {
+    textAlign: "center",
+    fontWeight: "600",
+    marginBottom: 12,
+  },
+  /**
+   * Подзаголовок списка требований
+   */
+  authorBlockSubtitle: {
+    textAlign: "left",
+    marginBottom: 4,
+  },
+  /**
+   * Строка элемента чек-листа
+   */
+  checkListItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 2,
+  },
+  /**
+   * Стилизация иконки эмодзи галочки/крестика
+   */
+  checkIcon: {
+    fontSize: 12,
+    marginRight: 8,
+  },
+  /**
+   * Текст элемента чек-листа
+   */
+  checkText: {
+    flex: 1,
+    textAlign: "left",
+  },
+  /**
+   * Главная залитая кнопка «Стать автором колоды»
+   */
+  primaryButton: {
+    backgroundColor: colors.mainColor, 
+    borderRadius: 20,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 12,
+    width: "100%",
+    marginBottom: 16
+  },
+  /**
+   * Иконка карандаша внутри главной кнопки
+   */
+  primaryButtonIcon: {
+    width: 10,
+    height: 20,
+    marginRight: 10,
   },
 });
