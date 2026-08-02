@@ -204,7 +204,7 @@ export default function DeckViewById() {
         isFirstLoadRef.current = false;
       }
     },
-    [id, loadDecksData, getDeckCards], 
+    [id, loadDecksData, getDeckCards],
   );
 
   // ============================================
@@ -318,7 +318,7 @@ export default function DeckViewById() {
           if (cloudUuid) {
             setCachedCloudUuid(cloudUuid);
             setIsShareModalVisible(true);
-            useDeckStore.getState().markDeckSynced(id)
+            useDeckStore.getState().markDeckSynced(id);
 
             Toast.show({
               type: "success",
@@ -626,7 +626,7 @@ export default function DeckViewById() {
 
         const response = await makeDeckPublic(id);
         console.log("📤 Ответ от makeDeckPublic:", response);
-        useDeckStore.getState().markDeckSynced(id)
+        useDeckStore.getState().markDeckSynced(id);
 
         Toast.show({
           type: "success",
@@ -783,161 +783,140 @@ export default function DeckViewById() {
     <View
       style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}
     >
-      <View style={[commonStyles.container, { flex: 1, paddingBottom: 30 }]}>
+      <View style={[commonStyles.container, { flex: 1 }]}>
         <ScrollView
           keyboardShouldPersistTaps="handled"
           style={{ width: "100%" }}
-          contentContainerStyle={{ alignItems: "center", width: "100%" }}
+          contentContainerStyle={{
+            flexGrow: 1,
+            width: "100%",
+            alignItems: "center",
+            paddingHorizontal: 10,
+            paddingTop: 20,
+            paddingBottom: 30,
+          }}
           showsVerticalScrollIndicator={false}
         >
-          <View
-            style={[
-              commonStyles.content,
-              { width: "100%", paddingHorizontal: 16 },
-            ]}
-          >
-            <View
-              style={[
-                commonStyles.mainContent,
-                { width: "100%", paddingHorizontal: 0 },
-              ]}
-            >
-              <View style={[commonStyles.header, styles.header]}>
-                <View style={styles.headerName}>
-                  <Pressable onPress={handleBack}>
-                    <Image
-                      source={ReturnIcon}
-                      style={{ width: 12, height: 22 }}
-                    />
-                  </Pressable>
+          <View style={[commonStyles.header, styles.header]}>
+            <View style={styles.headerName}>
+              <Pressable onPress={handleBack}>
+                <Image source={ReturnIcon} style={{ width: 12, height: 22 }} />
+              </Pressable>
 
-                  <Typography variant="h1" style={{ marginBottom: 0 }}>
-                    Вернуться к колодам
-                  </Typography>
-                </View>
+              <Typography variant="h1" style={{ marginBottom: 0 }}>
+                Вернуться к колодам
+              </Typography>
+            </View>
 
-                <View style={styles.noticeBox}>
-                  {showCloudAlert && (
-                    <Pressable
-                      onPress={handleCloudSyncAlert}
-                      style={styles.cloudAlertAbsoluteLeft}
-                    >
-                      <Image
-                        source={InfoIcon}
-                        style={{ width: 24, height: 24 }}
-                      />
-                    </Pressable>
-                  )}
-
-                  {showCloudOk && (
-                    <Pressable
-                      onPress={handleAccessSync}
-                      style={styles.cloudAlertAbsoluteLeft}
-                    >
-                      <Image
-                        source={GreatIcon}
-                        style={{ width: 24, height: 24 }}
-                      />
-                    </Pressable>
-                  )}
-
-                  <Pressable onPress={handleSharePress} disabled={isGenerating}>
-                    <Image source={ImportButton} style={styles.importButton} />
-                  </Pressable>
-                </View>
-              </View>
-
-              <View style={styles.mainInfo}>
-                <View
-                  style={[commonStyles.mainBox, { width: "100%" }, styles.info]}
-                >
-                  <View style={styles.purpleLine} />
-
-                  <View style={styles.textContainer}>
-                    <Typography variant="h2" style={{ fontWeight: 800 }}>
-                      {name}
-                    </Typography>
-                    {description.trim() !== "" && (
-                      <Typography variant="h2">{description}</Typography>
-                    )}
-                  </View>
-                </View>
-
+            <View style={styles.noticeBox}>
+              {showCloudAlert && (
                 <Pressable
-                  style={[commonStyles.mainBox, styles.settingsButton]}
-                  onPress={handleSettings}
+                  onPress={handleCloudSyncAlert}
+                  style={styles.cloudAlertAbsoluteLeft}
                 >
-                  <SettingsIcon />
-                  <Typography variant="h2">Настройки</Typography>
+                  <Image source={InfoIcon} style={{ width: 24, height: 24 }} />
                 </Pressable>
-              </View>
+              )}
 
-              <View style={styles.cards}>
-                <View style={styles.cardsHeader}>
-                  <Typography variant="h2">Карточки</Typography>
-                  <Pressable onPress={handleAddCard}>
-                    <Image
-                      source={PlusIcon}
-                      style={{ width: 16, height: 16 }}
-                    />
-                  </Pressable>
-                </View>
+              {showCloudOk && (
+                <Pressable
+                  onPress={handleAccessSync}
+                  style={styles.cloudAlertAbsoluteLeft}
+                >
+                  <Image source={GreatIcon} style={{ width: 24, height: 24 }} />
+                </Pressable>
+              )}
 
-                <View style={styles.searchBox}>
-                  <View style={{ flex: 1, width: "100%" }}>
-                    <Input
-                      style={{ textAlign: "left", width: "100%" }}
-                      placeholder={"Поиск"}
-                      value={search}
-                      onChangeText={setSearch}
-                    />
-                  </View>
-                  <View style={styles.searchButton}>
-                    <Image
-                      source={searchButton}
-                      style={{ width: 18, height: 18 }}
-                    />
-                  </View>
-                </View>
+              <Pressable onPress={handleSharePress} disabled={isGenerating}>
+                <Image source={ImportButton} style={styles.importButton} />
+              </Pressable>
+            </View>
+          </View>
 
-                {!hasCards ? (
-                  <View style={styles.emptyDeck}>
-                    <Logo size={144} style={{ marginBottom: 16 }} />
-                    <Typography
-                      color={colors.darkGray}
-                      style={{ textAlign: "center" }}
-                    >
-                      Пока что колода пуста...
-                    </Typography>
-                  </View>
-                ) : (
-                  <View style={{ gap: 16, paddingVertical: 8, width: "100%" }}>
-                    {filteredCards.length > 0 ? (
-                      filteredCards.map((item, index) => (
-                        <CardItem
-                          key={item.id}
-                          id={item.id}
-                          front={item.front}
-                          back={item.back}
-                          deckId={id}
-                          difficulty={item.difficulty}
-                          index={index}
-                          viewMode="compact"
-                          onPress={handleCardPress}
-                          onDelete={handleDeleteCard}
-                        />
-                      ))
-                    ) : (
-                      <Typography
-                        style={{ textAlign: "center", marginTop: 12 }}
-                      >
-                        Ничего не найдено :(
-                      </Typography>
-                    )}
-                  </View>
+          <View style={styles.mainInfo}>
+            <View
+              style={[commonStyles.mainBox, { width: "100%" }, styles.info]}
+            >
+              <View style={styles.purpleLine} />
+
+              <View style={styles.textContainer}>
+                <Typography variant="h2" style={{ fontWeight: 800 }}>
+                  {name}
+                </Typography>
+                {description.trim() !== "" && (
+                  <Typography variant="h2">{description}</Typography>
                 )}
               </View>
             </View>
+
+            <Pressable
+              style={[commonStyles.mainBox, styles.settingsButton]}
+              onPress={handleSettings}
+            >
+              <SettingsIcon />
+              <Typography variant="h2">Настройки</Typography>
+            </Pressable>
+          </View>
+
+          <View style={styles.cards}>
+            <View style={styles.cardsHeader}>
+              <Typography variant="h2">Карточки</Typography>
+              <Pressable onPress={handleAddCard}>
+                <Image source={PlusIcon} style={{ width: 16, height: 16 }} />
+              </Pressable>
+            </View>
+
+            <View style={styles.searchBox}>
+              <View style={{ flex: 1, width: "100%" }}>
+                <Input
+                  style={{ textAlign: "left", width: "100%" }}
+                  placeholder={"Поиск"}
+                  value={search}
+                  onChangeText={setSearch}
+                />
+              </View>
+              <View style={styles.searchButton}>
+                <Image
+                  source={searchButton}
+                  style={{ width: 18, height: 18 }}
+                />
+              </View>
+            </View>
+
+            {!hasCards ? (
+              <View style={styles.emptyDeck}>
+                <Logo size={144} style={{ marginBottom: 16 }} />
+                <Typography
+                  color={colors.darkGray}
+                  style={{ textAlign: "center" }}
+                >
+                  Пока что колода пуста...
+                </Typography>
+              </View>
+            ) : (
+              <View style={{ gap: 16, paddingVertical: 8, width: "100%" }}>
+                {filteredCards.length > 0 ? (
+                  filteredCards.map((item, index) => (
+                    <CardItem
+                      key={item.id}
+                      id={item.id}
+                      front={item.front}
+                      back={item.back}
+                      deckId={id}
+                      difficulty={item.difficulty}
+                      index={index}
+                      viewMode="compact"
+                      onPress={handleCardPress}
+                      onDelete={handleDeleteCard}
+                    />
+                  ))
+                ) : (
+                  <Typography style={{ textAlign: "center", marginTop: 12 }}>
+                    Ничего не найдено :(
+                  </Typography>
+                )}
+              </View>
+            )}
           </View>
         </ScrollView>
       </View>

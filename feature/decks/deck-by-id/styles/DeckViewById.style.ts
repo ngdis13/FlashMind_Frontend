@@ -8,16 +8,18 @@ export const styles = StyleSheet.create({
     alignItems: "center",
   },
   noticeBox: {
+    marginTop: -16,
     position: "relative", // Контейнер становится опорной точкой для абсолютного элемента
     alignItems: "center",
     justifyContent: "center",
-    width: 24,            // Задаем ширину строго по размеру кнопки импорта
+    width: 24, // Задаем ширину строго по размеру кнопки импорта
     height: 24,
   },
   headerName: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: 12,
+    marginBottom: 16
   },
   importButton: {
     width: 24,

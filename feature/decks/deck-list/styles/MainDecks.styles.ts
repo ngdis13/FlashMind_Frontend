@@ -5,19 +5,17 @@ export const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
     width: "100%",
-    paddingHorizontal: 10, // Отступы 10px для всего контента разом
+    paddingHorizontal: 10,
+    paddingTop: 20,
   },
 
   headerContainer: {
-    paddingHorizontal: 0,
-    marginHorizontal: 0,
-    marginTop: 20,
     width: "100%",
   },
   headerBox: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center"
+    alignItems: "center",
   },
 
   listContentContainer: {

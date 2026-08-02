@@ -3,9 +3,9 @@ import { StyleSheet } from "react-native";
 export const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
-    gap: 16, // Немного увеличили зазор для лучшей читаемости
+    gap: 12,
     alignItems: "center",
-    width: "100%", // Гарантируем, что шапка занимает всю ширину контейнера
+    width: "100%",
   },
   headerTitle: {
     flex: 1, // Текст забирает всё свободное пространство и не выталкивает стрелку

@@ -5,8 +5,8 @@ export const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
     width: "100%",
-    paddingHorizontal: 16,
-    paddingTop: 16,
+    paddingHorizontal: 10,
+    paddingTop: 20,
     paddingBottom: 116,
   },
   responsiveWrapper: {

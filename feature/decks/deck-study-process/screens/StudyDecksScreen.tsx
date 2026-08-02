@@ -333,7 +333,7 @@ export default function StudyDecksScreen() {
           <View
             style={[
               commonStyles.mainContent,
-              { flex: 1, width: "100%", marginTop: 16 },
+              { flex: 1, width: "100%", marginTop: 20 },
             ]}
           >
             <View style={styles.header}>

@@ -73,58 +73,61 @@ export default function CreateCardView() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}>
-      <View style={[commonStyles.container, { flex: 1, paddingBottom: 30 }]}>
+      <View style={[commonStyles.container, { flex: 1 }]}>
         <ScrollView
           style={{ width: "100%" }}
-          contentContainerStyle={{ alignItems: "center", width: "100%" }}
+          contentContainerStyle={{
+            flexGrow: 1,
+            width: "100%",
+            alignItems: "center",
+            paddingHorizontal: 10,
+            paddingTop: 30,
+            paddingBottom: 30,
+          }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           nestedScrollEnabled={Platform.OS === 'android'}
         >
-          <View style={[commonStyles.content, { width: "100%", paddingHorizontal: 16 }]}>
-            <View style={[commonStyles.mainContent, { width: "100%", paddingHorizontal: 0 }]}>
 
-              <View style={styles.header}>
-                <Pressable onPress={handleBack}>
-                  <Image source={ReturnIcon} style={{ width: 12, height: 22, top: -7 }} />
-                </Pressable>
-                <Typography variant="h1" style={{ marginBottom: 16 }}>
-                  Вернуться к колоде
-                </Typography>
-              </View>
+          <View style={styles.header}>
+            <Pressable onPress={handleBack}>
+              <Image source={ReturnIcon} style={{ width: 12, height: 22, top: -7 }} />
+            </Pressable>
+            <Typography variant="h1" style={{ marginBottom: 16 }}>
+              Вернуться к колоде
+            </Typography>
+          </View>
 
-              <View style={[commonStyles.infoBox, { flexDirection: "column", width: "100%" }]}>
+          <View style={[commonStyles.infoBox, { flexDirection: "column", width: "100%" }]}>
 
-                {/* ТЕРМИН */}
-                <View style={styles.inputWrapper}>
-                  <Typography variant="h3" style={styles.firstHeader}>
-                    термин
-                  </Typography>
-                  <RichTextEditor
-                    placeholder="Введите термин"
-                    value={front}
-                    onChange={setFront}
-                  />
-                </View>
-
-                {/* ОПРЕДЕЛЕНИЕ */}
-                <View style={styles.inputWrapper}>
-                  <Typography variant="h3" style={styles.firstHeader}>
-                    определение
-                  </Typography>
-                  <RichTextEditor
-                    placeholder="Введите определение"
-                    value={back}
-                    onChange={setBack}
-                  />
-                </View>
-
-              </View>
+            {/* ТЕРМИН */}
+            <View style={styles.inputWrapper}>
+              <Typography variant="h3" style={styles.firstHeader}>
+                термин
+              </Typography>
+              <RichTextEditor
+                placeholder="Введите термин"
+                value={front}
+                onChange={setFront}
+              />
             </View>
+
+            {/* ОПРЕДЕЛЕНИЕ */}
+            <View style={styles.inputWrapper}>
+              <Typography variant="h3" style={styles.firstHeader}>
+                определение
+              </Typography>
+              <RichTextEditor
+                placeholder="Введите определение"
+                value={back}
+                onChange={setBack}
+              />
+            </View>
+
           </View>
         </ScrollView>
 
-        <View style={{ width: "100%", paddingHorizontal: 16, alignItems: "center" }}>
+        <View style={{ width: "100%", paddingHorizontal: 10, alignItems: "center" }}>
           <MainButton
             style={styles.createCardButton}
             title="Создать карточку"

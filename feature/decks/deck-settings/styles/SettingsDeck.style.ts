@@ -5,9 +5,9 @@ export const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
     width: "100%",
-    alignItems: "center", 
+    alignItems: "center",
     paddingHorizontal: 10,
-    paddingTop: 30,
+    paddingTop: 20,
     paddingBottom: 40,
   },
   header: {

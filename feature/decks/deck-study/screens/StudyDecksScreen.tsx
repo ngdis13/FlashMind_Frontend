@@ -67,16 +67,19 @@ export default function StudyDecksScreen() {
     <View
       style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}
     >
-      <View style={[commonStyles.container, { flex: 1, paddingBottom: 30 }]}>
+      <View style={[commonStyles.container, { flex: 1 }]}>
         <View
-          style={[
-            commonStyles.content,
-            { flex: 1, justifyContent: "flex-start" },
-          ]}
+          style={{
+            flex: 1,
+            width: "100%",
+            paddingHorizontal: 10,
+            paddingTop: 20,
+            justifyContent: "flex-start",
+            alignItems: "center",
+          }}
         >
           <View
             style={[
-              commonStyles.mainContent,
               styles.mainContent,
               { width: "100%" },
             ]}
@@ -194,7 +197,8 @@ export default function StudyDecksScreen() {
             gap: 12,
             alignItems: "center",
             width: "100%",
-            maxWidth: 800,
+            paddingHorizontal: 10,
+            paddingBottom: 30,
           }}
         >
           <Typography variant="h2">

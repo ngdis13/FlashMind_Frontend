@@ -80,13 +80,13 @@ export default function SettingsScreens() {
     <View
       style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}
     >
-      <View style={commonStyles.container}>
-        <View style={commonStyles.mainContent}>
+      <View style={[commonStyles.container, { flex: 1 }]}>
+        <View style={{ width: "100%", paddingHorizontal: 10, paddingTop: 20 }}>
           <View style={styles.header}>
             <Pressable onPress={handleBack}>
-              <Image source={ReturnIcon} style={{ width: 12, height: 22, top: -7 }} />
+              <Image source={ReturnIcon} style={{ width: 12, height: 22 }} />
             </Pressable>
-            <Typography variant="h1" style={{ marginBottom: 16 }}>
+            <Typography variant="h1" >
               Настройки
             </Typography>
           </View>

@@ -81,7 +81,6 @@ export default function EditProfile() {
       style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}
     >
       <View style={commonStyles.container}>
-        {/* ScrollView позволяет всему контенту растягиваться по ширине экрана */}
         <ScrollView
           contentContainerStyle={styles.scrollContainer}
           style={{ width: "100%" }}
@@ -90,7 +89,7 @@ export default function EditProfile() {
             <Pressable onPress={handleBack} style={styles.backButton}>
               <Image source={ReturnIcon} style={{ width: 12, height: 22 }} />
             </Pressable>
-            <Typography variant="h1" style={{ marginBottom: 16 }}>
+            <Typography variant="h1">
               Профиль
             </Typography>
           </View>
