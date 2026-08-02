@@ -6,7 +6,7 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 12,
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: 16,
     width: "100%", 
   },
   firstHeader: {

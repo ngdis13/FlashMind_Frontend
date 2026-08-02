@@ -6,9 +6,9 @@ export const styles = StyleSheet.create({
     justifyContent: "space-between",
     flexDirection: "row",
     alignItems: "center",
+    marginBottom: 16,
   },
   noticeBox: {
-    marginTop: -16,
     position: "relative", // Контейнер становится опорной точкой для абсолютного элемента
     alignItems: "center",
     justifyContent: "center",
@@ -19,7 +19,6 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    marginBottom: 16
   },
   importButton: {
     width: 24,

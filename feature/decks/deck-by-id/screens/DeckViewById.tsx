@@ -280,6 +280,23 @@ export default function DeckViewById() {
   const handleSharePress = async () => {
     if (isGenerating) return;
 
+    // ✅ Если пользователь НЕ автор — просто показываем модалку с текущей ссылкой,
+    // без каких-либо запросов на синхронизацию (синхронизация /share — только для автора)
+    if (!isAuthor) {
+      if (isCloudDeck && cloudDeckId) {
+        setCachedCloudUuid(cloudDeckId);
+        setIsShareModalVisible(true);
+      } else {
+        Toast.show({
+          type: "error",
+          text1: "Ошибка",
+          text2: "Не найден идентификатор колоды",
+          position: "bottom",
+        });
+      }
+      return;
+    }
+
     // СЦЕНАРИЙ 1: Колода облачная, синхронизация НЕ нужна
     if (isCloudDeck && !needsSync) {
       console.log("✅ Облачная колода, синхронизация не нужна");
@@ -803,7 +820,7 @@ export default function DeckViewById() {
                 <Image source={ReturnIcon} style={{ width: 12, height: 22 }} />
               </Pressable>
 
-              <Typography variant="h1" style={{ marginBottom: 0 }}>
+              <Typography variant="h1">
                 Вернуться к колодам
               </Typography>
             </View>

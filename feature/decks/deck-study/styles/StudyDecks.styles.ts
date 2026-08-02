@@ -12,7 +12,7 @@ export const styles = StyleSheet.create({
     flexWrap: "wrap", // Перенос строго по словам, а не по буквам
   },
   mainContent: {
-    gap: 24,
+    gap: 16,
     width: "100%", // Чтобы контент не сжимался
   },
   infoLine: {

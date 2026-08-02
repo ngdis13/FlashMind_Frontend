@@ -66,7 +66,7 @@ export const commonStyles = StyleSheet.create({
     flexDirection: "row",
     gap: 12,
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: 16,
   },
 
   mainHeader: {

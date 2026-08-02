@@ -254,7 +254,6 @@ export default function StudyDecksScreen() {
           await incrementDailyReviews();
           console.log("📊 Статистика профиля обновлена после успешного ответа");
 
-
           const response = await postCardRating(
             currentCard.id,
             rating,
@@ -323,98 +322,93 @@ export default function StudyDecksScreen() {
     <View
       style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}
     >
-      <View style={[commonStyles.container, { flex: 1, paddingBottom: 30 }]}>
+      <View style={[commonStyles.container, { flex: 1 }]}>
         <View
-          style={[
-            commonStyles.content,
-            { flex: 1, justifyContent: "flex-start", width: "100%" },
-          ]}
+          style={{
+            flex: 1,
+            width: "100%",
+            paddingHorizontal: 10,
+            paddingTop: 20,
+          }}
         >
-          <View
-            style={[
-              commonStyles.mainContent,
-              { flex: 1, width: "100%", marginTop: 20 },
-            ]}
-          >
-            <View style={styles.header}>
-              <Pressable onPress={handleBack}>
-                <Image source={ReturnIcon} style={{ width: 12, height: 22 }} />
-              </Pressable>
-              <Typography variant="h1">{deck?.name || "Изучение"}</Typography>
-            </View>
+          <View style={styles.header}>
+            <Pressable onPress={handleBack}>
+              <Image source={ReturnIcon} style={{ width: 12, height: 22 }} />
+            </Pressable>
+            <Typography variant="h1">{deck?.name || "Изучение"}</Typography>
+          </View>
 
-            <View style={styles.counter}>
-              <Typography variant="h2">
-                {loading ? "Загрузка..." : `${currentIndex} / ${totalToStudy}`}
+          <View style={styles.counter}>
+            <Typography variant="h2">
+              {loading ? "Загрузка..." : `${currentIndex} / ${totalToStudy}`}
+            </Typography>
+          </View>
+
+          {loading ? (
+            <ActivityIndicator size="large" style={{ flex: 1 }} />
+          ) : cards.length > 0 ? (
+            <Animated.View
+              style={{
+                flex: 1,
+                opacity: fadeAnim,
+                transform: [{ translateY: slideAnim }],
+                width: "100%",
+              }}
+            >
+              <StudyCardView
+                card={cards[0]}
+                isFirstCard={finishedCount === 0}
+              />
+            </Animated.View>
+          ) : (
+            <Pressable
+              style={{
+                flex: 1,
+                justifyContent: "center",
+                alignItems: "center",
+                gap: 8,
+                width: "100%",
+              }}
+              onPress={handleBack}
+            >
+              <Logo size={174} />
+              <Typography variant="h1" style={{ textAlign: "center" }}>
+                Молодец! На сегодня всё!
               </Typography>
-            </View>
 
-            {loading ? (
-              <ActivityIndicator size="large" style={{ flex: 1 }} />
-            ) : cards.length > 0 ? (
-              <Animated.View
-                style={{
-                  flex: 1,
-                  opacity: fadeAnim,
-                  transform: [{ translateY: slideAnim }],
-                  width: "100%",
-                }}
+              <Typography
+                variant="h3"
+                color={colors.darkGray}
+                style={{ textAlign: "center", marginBottom: 12 }}
               >
-                <StudyCardView
-                  card={cards[0]}
-                  isFirstCard={finishedCount === 0}
-                />
-              </Animated.View>
-            ) : (
-              <Pressable
-                style={{
-                  flex: 1,
-                  justifyContent: "center",
-                  alignItems: "center",
-                  gap: 8,
-                  width: "100%",
-                }}
-                onPress={handleBack}
-              >
-                <Logo size={174} />
-                <Typography variant="h1" style={{ textAlign: "center" }}>
-                  Молодец! На сегодня всё!
-                </Typography>
-
-                <Typography
-                  variant="h3"
-                  color={colors.darkGray}
-                  style={{ textAlign: "center", marginBottom: 12 }}
+                Ты изучил все карточки в этой колоде
+              </Typography>
+              {totalSessionTimeStr ? (
+                <View
+                  style={{
+                    alignSelf: "center",
+                    backgroundColor: colors.lightGray || "#F5F5F5",
+                    paddingVertical: 8,
+                    paddingHorizontal: 20,
+                    borderRadius: 100,
+                    marginBottom: 24,
+                  }}
                 >
-                  Ты изучил все карточки в этой колоде
-                </Typography>
-                {totalSessionTimeStr ? (
-                  <View
+                  <Typography
+                    variant="h3"
+                    color={colors.darkMainColor}
                     style={{
-                      alignSelf: "center",
-                      backgroundColor: colors.lightGray || "#F5F5F5",
-                      paddingVertical: 8,
-                      paddingHorizontal: 20,
-                      borderRadius: 100,
-                      marginBottom: 24,
+                      textAlign: "center",
+                      fontWeight: "500",
+                      letterSpacing: 0.3,
                     }}
                   >
-                    <Typography
-                      variant="h3"
-                      color={colors.darkMainColor}
-                      style={{
-                        textAlign: "center",
-                        fontWeight: "500",
-                        letterSpacing: 0.3,
-                      }}
-                    >
-                      ⏱ Время обучения: {totalSessionTimeStr}
-                    </Typography>
-                  </View>
-                ) : null}
-              </Pressable>
-            )}
-          </View>
+                    ⏱ Время обучения: {totalSessionTimeStr}
+                  </Typography>
+                </View>
+              ) : null}
+            </Pressable>
+          )}
         </View>
 
         {cards.length > 0 && (

@@ -14,13 +14,12 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    marginBottom: 24,
+    marginBottom: 16,
     width: "100%",
   },
   backButton: {
     justifyContent: "center",
     alignItems: "center",
-    paddingRight: 4,
   },
   infoBox: {
     gap: 16,
@@ -69,7 +68,6 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E0E0E0", // Базовый цвет рамки неактивной кнопки
     backgroundColor: colors.white,
-      borderWidth: 2,
   },
   colorCircle: {
     width: 20,

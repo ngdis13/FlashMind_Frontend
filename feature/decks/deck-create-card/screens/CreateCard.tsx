@@ -81,7 +81,7 @@ export default function CreateCardView() {
             width: "100%",
             alignItems: "center",
             paddingHorizontal: 10,
-            paddingTop: 30,
+            paddingTop: 20,
             paddingBottom: 30,
           }}
           showsVerticalScrollIndicator={false}
@@ -91,9 +91,9 @@ export default function CreateCardView() {
 
           <View style={styles.header}>
             <Pressable onPress={handleBack}>
-              <Image source={ReturnIcon} style={{ width: 12, height: 22, top: -7 }} />
+              <Image source={ReturnIcon} style={{ width: 12, height: 22}} />
             </Pressable>
-            <Typography variant="h1" style={{ marginBottom: 16 }}>
+            <Typography variant="h1" >
               Вернуться к колоде
             </Typography>
           </View>
