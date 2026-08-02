@@ -20,8 +20,12 @@ export default function TabsLayout() {
           // 1. Позиционирование
           position: "absolute", // Делаем его плавающим над контентом
           bottom: 10, // Отступ от низа экрана
-          left: 10, // Отступ слева
-          right: 10, // Отступ справа
+          left: "50%",
+          transform: [{ translateX: "-50%" }],
+          width: "95%",
+
+          maxWidth: 800,
+          alignSelf: "center",
 
           // 2. Внешний вид
           backgroundColor: "#ffffff", // Цвет самого бара
