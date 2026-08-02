@@ -127,46 +127,31 @@ export default function CardView() {
     <View
       style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}
     >
-      <View style={[commonStyles.container, { flex: 1, paddingBottom: 30 }]}>
+      <View style={[commonStyles.container, { flex: 1 }]}>
         <ScrollView
           style={{ width: "100%" }}
-          contentContainerStyle={{ alignItems: "center", width: "100%" }}
+          contentContainerStyle={{
+            flexGrow: 1,
+            width: "100%",
+            paddingHorizontal: 10,
+            paddingTop: 20,
+            paddingBottom: 30,
+          }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           nestedScrollEnabled={Platform.OS === "android"}
         >
-          <View
-            style={[
-              commonStyles.content,
-              { width: "100%", paddingHorizontal: 16 },
-            ]}
-          >
-            <View
-              style={[
-                commonStyles.mainContent,
-                { width: "100%", paddingHorizontal: 0 },
-              ]}
-            >
-              <View style={styles.header}>
-                <Pressable
-                  onPress={handleBack}
-                  style={{
-                    padding: 12,
-                    marginLeft: -12,
-                    marginRight: -8,
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                >
-                  <Image
-                    source={ReturnIcon}
-                    style={{ width: 12, height: 22, top: -7 }}
-                  />
-                </Pressable>
-                <Typography variant="h1" style={{ marginBottom: 16 }}>
-                  Вернуться к колоде
-                </Typography>
-              </View>
+          <View style={styles.header}>
+            <Pressable onPress={handleBack}>
+              <Image
+                source={ReturnIcon}
+                style={{ width: 12, height: 22 }}
+              />
+            </Pressable>
+            <Typography variant="h1">
+              Вернуться к колоде
+            </Typography>
+          </View>
 
               <View
                 style={[
@@ -196,12 +181,10 @@ export default function CardView() {
                   />
                 </View>
               </View>
-            </View>
-          </View>
         </ScrollView>
 
         <View
-          style={{ width: "100%", paddingHorizontal: 16, alignItems: "center" }}
+          style={{ width: "100%", paddingHorizontal: 10, alignItems: "center" }}
         >
           <MainButton
             style={styles.updateCardButton}

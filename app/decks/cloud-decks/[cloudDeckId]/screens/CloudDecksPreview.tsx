@@ -25,17 +25,17 @@ import { getUserIdFromToken } from "@/utils/helpers/getUserIdFromToken";
 import { SyncDeckModal } from "@/feature/decks/components/SyncDeckModal";
 
 const stripHtml = (html: string): string => {
-  if (!html) return '';
+  if (!html) return "";
   return html
-    .replace(/<br\s*\/?>/gi, ' ')
-    .replace(/<\/(div|p|h[1-6])>/gi, ' ')
-    .replace(/<[^>]*>/g, '')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&/g, '&')
-    .replace(/</g, '<')
-    .replace(/>/g, '>')
+    .replace(/<br\s*\/?>/gi, " ")
+    .replace(/<\/(div|p|h[1-6])>/gi, " ")
+    .replace(/<[^>]*>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&/g, "&")
+    .replace(/</g, "<")
+    .replace(/>/g, ">")
     .replace(/"/g, '"')
-    .replace(/\s+/g, ' ')
+    .replace(/\s+/g, " ")
     .trim();
 };
 
@@ -219,9 +219,7 @@ export default function CloudDecksPreview() {
           <Pressable onPress={handleBack}>
             <Image source={ReturnIcon} style={{ width: 12, height: 22 }} />
           </Pressable>
-          <Typography variant="h1" style={{ marginBottom: 0 }}>
-            Вернуться к колодам
-          </Typography>
+          <Typography variant="h1">Вернуться к колодам</Typography>
         </View>
       </View>
 
@@ -325,52 +323,45 @@ export default function CloudDecksPreview() {
     <View
       style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}
     >
-      <View style={[commonStyles.container, { flex: 1, paddingBottom: 30 }]}>
+      <View style={[commonStyles.container, { flex: 1 }]}>
         <View
-          style={[
-            commonStyles.content,
-            { width: "100%", paddingHorizontal: 16, flex: 1 },
-          ]}
+          style={{
+            flex: 1,
+            width: "100%",
+            paddingHorizontal: 10,
+            paddingTop: 20,
+          }}
         >
-          <View
-            style={[
-              commonStyles.mainContent,
-              { width: "100%", paddingHorizontal: 0, flex: 1 },
-            ]}
-          >
-            {!hasCards ? (
-              <FlatList
-                data={[]}
-                renderItem={() => null}
-                ListHeaderComponent={renderHeader}
-                ListEmptyComponent={renderEmptyComponent}
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: 120 }}
-              />
-            ) : filteredCards.length === 0 ? (
-              <FlatList
-                data={[]}
-                renderItem={() => null}
-                ListHeaderComponent={renderHeader}
-                ListEmptyComponent={renderEmptySearch}
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: 120 }}
-              />
-            ) : (
-              <FlatList
-                data={filteredCards}
-                renderItem={renderCardItem}
-                keyExtractor={(item) => item.id}
-                ListHeaderComponent={renderHeader}
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: 120, gap: 8 }}
-                keyboardShouldPersistTaps="handled"
-              />
-            )}
-          </View>
+          {!hasCards ? (
+            <FlatList
+              data={[]}
+              renderItem={() => null}
+              ListHeaderComponent={renderHeader}
+              ListEmptyComponent={renderEmptyComponent}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingBottom: 120 }}
+            />
+          ) : filteredCards.length === 0 ? (
+            <FlatList
+              data={[]}
+              renderItem={() => null}
+              ListHeaderComponent={renderHeader}
+              ListEmptyComponent={renderEmptySearch}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingBottom: 120 }}
+            />
+          ) : (
+            <FlatList
+              data={filteredCards}
+              renderItem={renderCardItem}
+              keyExtractor={(item) => item.id}
+              ListHeaderComponent={renderHeader}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingBottom: 120, gap: 8 }}
+              keyboardShouldPersistTaps="handled"
+            />
+          )}
         </View>
-
-        {renderBottomButton()}
 
         <SyncDeckModal
           visible={showDeleteModal}
@@ -381,6 +372,7 @@ export default function CloudDecksPreview() {
           confirmText="Удалить"
           cancelText="Отмена"
         />
+        {renderBottomButton()}
       </View>
     </View>
   );

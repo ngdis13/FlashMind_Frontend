@@ -8,7 +8,7 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 16,
     width: "100%",
-    gap: 4
+    gap: 12
   },
   inputWrapper: {
     width: "100%",

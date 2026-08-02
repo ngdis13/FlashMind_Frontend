@@ -69,46 +69,31 @@ export default function CloudCardView() {
     <View
       style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}
     >
-      <View style={[commonStyles.container, { flex: 1, paddingBottom: 30 }]}>
+      <View style={[commonStyles.container, { flex: 1 }]}>
         <ScrollView
           style={{ width: "100%" }}
-          contentContainerStyle={{ alignItems: "center", width: "100%" }}
+          contentContainerStyle={{
+            flexGrow: 1,
+            width: "100%",
+            paddingHorizontal: 10,
+            paddingTop: 20,
+            paddingBottom: 30,
+          }}
           showsVerticalScrollIndicator={false}
         >
-          <View
-            style={[
-              commonStyles.content,
-              { width: "100%", paddingHorizontal: 16 },
-            ]}
-          >
-            <View
-              style={[
-                commonStyles.mainContent,
-                { width: "100%", paddingHorizontal: 0 },
-              ]}
-            >
-              {/* Хедер */}
-              <View style={styles.header}>
-                <Pressable
-                  onPress={handleBack}
-                  style={{
-                    padding: 12,
-                    marginLeft: -12,
-                    marginRight: -8,
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                >
-                  <Image
-                    source={ReturnIcon}
-                    style={{ width: 12, height: 22, top: -7 }}
-                  />
-                </Pressable>
+          {/* Хедер */}
+          <View style={styles.header}>
+            <Pressable onPress={handleBack}>
+              <Image
+                source={ReturnIcon}
+                style={{ width: 12, height: 22 }}
+              />
+            </Pressable>
 
-                <Typography variant="h1" style={{ marginBottom: 16 }}>
-                  Вернуться к колоде
-                </Typography>
-              </View>
+            <Typography variant="h1" style={{ marginBottom: 0 }}>
+              Вернуться к колоде
+            </Typography>
+          </View>
 
               {/* Контент карточки */}
               <View
@@ -140,8 +125,6 @@ export default function CloudCardView() {
                   </View>
                 </View>
               </View>
-            </View>
-          </View>
         </ScrollView>
       </View>
     </View>

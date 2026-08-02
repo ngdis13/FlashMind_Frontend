@@ -11,7 +11,10 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { styles } from "@/feature-decks/deck-study/styles/StudyDecks.styles";
 import { MainButton } from "@/components/MainButton";
 import { useEffect, useState } from "react";
-import { getStudyInfo, StudyResponse } from "@/feature-decks/deck-study/api/api";
+import {
+  getStudyInfo,
+  StudyResponse,
+} from "@/feature-decks/deck-study/api/api";
 import { Animated } from "react-native";
 import { colors } from "@/styles/Colors";
 
@@ -65,7 +68,7 @@ export default function StudyDecksScreen() {
 
   return (
     <View
-      style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}
+      style={{ flex: 1, backgroundColor: colors.background, width: "100%", paddingBottom: 30 }}
     >
       <View style={[commonStyles.container, { flex: 1 }]}>
         <View
@@ -74,21 +77,12 @@ export default function StudyDecksScreen() {
             width: "100%",
             paddingHorizontal: 10,
             paddingTop: 20,
-            justifyContent: "flex-start",
-            alignItems: "center",
+            
           }}
         >
-          <View
-            style={[
-              styles.mainContent,
-              { width: "100%" },
-            ]}
-          >
+          <View style={[styles.mainContent, { width: "100%" }]}>
             <View style={styles.header}>
-              <Pressable
-                onPress={handleBack}
-                style={{ padding: 6, marginLeft: -6 }}
-              >
+              <Pressable onPress={handleBack}>
                 <Image source={ReturnIcon} style={{ width: 12, height: 22 }} />
               </Pressable>
               <Typography
@@ -204,17 +198,17 @@ export default function StudyDecksScreen() {
           <Typography variant="h2">
             К повторению сегодня: {(studyData?.learning_today ?? 0) + addCount}
           </Typography>
-          <View style={styles.startButton}>
-            <MainButton
-              style={[styles.startButton, { width: "100%" }]}
-              title="Старт"
-              onPress={handleStartStudy}
-              disabled={
-                !studyData || (studyData.learning_today ?? 0) + addCount === 0
-              }
-            />
-          </View>
         </View>
+      </View>
+      <View style={styles.startButton}>
+        <MainButton
+          style={[styles.startButton]}
+          title="Старт"
+          onPress={handleStartStudy}
+          disabled={
+            !studyData || (studyData.learning_today ?? 0) + addCount === 0
+          }
+        />
       </View>
     </View>
   );

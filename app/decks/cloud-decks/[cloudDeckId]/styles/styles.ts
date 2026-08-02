@@ -6,12 +6,12 @@ export const styles = StyleSheet.create({
     justifyContent: "space-between",
     flexDirection: "row",
     alignItems: "center",
-    paddingBottom: 8,
+    marginBottom: 16,
   },
   headerName: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: 12,
   },
 
   // Карточка колоды с mainBox
@@ -135,8 +135,9 @@ export const styles = StyleSheet.create({
   },
 
   addButton: {
-    position: "absolute",
-    bottom: 30,
-    width: "90%",
+    width: "95%",
+    paddingHorizontal: 10,
+    marginBottom: 30,
+
   },
 });

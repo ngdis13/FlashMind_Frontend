@@ -1,4 +1,5 @@
 import { colors } from "@/styles/Colors";
+import { commonStyles } from "@/styles/Common";
 import {
   Pressable,
   View,
@@ -158,167 +159,153 @@ export default function CloudDecksScreen() {
 
   return (
     <View
-      style={{
-        flex: 1,
-        backgroundColor: colors.background,
-        alignItems: "center",
-      }}
+      style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}
     >
-      <ScrollView
-        style={{ flex: 1, width: "100%" }}
-        contentContainerStyle={{
-          flexGrow: 1,
-          alignItems: "center",
-          paddingTop: 24,
-        }}
-        showsVerticalScrollIndicator={true}
-      >
-        <View style={[styles.container, { width: currentContentWidth }]}>
-          <View style={styles.content}>
-            <View style={styles.mainContent}>
-              {/* Шапка */}
-              <View style={styles.header}>
+      <View style={[commonStyles.container, { flex: 1 }]}>
+        <ScrollView
+          style={{ width: "100%" }}
+          contentContainerStyle={{
+            flexGrow: 1,
+            width: "100%",
+            paddingHorizontal: 10,
+            paddingTop: 20,
+            paddingBottom: 30,
+          }}
+          showsVerticalScrollIndicator={true}
+        >
+          <View style={styles.mainContent}>
+            {/* Шапка */}
+            <View style={styles.header}>
+              <Pressable onPress={handleBack}>
+                <Image source={ReturnIcon} style={{ width: 12, height: 22 }} />
+              </Pressable>
+              <Typography variant="h1">Облачные колоды</Typography>
+            </View>
+
+            {/* Приватная ссылка */}
+            <View style={styles.privateLinkBox}>
+              <Typography variant="h2">Добавить приватную колоду</Typography>
+              <View style={styles.privateLinkLine}>
+                <Input
+                  style={[
+                    styles.privateLink,
+                    link.trim() && isValidLink && styles.privateLinkValid,
+                    link.trim() && !isValidLink && styles.privateLinkInvalid,
+                  ]}
+                  placeholder={"Ссылка"}
+                  placeholderColor={"#999EE4"}
+                  value={link}
+                  onChangeText={setLink}
+                />
                 <Pressable
-                  onPress={handleBack}
-                  style={styles.backButton}
-                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  onPress={handlePrivateLink}
+                  style={[
+                    styles.arrowButton,
+                    isValidLink && styles.arrowButtonActive,
+                    !isValidLink && styles.arrowButtonDisabled,
+                  ]}
+                  disabled={!isValidLink}
                 >
                   <Image
-                    source={ReturnIcon}
-                    style={{ width: 12, height: 22 }}
+                    source={IconGo}
+                    style={{
+                      width: 12,
+                      height: 22,
+                    }}
                   />
                 </Pressable>
-                <Typography variant="h1">Облачные колоды</Typography>
               </View>
+            </View>
 
-              {/* Приватная ссылка */}
-              <View style={styles.privateLinkBox}>
-                <Typography variant="h2">Добавить приватную колоду</Typography>
-                <View style={styles.privateLinkLine}>
+            {/* Заголовок доступных колод */}
+            <View style={styles.availableDecksSection}>
+              <View style={styles.searchHeader}>
+                <Typography variant="h2">
+                  Доступные колоды
+                  {search.trim() && (
+                    <Typography variant="h2" color={colors.darkGray}>
+                      {" "}
+                      (найдено: {filteredDecks.length})
+                    </Typography>
+                  )}
+                </Typography>
+
+                <View style={styles.searchBox}>
                   <Input
-                    style={[
-                      styles.privateLink,
-                      link.trim() && isValidLink && styles.privateLinkValid,
-                      link.trim() && !isValidLink && styles.privateLinkInvalid,
-                    ]}
-                    placeholder={"Ссылка"}
-                    placeholderColor={"#999EE4"}
-                    value={link}
-                    onChangeText={setLink}
+                    style={{ textAlign: "left" }}
+                    placeholder={"Поиск по названию или автору"}
+                    value={search}
+                    onChangeText={handleSearchChange}
                   />
                   <Pressable
-                    onPress={handlePrivateLink}
-                    style={[
-                      styles.arrowButton,
-                      isValidLink && styles.arrowButtonActive,
-                      !isValidLink && styles.arrowButtonDisabled,
-                    ]}
-                    disabled={!isValidLink}
+                    style={styles.searchButton}
+                    onPress={handleSearchChange}
                   >
                     <Image
-                      source={IconGo}
-                      style={{
-                        width: 12,
-                        height: 22,
-                      }}
+                      source={searchButton}
+                      style={{ width: 18, height: 18 }}
                     />
                   </Pressable>
                 </View>
               </View>
+            </View>
 
-              {/* Заголовок доступных колод */}
-              <View style={styles.availableDecksSection}>
-                <View style={styles.searchHeader}>
-                  <Typography variant="h2">
-                    Доступные колоды
-                    {search.trim() && (
-                      <Typography variant="h2" color={colors.darkGray}>
-                        {" "}
-                        (найдено: {filteredDecks.length})
-                      </Typography>
-                    )}
+            {/* Список */}
+            <View style={styles.decksList}>
+              {loading ? (
+                <ActivityIndicator
+                  size="large"
+                  color={colors.mainColor}
+                  style={{ marginTop: 40 }}
+                />
+              ) : filteredDecks.length === 0 ? (
+                <View style={{ marginTop: 40, alignItems: "center" }}>
+                  <Typography
+                    variant="h3"
+                    style={{ textAlign: "center", color: "#999" }}
+                  >
+                    {search.trim()
+                      ? "По вашему запросу ничего не найдено"
+                      : "Колоды не найдены"}
                   </Typography>
-
-                  <View style={styles.searchBox}>
-                    <Input
-                      style={{ textAlign: "left" }}
-                      placeholder={"Поиск по названию или автору"}
-                      value={search}
-                      onChangeText={handleSearchChange}
-                    />
-                    <Pressable
-                      style={styles.searchButton}
-                      onPress={handleSearchChange}
-                    >
-                      <Image
-                        source={searchButton}
-                        style={{ width: 18, height: 18 }}
-                      />
-                    </Pressable>
-                  </View>
-                </View>
-              </View>
-
-              {/* Список */}
-              <View style={styles.decksList}>
-                {loading ? (
-                  <ActivityIndicator
-                    size="large"
-                    color={colors.mainColor}
-                    style={{ marginTop: 40 }}
-                  />
-                ) : filteredDecks.length === 0 ? (
-                  <View style={{ marginTop: 40, alignItems: "center" }}>
-                    <Typography
-                      variant="h3"
-                      style={{ textAlign: "center", color: "#999" }}
-                    >
-                      {search.trim()
-                        ? "По вашему запросу ничего не найдено"
-                        : "Колоды не найдены"}
-                    </Typography>
-                    {search.trim() && (
-                      <Pressable
-                        onPress={clearSearch}
-                        style={{ marginTop: 12 }}
+                  {search.trim() && (
+                    <Pressable onPress={clearSearch} style={{ marginTop: 12 }}>
+                      <Typography
+                        variant="h3"
+                        style={{ color: colors.mainColor }}
                       >
-                        <Typography
-                          variant="h3"
-                          style={{ color: colors.mainColor }}
-                        >
-                          Очистить поиск
-                        </Typography>
-                      </Pressable>
-                    )}
-                  </View>
-                ) : (
-                  filteredDecks.map((deck) => {
-                    const avatar = deck.author?.avatar_url;
+                        Очистить поиск
+                      </Typography>
+                    </Pressable>
+                  )}
+                </View>
+              ) : (
+                filteredDecks.map((deck) => {
+                  const avatar = deck.author?.avatar_url;
 
-                    return (
-                      <CloudDeckView
-                        key={deck.id}
-                        title={deck.name}
-                        author={
-                          `${deck.author?.first_name || ""} ${deck.author?.last_name || ""}`.trim() ||
-                          "Неизвестный автор"
-                        }
-                        updatedAt={formatDate(deck.last_synced_at)}
-                        cardsCount={deck.total_cards}
-                        downloadsCount={String(deck.downloaded)}
-                        avatarUrl={avatar}
-                        onPress={() =>
-                          router.push(`/decks/cloud-decks/${deck.id}`)
-                        }
-                      />
-                    );
-                  })
-                )}
-              </View>
+                  return (
+                    <CloudDeckView
+                      key={deck.id}
+                      title={deck.name}
+                      author={
+                        `${deck.author?.first_name || ""} ${deck.author?.last_name || ""}`.trim() ||
+                        "Неизвестный автор"
+                      }
+                      updatedAt={formatDate(deck.last_synced_at)}
+                      cardsCount={deck.total_cards}
+                      downloadsCount={String(deck.downloaded)}
+                      avatarUrl={avatar}
+                      onPress={() =>
+                        router.push(`/decks/cloud-decks/${deck.id}`)
+                      }
+                    />
+                  );
+                })
+              )}
             </View>
           </View>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </View>
     </View>
   );
 }

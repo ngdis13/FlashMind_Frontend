@@ -18,7 +18,7 @@ export const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: 12,
     width: "100%",
   },
   backButton: {
