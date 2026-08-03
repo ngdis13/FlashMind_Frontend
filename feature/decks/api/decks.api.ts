@@ -31,3 +31,5 @@ export async function getUserDecks(): Promise<DecksResponse> {
     handleApiError(err, "Не удалось получить колоды пользоваеля");
   }
 }
+
+

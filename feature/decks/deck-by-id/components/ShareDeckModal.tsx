@@ -1,5 +1,5 @@
 // --------------------------- React ---------------------------
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 // --------------------------- React Native ---------------------------
 import {
@@ -9,6 +9,7 @@ import {
   TouchableWithoutFeedback,
   Image,
   Pressable,
+  ActivityIndicator,
 } from "react-native";
 
 // --------------------------- Стили ---------------------------
@@ -19,6 +20,16 @@ import { colors } from "@/styles/Colors";
 import { MainButton } from "@/components/MainButton";
 import { SecondButton } from "@/components/SecondButton";
 import { LogoCuteStar } from "@/components/LogoCuteStar";
+
+// --------------------------- API ---------------------------
+import { checkCanTakeOwnershipApi, takeOwnershipApi } from "@/storage/api/api";
+import type { CanTakeOwnershipResponse } from "@/storage/api/api";
+
+// --------------------------- Компоненты ---------------------------
+import { BecomeAuthorModalContent } from "./BecomeAuthorModal";
+
+// --------------------------- Сторонние библиотеки ---------------------------
+import Toast from "react-native-toast-message";
 
 /**
  * Пропсы для компонента ShareDeckModal
@@ -35,6 +46,7 @@ interface ShareDeckModalProps {
   onCopyLink: () => void;
   onMakePublic: () => Promise<boolean> | boolean;
   isAuthor?: boolean;
+  deckId: string;
 }
 
 /**
@@ -86,6 +98,7 @@ export const ShareDeckModal = ({
   onCopyLink,
   onMakePublic,
   isAuthor = false,
+  deckId,
 }: ShareDeckModalProps) => {
   // --------------------------- Состояния ---------------------------
   /**
@@ -94,6 +107,32 @@ export const ShareDeckModal = ({
    * - "moderation": ожидание модерации (шаг 2)
    */
   const [step, setStep] = useState<"private" | "moderation">("private");
+
+  /** Результат проверки условий для становления автором */
+  const [ownershipCheck, setOwnershipCheck] =
+    useState<CanTakeOwnershipResponse | null>(null);
+  const [isCheckingOwnership, setIsCheckingOwnership] = useState(false);
+  const [nonAuthorStep, setNonAuthorStep] = useState<"conditions" | "confirm">(
+    "conditions",
+  );
+  const [isBecomingAuthor, setIsBecomingAuthor] = useState(false);
+
+  // Запрос проверки при открытии модалки для не-автора
+  useEffect(() => {
+    if (visible && !isAuthor && deckId) {
+      setIsCheckingOwnership(true);
+      setOwnershipCheck(null);
+      checkCanTakeOwnershipApi(deckId)
+        .then(setOwnershipCheck)
+        .catch(() => setOwnershipCheck(null))
+        .finally(() => setIsCheckingOwnership(false));
+    }
+    if (!visible) {
+      setOwnershipCheck(null);
+      setIsCheckingOwnership(false);
+      setNonAuthorStep("conditions");
+    }
+  }, [visible, isAuthor, deckId]);
 
   // --------------------------- Обработчики ---------------------------
   /**
@@ -120,8 +159,39 @@ export const ShareDeckModal = ({
     onClose();
   };
 
+  /** Проверки условий */
+  const descOk = ownershipCheck?.description_changed === true;
+  const cardsOk = (ownershipCheck?.cards_needed_count ?? 999) === 0;
+  const canBecomeAuthor = descOk && cardsOk;
+  const cardsNeeded = ownershipCheck?.cards_needed_count ?? 0;
+
   const onBecomeAuthor = () => {
-    console.log("стать автором");
+    setNonAuthorStep("confirm");
+  };
+
+  const handleBecomeAuthorConfirm = async () => {
+    if (!deckId) return;
+    try {
+      setIsBecomingAuthor(true);
+      await takeOwnershipApi(deckId);
+      Toast.show({
+        type: "success",
+        text1: "Ты стал автором колоды!",
+        position: "bottom",
+        visibilityTime: 3000,
+      });
+      handleClose();
+    } catch (error) {
+      console.error("Ошибка при смене автора:", error);
+      Toast.show({
+        type: "error",
+        text1: "Ошибка",
+        text2: "Не удалось стать автором колоды",
+        position: "bottom",
+      });
+    } finally {
+      setIsBecomingAuthor(false);
+    }
   };
 
   // --------------------------- Отрисовка ---------------------------
@@ -137,7 +207,6 @@ export const ShareDeckModal = ({
           <TouchableWithoutFeedback>
             <View style={styles.container}>
               {isAuthor ? (
-                // ✅ ДЛЯ АВТОРА - полный функционал
                 step === "private" ? (
                   // ШАГ 1: Приватный доступ
                   <View style={{ width: "100%" }}>
@@ -210,8 +279,14 @@ export const ShareDeckModal = ({
                     <MainButton title="Отлично" onPress={handleClose} />
                   </View>
                 )
+              ) : nonAuthorStep === "confirm" ? (
+                <BecomeAuthorModalContent
+                  onConfirm={handleBecomeAuthorConfirm}
+                  onClose={handleClose}
+                  isLoading={isBecomingAuthor}
+                />
               ) : (
-                // ✅ ДЛЯ ПОЛЬЗОВАТЕЛЯ (НЕ АВТОРА) - упрощенный вариант
+                // ШАГ 1 ДЛЯ НЕ-АВТОРА: Условия
                 <View style={{ width: "100%" }}>
                   <View style={styles.logoContainer}>
                     <LogoCuteStar size={140} />
@@ -242,7 +317,7 @@ export const ShareDeckModal = ({
 
                   <View style={styles.separator} />
 
-                  {/* Добавленный блок условий для становления автором */}
+                  {/* Блок условий для становления автором */}
                   <View style={styles.authorBlock}>
                     <Typography variant="h3" style={styles.authorBlockTitle}>
                       Если ты хочешь поделиться колодой со своими карточками, то
@@ -253,32 +328,50 @@ export const ShareDeckModal = ({
                       Чтобы стать автором нужно:
                     </Typography>
 
-                    {/* Список условий (подставьте ваши переменные состояния вместо true) */}
-                    <View style={styles.checkListItem}>
-                      <Typography style={styles.checkIcon}>✅</Typography>
-                      <Typography variant="h3" >
-                        Изменить описание
-                      </Typography>
-                    </View>
+                    {isCheckingOwnership ? (
+                      <ActivityIndicator
+                        size="small"
+                        color={colors.mainColor}
+                        style={{ marginVertical: 12 }}
+                      />
+                    ) : (
+                      <>
+                        <View style={styles.checkListItem}>
+                          <Typography style={styles.checkIcon}>
+                            {descOk ? "✅" : "❌"}
+                          </Typography>
+                          <Typography variant="h3">
+                            Изменить описание
+                          </Typography>
+                        </View>
 
-                    <View style={styles.checkListItem}>
-                      <Typography style={styles.checkIcon}>✅</Typography>
-                      <Typography variant="h3" >
-                        Добавить/изменить 20% карточек
-                      </Typography>
-                    </View>
+                        <View style={styles.checkListItem}>
+                          <Typography style={styles.checkIcon}>
+                            {cardsOk ? "✅" : "❌"}
+                          </Typography>
+                          <Typography variant="h3">
+                            {cardsOk
+                              ? "Добавить/изменить 20% карточек"
+                              : `Добавить/изменить 20% карточек (ещё ${cardsNeeded} карточки)`}
+                          </Typography>
+                        </View>
+                      </>
+                    )}
                   </View>
 
                   {/* Основная кнопка действия (Стать автором) */}
                   <Pressable
-                    onPress={onBecomeAuthor} // Замените на вашу функцию
+                    onPress={canBecomeAuthor ? onBecomeAuthor : undefined}
+                    disabled={!canBecomeAuthor || isCheckingOwnership}
                     style={({ pressed }) => [
                       styles.primaryButton,
-                      pressed && { opacity: 0.8 },
+                      (!canBecomeAuthor || isCheckingOwnership) &&
+                        styles.primaryButtonDisabled,
+                      pressed && canBecomeAuthor && { opacity: 0.8 },
                     ]}
                   >
                     <Image
-                      source={require("@/feature-decks/assets/IconAuthor.png")} // Путь к иконке карандаша
+                      source={require("@/feature-decks/assets/IconAuthor.png")}
                       style={styles.primaryButtonIcon}
                     />
                     <Typography color="#FFFFFF" variant="h2">
@@ -389,11 +482,10 @@ const styles = StyleSheet.create({
   },
 
   separator: {
-    height: 2, 
-    backgroundColor: colors.mainColor, 
-    width: "100%", 
-    marginTop: 16, 
-
+    height: 2,
+    backgroundColor: colors.mainColor,
+    width: "100%",
+    marginTop: 16,
   },
 
   /**
@@ -402,8 +494,7 @@ const styles = StyleSheet.create({
   authorBlock: {
     marginTop: 24,
     marginBottom: 16,
-    marginHorizontal: 4
-
+    marginHorizontal: 4,
   },
   /**
    * Главный текст информационного блока
@@ -445,15 +536,18 @@ const styles = StyleSheet.create({
   /**
    * Главная залитая кнопка «Стать автором колоды»
    */
+  primaryButtonDisabled: {
+    opacity: 0.4,
+  },
   primaryButton: {
-    backgroundColor: colors.mainColor, 
+    backgroundColor: colors.mainColor,
     borderRadius: 20,
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
     paddingVertical: 12,
     width: "100%",
-    marginBottom: 16
+    marginBottom: 16,
   },
   /**
    * Иконка карандаша внутри главной кнопки

@@ -365,11 +365,6 @@ export default function DeckViewById() {
       try {
         setIsGenerating(true);
 
-        Toast.show({
-          type: "info",
-          text1: "Создание ссылки доступа...",
-          position: "bottom",
-        });
 
         const response = await makeDeckPublic(id);
         console.log("📦 Ответ от makeDeckPublic (локальная):", response);
@@ -949,6 +944,7 @@ export default function DeckViewById() {
         onCopyLink={handleCopyLink}
         onMakePublic={handleMakePublic}
         isAuthor={isAuthor}
+        deckId={id}
       />
 
       <CustomAlertCloud
