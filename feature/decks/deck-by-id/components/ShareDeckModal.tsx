@@ -30,6 +30,8 @@ import { BecomeAuthorModalContent } from "./BecomeAuthorModal";
 
 // --------------------------- Сторонние библиотеки ---------------------------
 import Toast from "react-native-toast-message";
+import { LogoHappyStar } from "@/components/LogoHappyStar";
+import { Logo } from "@/components/Logo";
 
 /**
  * Пропсы для компонента ShareDeckModal
@@ -112,9 +114,9 @@ export const ShareDeckModal = ({
   const [ownershipCheck, setOwnershipCheck] =
     useState<CanTakeOwnershipResponse | null>(null);
   const [isCheckingOwnership, setIsCheckingOwnership] = useState(false);
-  const [nonAuthorStep, setNonAuthorStep] = useState<"conditions" | "confirm">(
-    "conditions",
-  );
+  const [nonAuthorStep, setNonAuthorStep] = useState<
+    "conditions" | "confirm" | "success"
+  >("conditions");
   const [isBecomingAuthor, setIsBecomingAuthor] = useState(false);
 
   // Запрос проверки при открытии модалки для не-автора
@@ -174,13 +176,7 @@ export const ShareDeckModal = ({
     try {
       setIsBecomingAuthor(true);
       await takeOwnershipApi(deckId);
-      Toast.show({
-        type: "success",
-        text1: "Ты стал автором колоды!",
-        position: "bottom",
-        visibilityTime: 3000,
-      });
-      handleClose();
+      setNonAuthorStep("success");
     } catch (error) {
       console.error("Ошибка при смене автора:", error);
       Toast.show({
@@ -285,6 +281,44 @@ export const ShareDeckModal = ({
                   onClose={handleClose}
                   isLoading={isBecomingAuthor}
                 />
+              ) : nonAuthorStep === "success" ? (
+                // ШАГ 3: Успешное становление автором
+                <View style={{ width: "100%", alignItems: "center" }}>
+                  <View style={styles.logoContainer}>
+                    <Logo size={140} />
+                  </View>
+
+                  <Typography variant="h2" style={styles.title}>
+                    Вы — новый автор!
+                  </Typography>
+
+                  <Typography
+                    variant="h3"
+                    color={colors.darkGray}
+                    style={styles.successDescription}
+                  >
+                    Поздравляем! Теперь эта версия колоды сохранена в твоем
+                    аккаунте и доступна в облаке. Ты можешь делиться ею с
+                    друзьями, и они будут получать твои будущие обновления.
+                  </Typography>
+
+                  <SecondButton
+                    title="Поделиться колодой"
+                    onPress={() => {
+                      onCopyLink();
+                      handleClose();
+                    }}
+                    icon={
+                      <Image
+                        source={require("@/feature-decks/assets/IconLink.png")}
+                        style={{ width: 20, height: 20 }}
+                      />
+                    }
+                    style={{ marginBottom: 12 }}
+                  />
+
+                  <MainButton title="Перейти к колоде" onPress={handleClose} />
+                </View>
               ) : (
                 // ШАГ 1 ДЛЯ НЕ-АВТОРА: Условия
                 <View style={{ width: "100%" }}>
@@ -439,7 +473,7 @@ const styles = StyleSheet.create({
    */
   title: {
     textAlign: "center",
-    marginBottom: 16,
+    marginBottom: 8,
   },
   /**
    * Стиль заголовка для пользователя (не автора)
@@ -467,6 +501,11 @@ const styles = StyleSheet.create({
   /**
    * Стиль текста на шаге модерации
    */
+  successDescription: {
+    textAlign: "center",
+    marginBottom: 16,
+    paddingHorizontal: 8,
+  },
   moderationText: {
     textAlign: "center",
     marginBottom: 24,
