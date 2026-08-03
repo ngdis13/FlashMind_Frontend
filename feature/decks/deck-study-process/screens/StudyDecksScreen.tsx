@@ -14,6 +14,7 @@ import {
   Image,
   ActivityIndicator,
   Animated,
+  Platform,
 } from "react-native";
 
 import { useUserStore } from "@/store/userStore";
@@ -86,7 +87,6 @@ const formatTotalTime = (ms: number): string => {
  * router.push(`/decks/${deckId}/study?addCount=10`)
  */
 export default function StudyDecksScreen() {
-  // --------------------------- Навигация и параметры ---------------------------
   const router = useRouter();
   const { id, addCount } = useLocalSearchParams<{
     id: string;
@@ -94,94 +94,39 @@ export default function StudyDecksScreen() {
   }>();
   const count = parseInt(addCount || "0", 10);
 
-  // --------------------------- Состояния ---------------------------
-  /**
-   * Список карточек для изучения
-   */
   const [cards, setCards] = useState<StudyCard[]>([]);
-
-  /**
-   * Общее количество карточек для изучения
-   */
   const [totalToStudy, setTotalToStudy] = useState<number>(0);
-
-  /**
-   * Флаг загрузки карточек
-   */
   const [loading, setLoading] = useState<boolean>(true);
-
-  /**
-   * Флаг отправки оценки (блокировка кнопок)
-   */
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-
-  /**
-   * Количество пройденных карточек
-   */
   const [finishedCount, setFinishedCount] = useState<number>(0);
 
-  // --------------------------- Анимации ---------------------------
-  /**
-   * Анимация прозрачности при смене карточки
-   */
   const fadeAnim = useRef(new Animated.Value(1)).current;
-
-  /**
-   * Анимация слайда при смене карточки
-   */
   const slideAnim = useRef(new Animated.Value(0)).current;
 
-  // --------------------------- Хуки ---------------------------
   const { decks } = useDecks();
   const { invalidateDeckCards } = useCards();
 
-  /**
-   * Текущая колода из стора
-   */
   const deck = decks.find((d) => d.id === id);
 
-  // --------------------------- Таймеры ---------------------------
-  /**
-   * Время начала ответа на текущую карточку
-   */
   const [cardStartTime, setCardStartTime] = useState<number>(Date.now());
-
-  /**
-   * Время начала сессии обучения
-   */
   const sessionStartTime = useRef<number>(Date.now());
-
-  /**
-   * Итоговое время сессии (строка)
-   */
   const [totalSessionTimeStr, setTotalSessionTimeStr] = useState<string>("");
 
   const { incrementDailyReviews } = useUserStore();
 
-  // --------------------------- Effects ---------------------------
-  /**
-   * Обновляет итоговое время сессии, когда все карточки пройдены
-   */
   useEffect(() => {
-    // Если загрузка завершена и карточек больше нет — значит, пользователь всё прошел
     if (!loading && cards.length === 0 && totalToStudy > 0) {
       const totalMs = Date.now() - sessionStartTime.current;
       setTotalSessionTimeStr(formatTotalTime(totalMs));
     }
   }, [cards, loading, totalToStudy]);
 
-  /**
-   * Устанавливает время начала ответа при появлении новой карточки
-   */
   useEffect(() => {
     if (cards.length > 0) {
       setCardStartTime(Date.now());
     }
   }, [cards]);
 
-  /**
-   * Загружает карточки для изучения при монтировании компонента
-   */
   useEffect(() => {
     const startStudy = async (): Promise<void> => {
       if (!id) return;
@@ -190,7 +135,6 @@ export default function StudyDecksScreen() {
         if (data && data.cards) {
           setCards(data.cards);
           setTotalToStudy(data.cards.length);
-          // Передаем id колоды и реальную длину массива, который только что скачали
           useDeckStore.getState().updateDeckReviewCount(id, data.cards.length);
         }
       } catch (e) {
@@ -202,10 +146,6 @@ export default function StudyDecksScreen() {
     startStudy();
   }, [id, count]);
 
-  // --------------------------- Обработчики ---------------------------
-  /**
-   * Возвращает на экран подготовки к изучению
-   */
   const handleBack = (): void => {
     if (id) {
       console.log(`Выход из обучения. Инвалидируем кэш карточек колоды ${id}`);
@@ -214,20 +154,6 @@ export default function StudyDecksScreen() {
     router.push(`/decks/${id}/study`);
   };
 
-  /**
-   * Обрабатывает оценку карточки пользователем
-   *
-   * @param {number} rating - Оценка сложности (1-4)
-   * @async
-   *
-   * @description
-   * Процесс:
-   * 1. Записывает время ответа
-   * 2. Запускает анимацию ухода карточки
-   * 3. Отправляет оценку на сервер
-   * 4. Обновляет счетчик изученных карточек в сторе
-   * 5. Переходит к следующей карточке с анимацией
-   */
   const handleRate = useCallback(
     async (rating: number): Promise<void> => {
       if (cards.length === 0 || isSubmitting) return;
@@ -297,7 +223,6 @@ export default function StudyDecksScreen() {
         }
       });
     },
-
     [
       cards,
       isSubmitting,
@@ -309,13 +234,41 @@ export default function StudyDecksScreen() {
     ],
   );
 
-  // --------------------------- Вычисления ---------------------------
-  /**
-   * Текущий индекс карточки (для отображения прогресса)
-   */
+  // СИНХРОНИЗАЦИЯ СОСТОЯНИЯ ДЛЯ СЛУШАТЕЛЯ КЛАВИАТУРЫ
+  const keyboardStateRef = useRef({ cards, isSubmitting, handleRate });
+  keyboardStateRef.current = { cards, isSubmitting, handleRate };
+
+  // ОПТИМИЗИРОВАННЫЙ СЛУШАТЕЛЕЙ КЛАВИАТУРЫ
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Игнорируем клики по цифрам, если фокус в поле ввода (на будущее)
+      const target = e.target as HTMLElement;
+      if (target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA' || target?.isContentEditable) {
+        return;
+      }
+
+      const { cards: currentCards, isSubmitting: currentSubmitting, handleRate: currentHandleRate } = keyboardStateRef.current;
+      if (currentCards.length === 0 || currentSubmitting) return;
+
+      const rates: Record<string, number> = { '1': 1, '2': 2, '3': 3, '4': 4 };
+      const rate = rates[e.key];
+
+      if (rate) {
+        e.preventDefault();
+        currentHandleRate(rate);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []); // Пустой массив зависимостей — подписка строго один раз
+
   const currentIndex = useMemo(() => {
     return Math.min(finishedCount + 1, totalToStudy);
   }, [finishedCount, totalToStudy]);
+
 
   // --------------------------- Отрисовка ---------------------------
   return (

@@ -9,6 +9,7 @@ import {
   View,
   Animated,
   useWindowDimensions,
+  Platform,
 } from "react-native";
 
 // --------------------------- Сторонние библиотеки ---------------------------
@@ -142,6 +143,19 @@ export const StudyCardView = ({ card, isFirstCard }: Props) => {
     flipAnim.setValue(0);
     setShowUserHint(false);
   }, [card?.id]);
+
+  // ⌨️ Пробел — переворот карточки
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        handleFlip();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleFlip]);
 
   const frontInterpolate = flipAnim.interpolate({
     inputRange: [0, 1],
