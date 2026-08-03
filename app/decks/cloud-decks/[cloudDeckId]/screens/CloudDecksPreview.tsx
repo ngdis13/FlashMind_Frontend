@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Pressable, View, Image, FlatList } from "react-native";
-import { fetchCloudDeckPreview } from "../../api/api";
+import { fetchCloudDeckPreview, deleteCloudDeck } from "../../api/api";
 import { CloudDeckPreviewResponse } from "../../types/types";
 import { Typography } from "@/styles/Typography";
 import { commonStyles } from "@/styles/Common";
@@ -17,12 +17,12 @@ import { Input } from "@/components/Input";
 import searchButton from "@/feature/decks/assets/searchButton.png";
 import { Logo } from "@/components/Logo";
 import { MainButton } from "@/components/MainButton";
-import { CustomAlert } from "@/components/CustomAlert";
 import { LogoSadStar } from "@/components/LogoSadStar";
 import { useDecks } from "@/storage/hooks/useDecks";
 import { useAuthStore } from "@/store/auth.store";
 import { getUserIdFromToken } from "@/utils/helpers/getUserIdFromToken";
 import { SyncDeckModal } from "@/feature/decks/components/SyncDeckModal";
+import { markDeckAsDeleted } from "../../screens/CloudDecksScreen";
 
 const stripHtml = (html: string): string => {
   if (!html) return "";
@@ -45,7 +45,7 @@ export default function CloudDecksPreview() {
   const [search, setSearch] = useState("");
   const [isImporting, setIsImporting] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const { importDeck, decks } = useDecks();
+  const { importDeck, decks, deleteDeck } = useDecks();
 
   const accessToken = useAuthStore((state) => state.accessToken);
   const isAuthorized = Boolean(accessToken);
@@ -142,8 +142,42 @@ export default function CloudDecksPreview() {
     }
   };
 
-  const handleDeleteFromCloud = () => {
+  const handleDeleteFromCloud = async () => {
     setShowDeleteModal(false);
+    if (!cloudDeckId) return;
+    try {
+      setIsImporting(true);
+      await deleteCloudDeck(cloudDeckId);
+
+      const localDeck = decks.find(
+        (d) => d.cloud_info?.cloud_deck_id === cloudDeckId,
+      );
+      if (localDeck) {
+        await deleteDeck(localDeck.id);
+      }
+
+      Toast.show({
+        type: "success",
+        text1: "Колода удалена из облака",
+        position: "bottom",
+        visibilityTime: 3000,
+      });
+      markDeckAsDeleted(cloudDeckId);
+      setTimeout(() => router.back(), 2000);
+    } catch (error) {
+      console.error("Ошибка при удалении колоды из облака:", error);
+      Toast.show({
+        type: "error",
+        text1: "Ошибка",
+        text2:
+          error instanceof Error
+            ? error.message
+            : "Не удалось удалить колоду из облака",
+        position: "bottom",
+      });
+    } finally {
+      setIsImporting(false);
+    }
   };
 
   const renderBottomButton = () => {
@@ -152,8 +186,9 @@ export default function CloudDecksPreview() {
     if (isAuthor) {
       return (
         <MainButton
-          title="Удалить из облака"
+          title={isImporting ? "Удаление..." : "Удалить из облака"}
           onPress={() => setShowDeleteModal(true)}
+          disabled={isImporting}
           style={styles.addButton}
         />
       );
@@ -368,9 +403,9 @@ export default function CloudDecksPreview() {
           onClose={() => setShowDeleteModal(false)}
           onConfirm={handleDeleteFromCloud}
           logo={<LogoSadStar size={150} />}
-          title="Ты действительно хочешь удалить колоду из облака?"
           confirmText="Удалить"
           cancelText="Отмена"
+          type="author_cloud-delete"
         />
         {renderBottomButton()}
       </View>

@@ -1,4 +1,5 @@
 import { colors } from "@/styles/Colors";
+import { BOTTOM_MARGIN } from "@/styles/Common";
 import { StyleSheet} from "react-native";
 
 export const styles = StyleSheet.create({
@@ -31,5 +32,6 @@ export const styles = StyleSheet.create({
     marginLeft: 10,
     marginRight: 10,
     alignSelf: "center",
+    marginBottom: BOTTOM_MARGIN
   },
 });

@@ -31,7 +31,7 @@ interface SyncDeckModalProps {
    * Обратная совместимость: жёстко заданные сценарии.
    * Если передан — title/description/children игнорируются.
    */
-  type?: "author_updated" | "user_updated";
+  type?: "author_updated" | "user_updated" | "author_cloud-delete";
 }
 
 export const SyncDeckModal = ({
@@ -47,6 +47,7 @@ export const SyncDeckModal = ({
   type,
 }: SyncDeckModalProps) => {
   const isAuthorUpdated = type === "author_updated";
+  const isAuthorDeleteCloud = type === "author_cloud-delete";
 
   const renderLegacyContent = () => {
     if (isAuthorUpdated) {
@@ -75,6 +76,49 @@ export const SyncDeckModal = ({
         </View>
       );
     }
+
+    if (isAuthorDeleteCloud) {
+      return (
+        <View style={{ width: "100%", alignItems: "center" }}>
+          <Typography
+            variant="h2"
+            style={[styles.title, { marginBottom: 16, fontWeight: 600 }]}
+          >
+            Ты действительно хочешь удалить колоду из облака?
+          </Typography>
+
+          <View style={styles.bulletContainer}>
+            <Typography style={styles.bulletText}>Что произойдет:</Typography>
+
+            <Typography style={styles.bulletText}>
+              ❌{" "}
+              <Typography variant="h3" style={{ fontWeight: "900" }}>
+                Связь разорвется:
+              </Typography>{" "}
+              у всех подписчиков колода превратится в их личные локальные копии.
+            </Typography>
+
+            <Typography style={styles.bulletText}>
+              ❌{" "}
+              <Typography variant="h3" style={{ fontWeight: "900" }}>
+                Обновления прекратятся:
+              </Typography>{" "}
+              они больше никогда не увидят ваши новые карточки и правки.
+            </Typography>
+
+            <Typography style={styles.bulletText}>
+              ❌{" "}
+              <Typography variant="h3" style={{ fontWeight: "900" }}>
+                Пути назад нет:
+              </Typography>{" "}
+              даже если вы позже снова загрузите колоду в облако, старым
+              подписчикам придется добавлять её заново по новой ссылке.
+            </Typography>
+          </View>
+        </View>
+      );
+    }
+
     return (
       <View style={{ width: "100%", alignItems: "center" }}>
         <Typography variant="h2" style={styles.title}>
@@ -174,7 +218,6 @@ const styles = StyleSheet.create({
   },
   title: {
     textAlign: "center",
-    marginBottom: 8,
     width: "100%",
   },
   bulletContainer: {

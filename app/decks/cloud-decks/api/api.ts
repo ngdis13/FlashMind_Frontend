@@ -131,6 +131,7 @@ export const deleteCloudDeck = async (cloudDeckId: string): Promise<void> => {
       getMainServiceApiUrl(`/api/v1/flashmind/cloud_decks/${cloudDeckId}`),
       { headers },
     );
+    await removeCloudDeckPreview(cloudDeckId);
   } catch (error) {
     console.error(`Ошибка при удалении облачной колоды ${cloudDeckId}:`, error);
     throw error;

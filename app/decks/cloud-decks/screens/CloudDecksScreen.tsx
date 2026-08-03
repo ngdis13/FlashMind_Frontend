@@ -13,7 +13,8 @@ import { Typography } from "@/styles/Typography";
 import ReturnIcon from "@/assets/icons/ReturnIcon.png";
 import IconGo from "../assets/IconGo.png";
 import { useRouter } from "expo-router";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import { Input } from "@/components/Input";
 import { useAuthStore } from "@/store/auth.store";
 
@@ -22,6 +23,11 @@ import CloudDeckView from "../components/CloudDecksView";
 import Toast from "react-native-toast-message";
 import { CloudDeckItem } from "../types/types";
 import { fetchCloudDecks } from "../api/api";
+
+let deletedDeckId: string | null = null;
+export const markDeckAsDeleted = (id: string) => {
+  deletedDeckId = id;
+};
 
 // Хелпер извлечения ID приватной колоды
 const extractCloudDeckId = (input: string): string | null => {
@@ -80,6 +86,28 @@ export default function CloudDecksScreen() {
 
     loadDecks();
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!deletedDeckId) return;
+      deletedDeckId = null;
+      const reload = async () => {
+        try {
+          setLoading(true);
+          const data = await fetchCloudDecks();
+          const sorted = (data.decks || []).sort(
+            (a, b) => (b.downloaded || 0) - (a.downloaded || 0),
+          );
+          setDecks(sorted);
+        } catch (error) {
+          console.error("Ошибка обновления списка облачных колод:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      reload();
+    }, [])
+  );
 
   const handleBack = () => {
     if (isAuthorized) {

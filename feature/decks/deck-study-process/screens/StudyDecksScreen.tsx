@@ -234,16 +234,15 @@ export default function StudyDecksScreen() {
     ],
   );
 
-  // СИНХРОНИЗАЦИЯ СОСТОЯНИЯ ДЛЯ СЛУШАТЕЛЯ КЛАВИАТУРЫ
   const keyboardStateRef = useRef({ cards, isSubmitting, handleRate });
   keyboardStateRef.current = { cards, isSubmitting, handleRate };
 
-  // ОПТИМИЗИРОВАННЫЙ СЛУШАТЕЛЕЙ КЛАВИАТУРЫ
+
   useEffect(() => {
     if (Platform.OS !== 'web') return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Игнорируем клики по цифрам, если фокус в поле ввода (на будущее)
+
       const target = e.target as HTMLElement;
       if (target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA' || target?.isContentEditable) {
         return;
@@ -263,7 +262,7 @@ export default function StudyDecksScreen() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []); // Пустой массив зависимостей — подписка строго один раз
+  }, []); 
 
   const currentIndex = useMemo(() => {
     return Math.min(finishedCount + 1, totalToStudy);

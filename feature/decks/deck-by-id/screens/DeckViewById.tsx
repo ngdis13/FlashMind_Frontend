@@ -111,7 +111,11 @@ export default function DeckViewById() {
   /**
    * Проверяет, является ли пользователь автором колоды
    */
-  const isAuthor = deck?.cloud_info?.is_author === true;
+  /**
+   * Если колода не облачная — пользователь является её автором по умолчанию.
+   * Иначе — проверяем флаг is_author из cloud_info.
+   */
+  const isAuthor = isCloudDeck ? (deck?.cloud_info?.is_author === true) : true;
 
   /**
    * Показывает иконку предупреждения, если колода облачная и требуется синхронизация
@@ -320,12 +324,6 @@ export default function DeckViewById() {
       if (id) {
         try {
           setIsGenerating(true);
-
-          Toast.show({
-            type: "info",
-            text1: "Синхронизация с облаком...",
-            position: "bottom",
-          });
 
           const response = await makeDeckPublic(id);
           console.log("📦 Ответ от makeDeckPublic:", response);
