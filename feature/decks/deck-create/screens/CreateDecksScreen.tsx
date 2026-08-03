@@ -161,7 +161,7 @@ export default function CreateDecksScreen() {
       <View
         style={[
           commonStyles.container,
-          { flex: 1, justifyContent: "space-between", paddingBottom: 20 },
+          { flex: 1, justifyContent: "space-between"},
         ]}
       >
         <View style={commonStyles.mainContent}>
@@ -228,7 +228,6 @@ export default function CreateDecksScreen() {
 
         <View style={styles.createDecksButton}>
           <MainButton
-            style={styles.createDecksButton}
             title="Создать колоду"
             disabled={isLoading}
             onPress={handleCreateDecks}

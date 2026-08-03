@@ -3,6 +3,7 @@ import { colors } from "./Colors";
 
 // Константа ограничения ширины для ПК и планшетов
 const MAX_CONTENT_WIDTH = 800;
+export const BOTTOM_MARGIN = 30; // Стандартный отступ нижних кнопок от конца экрана
 
 export const commonStyles = StyleSheet.create({
   //Самый главный контейнер который задает цвет, то есть самый дальний контейнер
@@ -45,11 +46,12 @@ export const commonStyles = StyleSheet.create({
   buttonContainer: {
     position: "absolute",
     width: "100%",
-    maxWidth: MAX_CONTENT_WIDTH, // Кнопка сжимается до размеров контента
-    bottom: 30,
+    maxWidth: MAX_CONTENT_WIDTH,
+    bottom: 90,
     paddingHorizontal: 10,
     alignItems: "center",
   },
+
 
   // Карточки, инфо-боксы и шапки будут занимать 100% от родителя (то есть от макс. 600px)
   mainBox: {
@@ -103,4 +105,5 @@ export const commonStyles = StyleSheet.create({
     backgroundColor: "#F1F1F1",
     borderRadius: 12,
   },
+
 });

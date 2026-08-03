@@ -1,4 +1,5 @@
 import { colors } from "@/styles/Colors";
+import { BOTTOM_MARGIN } from "@/styles/Common";
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
@@ -137,7 +138,7 @@ export const styles = StyleSheet.create({
   addButton: {
     width: "95%",
     paddingHorizontal: 10,
-    marginBottom: 30,
+    marginBottom: BOTTOM_MARGIN,
 
   },
 });

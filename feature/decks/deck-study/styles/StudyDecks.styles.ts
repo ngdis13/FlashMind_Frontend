@@ -1,3 +1,4 @@
+import { BOTTOM_MARGIN } from "@/styles/Common";
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
@@ -28,7 +29,7 @@ export const styles = StyleSheet.create({
   },
   infoBox: {
     minWidth: 370,
-    alignSelf: "center"
+    alignSelf: "center",
   },
   counter: {
     flexDirection: "row",
@@ -36,8 +37,11 @@ export const styles = StyleSheet.create({
     alignItems: "center", // Выравниваем плюс/минус и цифру по вертикали
   },
   startButton: {
-    width: "100%", // Теперь кнопка растянется ровно по ширине контента (до 800px)
+    width: "100%",
+    maxWidth: 800,
+    alignSelf: "center",
     paddingHorizontal: 10,
+    paddingBottom: BOTTOM_MARGIN,
   },
   tooltip: {
     flexDirection: "row",

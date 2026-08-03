@@ -1,3 +1,4 @@
+import { BOTTOM_MARGIN } from "@/styles/Common";
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
@@ -36,6 +37,8 @@ export const styles = StyleSheet.create({
   // Кнопка адаптивно растягивается по ширине экрана с небольшими отступами
   button: {
     width: "100%",
-    marginTop: "auto", // Прижимает кнопку к самому низу экрана, если контента мало
+    marginTop: "auto",
+    marginBottom: BOTTOM_MARGIN,
+    paddingHorizontal: 10,
   },
 });

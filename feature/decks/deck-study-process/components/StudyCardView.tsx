@@ -23,8 +23,8 @@ import { UserHint } from "@/components/UserHint";
 // --------------------------- Типы ---------------------------
 import { StudyCard } from "@/feature-decks/deck-study-process/api/api";
 
-const systemFont = 'MontserratSemiBold';
-const textColor = '#282B54';
+const systemFont = "MontserratSemiBold";
+const textColor = "#282B54";
 
 /**
  * Стили HTML — соответствуют редактору:
@@ -36,19 +36,19 @@ const textColor = '#282B54';
  */
 const tagsStyles = {
   body: {
-    fontFamily: 'Montserrat',
-    fontWeight: '400' as const,
+    fontFamily: "Montserrat",
+    fontWeight: "400" as const,
     fontSize: 16,
     color: textColor,
-    textAlign: 'center' as const,
+    textAlign: "center" as const,
   },
-  b: { fontWeight: '700' as const },
-  strong: { fontWeight: '700' as const },
-  i: { fontStyle: 'italic' as const },
-  em: { fontStyle: 'italic' as const },
-  u: { textDecorationLine: 'underline' as const },
-  ul: { textAlign: 'left' as const, paddingLeft: 24, marginVertical: 4 },
-  ol: { textAlign: 'left' as const, paddingLeft: 24, marginVertical: 4 },
+  b: { fontWeight: "700" as const },
+  strong: { fontWeight: "700" as const },
+  i: { fontStyle: "italic" as const },
+  em: { fontStyle: "italic" as const },
+  u: { textDecorationLine: "underline" as const },
+  ul: { textAlign: "left" as const, paddingLeft: 24, marginVertical: 4 },
+  ol: { textAlign: "left" as const, paddingLeft: 24, marginVertical: 4 },
   li: { marginVertical: 2 },
 };
 
@@ -123,11 +123,16 @@ export const StudyCardView = ({ card, isFirstCard }: Props) => {
   useEffect(() => {
     if (isFirstCard && !isFlipped && !wasFlipped) {
       Animated.timing(hintOpacity, {
-        toValue: 1, duration: 800, delay: 500, useNativeDriver: true,
+        toValue: 1,
+        duration: 800,
+        delay: 500,
+        useNativeDriver: true,
       }).start();
     } else {
       Animated.timing(hintOpacity, {
-        toValue: 0, duration: 300, useNativeDriver: true,
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
       }).start();
     }
   }, [isFirstCard, isFlipped, wasFlipped]);
@@ -139,27 +144,42 @@ export const StudyCardView = ({ card, isFirstCard }: Props) => {
   }, [card?.id]);
 
   const frontInterpolate = flipAnim.interpolate({
-    inputRange: [0, 1], outputRange: ["0deg", "180deg"],
+    inputRange: [0, 1],
+    outputRange: ["0deg", "180deg"],
   });
   const backInterpolate = flipAnim.interpolate({
-    inputRange: [0, 1], outputRange: ["180deg", "360deg"],
+    inputRange: [0, 1],
+    outputRange: ["180deg", "360deg"],
   });
   const frontOpacity = flipAnim.interpolate({
-    inputRange: [0.45, 0.5], outputRange: [1, 0],
+    inputRange: [0.45, 0.5],
+    outputRange: [1, 0],
   });
   const backOpacity = flipAnim.interpolate({
-    inputRange: [0.45, 0.5], outputRange: [0, 1],
+    inputRange: [0.45, 0.5],
+    outputRange: [0, 1],
   });
 
   const renderDifficultyDots = () => {
-    const activeColor = difficultyLevel > 0 ? getDifficultyColor(difficultyLevel) : "#BBBBBB";
+    const activeColor =
+      difficultyLevel > 0 ? getDifficultyColor(difficultyLevel) : "#BBBBBB";
     return (
-      <Pressable onPress={handleDotsPress} style={styles.dotsPressArea} hitSlop={{ top: 15, bottom: 15, left: 30, right: 30 }}>
+      <Pressable
+        onPress={handleDotsPress}
+        style={styles.dotsPressArea}
+        hitSlop={{ top: 15, bottom: 15, left: 30, right: 30 }}
+      >
         <View style={styles.dotsContainer}>
           {[1, 2, 3, 4, 5].map((index) => {
             const isActive = index <= difficultyLevel;
             return (
-              <View key={index} style={[styles.dot, { backgroundColor: isActive ? activeColor : "#BBBBBB" }]} />
+              <View
+                key={index}
+                style={[
+                  styles.dot,
+                  { backgroundColor: isActive ? activeColor : "#BBBBBB" },
+                ]}
+              />
             );
           })}
         </View>
@@ -168,13 +188,16 @@ export const StudyCardView = ({ card, isFirstCard }: Props) => {
   };
 
   const renderCardContent = (html: string) => (
-    <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={false}
+    >
       {html ? (
         <RenderHtml
           contentWidth={contentWidth}
           source={{ html }}
           tagsStyles={tagsStyles}
-          systemFonts={[systemFont, 'Montserrat']}
+          systemFonts={[systemFont, "Montserrat"]}
         />
       ) : null}
     </ScrollView>
@@ -185,8 +208,13 @@ export const StudyCardView = ({ card, isFirstCard }: Props) => {
       <Pressable style={styles.touchArea} onPress={handleFlip}>
         <Animated.View
           style={[
-            commonStyles.mainBox, styles.card, styles.cardFront,
-            { transform: [{ rotateY: frontInterpolate }], opacity: frontOpacity },
+            commonStyles.mainBox,
+            styles.card,
+            styles.cardFront,
+            {
+              transform: [{ rotateY: frontInterpolate }],
+              opacity: frontOpacity,
+            },
           ]}
         >
           {renderDifficultyDots()}
@@ -196,17 +224,19 @@ export const StudyCardView = ({ card, isFirstCard }: Props) => {
             onClose={handleCloseHint}
             style={styles.absoluteHint}
           />
-          {renderCardContent(card?.front || '')}
+          {renderCardContent(card?.front || "")}
           <Animated.View style={{ opacity: hintOpacity }} />
         </Animated.View>
 
         <Animated.View
           style={[
-            commonStyles.mainBox, styles.card, styles.cardBack,
+            commonStyles.mainBox,
+            styles.card,
+            styles.cardBack,
             { transform: [{ rotateY: backInterpolate }], opacity: backOpacity },
           ]}
         >
-          {renderCardContent(card?.back || '')}
+          {renderCardContent(card?.back || "")}
         </Animated.View>
       </Pressable>
     </View>
@@ -214,14 +244,61 @@ export const StudyCardView = ({ card, isFirstCard }: Props) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, marginBottom: 24, width: '100%', minWidth: 370, alignSelf: 'center' },
-  touchArea: { flex: 1, width: '100%' },
-  card: { flex: 1, backfaceVisibility: "hidden", paddingBottom: 20, width: '100%' },
-  cardFront: { backgroundColor: "#FFFFFF", position: "relative", width: '100%' },
-  cardBack: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%', backgroundColor: "#FFFFFF" },
-  scrollContent: { flexGrow: 1, justifyContent: "center", padding: 20, width: '100%' },
-  dotsPressArea: { width: "100%", alignItems: "center", marginTop: 12, zIndex: 101 },
-  dotsContainer: { flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 8, width: "100%" },
+  container: {
+    flex: 1,
+    marginBottom: 24,
+    width: "95%",
+    minWidth: 370,
+    alignSelf: "center",
+  },
+  touchArea: { flex: 1, width: "100%" },
+  card: {
+    flex: 1,
+    backfaceVisibility: "hidden",
+    paddingBottom: 20,
+    width: "100%",
+  },
+  cardFront: {
+    backgroundColor: "#FFFFFF",
+    position: "relative",
+    width: "100%",
+  },
+  cardBack: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: "100%",
+    height: "100%",
+    backgroundColor: "#FFFFFF",
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: "center",
+    padding: 20,
+    width: "100%",
+  },
+  dotsPressArea: {
+    width: "100%",
+    alignItems: "center",
+    marginTop: 12,
+    zIndex: 101,
+  },
+  dotsContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 8,
+    width: "100%",
+  },
   dot: { width: 10, height: 10, borderRadius: 5 },
-  absoluteHint: { position: "absolute", top: 36, left: 0, right: 0, paddingHorizontal: 16, zIndex: 999 },
+  absoluteHint: {
+    position: "absolute",
+    top: 36,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 16,
+    zIndex: 999,
+  },
 });

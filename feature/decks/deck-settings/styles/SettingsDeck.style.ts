@@ -1,5 +1,6 @@
 import { StyleSheet } from "react-native";
 import { colors } from "@/styles/Colors"; 
+import { BOTTOM_MARGIN } from "@/styles/Common";
 
 export const styles = StyleSheet.create({
   scrollContainer: {
@@ -102,7 +103,8 @@ export const styles = StyleSheet.create({
   bottomButtonContainer: {
     width: "100%",
     paddingHorizontal: 10,
-    paddingBottom: 20,
+    marginBottom: BOTTOM_MARGIN,
+// --------------------------- React ---------------
     backgroundColor: colors.background,
   },
   deleteButton: {

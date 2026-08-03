@@ -4,7 +4,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import Toast from "react-native-toast-message";
 import { AxiosError } from "axios";
 
-import { commonStyles } from "@/styles/Common";
+import { BOTTOM_MARGIN, commonStyles } from "@/styles/Common";
 import { Typography } from "@/styles/Typography";
 import { colors } from "@/styles/Colors";
 import { styles } from "@/feature-decks/deck-create-card/styles/CreateCard.style";
@@ -127,7 +127,7 @@ export default function CreateCardView() {
           </View>
         </ScrollView>
 
-        <View style={{ width: "100%", paddingHorizontal: 10, alignItems: "center" }}>
+        <View style={{ width: "100%", paddingHorizontal: 10, alignItems: "center", marginBottom: BOTTOM_MARGIN }}>
           <MainButton
             style={styles.createCardButton}
             title="Создать карточку"

@@ -353,6 +353,7 @@ export default function StudyDecksScreen() {
                 opacity: fadeAnim,
                 transform: [{ translateY: slideAnim }],
                 width: "100%",
+                paddingHorizontal: 120,
               }}
             >
               <StudyCardView
@@ -413,7 +414,10 @@ export default function StudyDecksScreen() {
 
         {cards.length > 0 && (
           <View
-            style={[styles.buttonBox, { width: "100%", paddingHorizontal: 10 }]}
+            style={[
+              styles.buttonBox,
+              { width: "100%", paddingHorizontal: 10, paddingBottom: 30 },
+            ]}
           >
             <RatingButton
               label="Забыл"

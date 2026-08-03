@@ -13,7 +13,7 @@ import Toast from "react-native-toast-message";
 import { AxiosError } from "axios";
 
 export default function EditProfile() {
-  const { user, updateProfile} = useUserStore();
+  const { user, updateProfile } = useUserStore();
   const router = useRouter();
 
   const [name, setName] = useState(user?.firstName || "");
@@ -49,7 +49,7 @@ export default function EditProfile() {
         lastName: trimmedLastname,
         bio: bio.trim(),
       });
-      console.log('Профиль успешно обновлен на диске и сервере')
+      console.log("Профиль успешно обновлен на диске и сервере");
 
       Toast.show({
         type: "success",
@@ -80,7 +80,7 @@ export default function EditProfile() {
     <View
       style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}
     >
-      <View style={commonStyles.container}>
+      <View style={[commonStyles.container, { flex: 1 }]}>
         <ScrollView
           contentContainerStyle={styles.scrollContainer}
           style={{ width: "100%" }}
@@ -89,9 +89,7 @@ export default function EditProfile() {
             <Pressable onPress={handleBack} style={styles.backButton}>
               <Image source={ReturnIcon} style={{ width: 12, height: 22 }} />
             </Pressable>
-            <Typography variant="h1">
-              Профиль
-            </Typography>
+            <Typography variant="h1">Профиль</Typography>
           </View>
 
           <View style={styles.containerInput}>
@@ -121,14 +119,14 @@ export default function EditProfile() {
               onChangeText={setBio}
             />
           </View>
-
-          {/* Перенесли кнопку внутрь скролла — теперь она адаптивно растягивается снизу контента */}
+        </ScrollView>
+        <View style={{ width: "100%", paddingHorizontal: 10 }}>
           <MainButton
             style={styles.button}
             title="Сохранить изменения"
             onPress={handleSaveEdit}
           />
-        </ScrollView>
+        </View>
       </View>
     </View>
   );

@@ -10,7 +10,6 @@ export const styles = StyleSheet.create({
     paddingTop: 250,
   },
 
-  
   pageNames: {
     marginBottom: 16,
     textAlign: "center",

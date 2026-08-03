@@ -1,3 +1,4 @@
+import { BOTTOM_MARGIN } from "@/styles/Common";
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
@@ -14,6 +15,7 @@ export const styles = StyleSheet.create({
     alignSelf: "center",
     width: "100%",
     paddingHorizontal: 10,
+    marginBottom: BOTTOM_MARGIN
   },
   infoBox: {
     alignItems: "center",

@@ -68,7 +68,7 @@ export default function StudyDecksScreen() {
 
   return (
     <View
-      style={{ flex: 1, backgroundColor: colors.background, width: "100%", paddingBottom: 30 }}
+      style={{ flex: 1, backgroundColor: colors.background, width: "100%"}}
     >
       <View style={[commonStyles.container, { flex: 1 }]}>
         <View
@@ -192,7 +192,7 @@ export default function StudyDecksScreen() {
             alignItems: "center",
             width: "100%",
             paddingHorizontal: 10,
-            paddingBottom: 30,
+            paddingBottom: 16,
           }}
         >
           <Typography variant="h2">
@@ -202,7 +202,7 @@ export default function StudyDecksScreen() {
       </View>
       <View style={styles.startButton}>
         <MainButton
-          style={[styles.startButton]}
+          style={{ width: "100%" }}
           title="Старт"
           onPress={handleStartStudy}
           disabled={
@@ -213,3 +213,4 @@ export default function StudyDecksScreen() {
     </View>
   );
 }
+
