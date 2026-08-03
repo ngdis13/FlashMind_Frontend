@@ -1,4 +1,4 @@
-import { useLocalSearchParams, useRouter } from "expo-router";
+ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Pressable, View, Image, FlatList } from "react-native";
 import { fetchCloudDeckPreview, deleteCloudDeck } from "../../api/api";
 import { CloudDeckPreviewResponse } from "../../types/types";
@@ -22,7 +22,6 @@ import { useDecks } from "@/storage/hooks/useDecks";
 import { useAuthStore } from "@/store/auth.store";
 import { getUserIdFromToken } from "@/utils/helpers/getUserIdFromToken";
 import { SyncDeckModal } from "@/feature/decks/components/SyncDeckModal";
-import { markDeckAsDeleted } from "../../screens/CloudDecksScreen";
 
 const stripHtml = (html: string): string => {
   if (!html) return "";
@@ -162,7 +161,6 @@ export default function CloudDecksPreview() {
         position: "bottom",
         visibilityTime: 3000,
       });
-      markDeckAsDeleted(cloudDeckId);
       setTimeout(() => router.back(), 2000);
     } catch (error) {
       console.error("Ошибка при удалении колоды из облака:", error);

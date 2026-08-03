@@ -24,11 +24,6 @@ import Toast from "react-native-toast-message";
 import { CloudDeckItem } from "../types/types";
 import { fetchCloudDecks } from "../api/api";
 
-let deletedDeckId: string | null = null;
-export const markDeckAsDeleted = (id: string) => {
-  deletedDeckId = id;
-};
-
 // Хелпер извлечения ID приватной колоды
 const extractCloudDeckId = (input: string): string | null => {
   const trimmed = input.trim();
@@ -89,8 +84,6 @@ export default function CloudDecksScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      if (!deletedDeckId) return;
-      deletedDeckId = null;
       const reload = async () => {
         try {
           setLoading(true);
@@ -100,7 +93,7 @@ export default function CloudDecksScreen() {
           );
           setDecks(sorted);
         } catch (error) {
-          console.error("Ошибка обновления списка облачных колод:", error);
+          console.error("Ошибка загрузки публичных колод:", error);
         } finally {
           setLoading(false);
         }

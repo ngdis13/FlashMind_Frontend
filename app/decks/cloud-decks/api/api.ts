@@ -14,6 +14,11 @@ import {
 
 const CACHE_TTL_MS = 10 * 60 * 1000; // 10 минут
 
+let cloudDecksListCache: {
+  data: FetchCloudDecksResponse;
+  expiresAt: number;
+} | null = null;
+
 export const fetchCloudDeckPreview = async (cloudDeckId: string) => {
   try {
     // Шаг 1: проверяем кэш в AsyncStorage (как deck.store проверяет isActual + expiresAt)
@@ -88,6 +93,20 @@ export const fetchCloudDeckCard = async (cloudCardId: string) => {
  */
 export const fetchCloudDecks = async (): Promise<FetchCloudDecksResponse> => {
   try {
+    const now = Date.now();
+
+    if (cloudDecksListCache && now < cloudDecksListCache.expiresAt) {
+      const remainingSec = Math.floor(
+        (cloudDecksListCache.expiresAt - now) / 1000,
+      );
+      console.log(
+        `💾 [Cache HIT] Список облачных колод — из памяти (осталось ${remainingSec}с)`,
+      );
+      return cloudDecksListCache.data;
+    }
+
+    console.log("🌐 [Cache MISS] Список облачных колод — запрос на сервер");
+
     const accessToken = useAuthStore.getState().accessToken;
     const headers: Record<string, string> = {};
     if (accessToken) {
@@ -98,6 +117,11 @@ export const fetchCloudDecks = async (): Promise<FetchCloudDecksResponse> => {
       getMainServiceApiUrl("/api/v1/flashmind/cloud_decks"),
       { headers },
     );
+
+    cloudDecksListCache = {
+      data: response.data,
+      expiresAt: now + CACHE_TTL_MS,
+    };
 
     return response.data;
   } catch (error) {
@@ -112,6 +136,14 @@ export const fetchCloudDecks = async (): Promise<FetchCloudDecksResponse> => {
 export const invalidatePreviewCache = async (cloudDeckId: string) => {
   await removeCloudDeckPreview(cloudDeckId);
   console.log(`🗑️ [Cache] Кэш превью колоды ${cloudDeckId} очищен`);
+};
+
+/**
+ * 🗑️ Сбросить кэш списка облачных колод
+ */
+export const invalidateCloudDecksCache = () => {
+  cloudDecksListCache = null;
+  console.log("🗑️ [Cache] Кэш списка облачных колод очищен");
 };
 
 
@@ -132,6 +164,7 @@ export const deleteCloudDeck = async (cloudDeckId: string): Promise<void> => {
       { headers },
     );
     await removeCloudDeckPreview(cloudDeckId);
+    invalidateCloudDecksCache();
   } catch (error) {
     console.error(`Ошибка при удалении облачной колоды ${cloudDeckId}:`, error);
     throw error;
