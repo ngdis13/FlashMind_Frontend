@@ -113,3 +113,26 @@ export const invalidatePreviewCache = async (cloudDeckId: string) => {
   await removeCloudDeckPreview(cloudDeckId);
   console.log(`🗑️ [Cache] Кэш превью колоды ${cloudDeckId} очищен`);
 };
+
+
+export const deleteCloudDeck = async (cloudDeckId: string): Promise<void> => {
+  try {
+    const accessToken = useAuthStore.getState().accessToken;
+    
+    if (!accessToken) {
+      throw new Error("Токен авторизации отсутствует");
+    }
+
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${accessToken}`,
+    };
+
+    await apiClient.delete(
+      getMainServiceApiUrl(`/api/v1/flashmind/cloud_decks/${cloudDeckId}`),
+      { headers },
+    );
+  } catch (error) {
+    console.error(`Ошибка при удалении облачной колоды ${cloudDeckId}:`, error);
+    throw error;
+  }
+};

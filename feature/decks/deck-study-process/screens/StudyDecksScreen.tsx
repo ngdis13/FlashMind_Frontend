@@ -329,6 +329,7 @@ export default function StudyDecksScreen() {
             width: "100%",
             paddingHorizontal: 10,
             paddingTop: 20,
+            maxHeight: 800
           }}
         >
           <View style={styles.header}>
