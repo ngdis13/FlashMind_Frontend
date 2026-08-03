@@ -1,5 +1,5 @@
 // --------------------------- React ---------------------------
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 // --------------------------- React Native ---------------------------
 import {
@@ -30,8 +30,8 @@ import { BecomeAuthorModalContent } from "./BecomeAuthorModal";
 
 // --------------------------- Сторонние библиотеки ---------------------------
 import Toast from "react-native-toast-message";
-import { LogoHappyStar } from "@/components/LogoHappyStar";
 import { Logo } from "@/components/Logo";
+import { useDeckStore } from "@/store/deck.store";
 
 /**
  * Пропсы для компонента ShareDeckModal
@@ -118,6 +118,10 @@ export const ShareDeckModal = ({
     "conditions" | "confirm" | "success"
   >("conditions");
   const [isBecomingAuthor, setIsBecomingAuthor] = useState(false);
+  const ownershipResultRef = useRef<{
+    cloud_uuid: string;
+    type: string;
+  } | null>(null);
 
   // Запрос проверки при открытии модалки для не-автора
   useEffect(() => {
@@ -157,6 +161,32 @@ export const ShareDeckModal = ({
    * Закрывает модальное окно и сбрасывает шаг на "private"
    */
   const handleClose = (): void => {
+    // Если стали автором — обновляем стор при закрытии
+    if (ownershipResultRef.current) {
+      const { cloud_uuid, type } = ownershipResultRef.current;
+      const store = useDeckStore.getState();
+      const current = store.decksState;
+      if (current) {
+        const updatedDecks = current.decks.map((d) =>
+          d.id === deckId
+            ? {
+                ...d,
+                cloud_info: {
+                  ...d.cloud_info,
+                  cloud_deck_id: cloud_uuid,
+                  is_cloud_deck: true,
+                  cloud_type: type as "PUBLIC" | "PRIVATE",
+                  is_approved: true,
+                  is_author: true,
+                  needs_sync: false,
+                },
+              }
+            : d,
+        );
+        store.setDecksState({ ...current, decks: updatedDecks });
+      }
+      ownershipResultRef.current = null;
+    }
     setStep("private");
     onClose();
   };
@@ -175,7 +205,11 @@ export const ShareDeckModal = ({
     if (!deckId) return;
     try {
       setIsBecomingAuthor(true);
-      await takeOwnershipApi(deckId);
+      const result = await takeOwnershipApi(deckId);
+      ownershipResultRef.current = {
+        cloud_uuid: result.cloud_uuid,
+        type: result.type,
+      };
       setNonAuthorStep("success");
     } catch (error) {
       console.error("Ошибка при смене автора:", error);
@@ -232,7 +266,7 @@ export const ShareDeckModal = ({
                       ссылкой
                     </Typography>
 
-                    <View style={{ marginTop: 16 }}>
+                    <View style={{ marginTop: 16, marginBottom: 16 }}>
                       <MainButton
                         title="Сделать публичной"
                         onPress={handleMakePublicPress}
@@ -243,15 +277,15 @@ export const ShareDeckModal = ({
                           />
                         }
                       />
+                      <Typography
+                        variant="h3"
+                        color={colors.darkGray}
+                        style={styles.hint}
+                      >
+                        Колода появится в общем каталоге и будет доступна для
+                        поиска всем пользователям
+                      </Typography>
                     </View>
-                    <Typography
-                      variant="h3"
-                      color={colors.darkGray}
-                      style={styles.hint}
-                    >
-                      Колода появится в общем каталоге и будет доступна для
-                      поиска всем пользователям
-                    </Typography>
 
                     <Pressable
                       onPress={handleClose}
@@ -473,7 +507,7 @@ const styles = StyleSheet.create({
    */
   title: {
     textAlign: "center",
-    marginBottom: 8,
+    marginBottom: 16,
   },
   /**
    * Стиль заголовка для пользователя (не автора)
