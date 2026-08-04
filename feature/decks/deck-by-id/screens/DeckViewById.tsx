@@ -25,6 +25,7 @@ import { CardItem } from "@/feature-decks/deck-by-id/components/CardItem";
 import { ShareDeckModal } from "@/feature-decks/deck-by-id/components/ShareDeckModal";
 import { SyncDeckModal } from "@/feature-decks/components/SyncDeckModal";
 import { CustomAlertCloud } from "@/feature-decks/deck-by-id/components/CustomAlertCloud";
+import { ShareDeckDeleteCloudModal } from "@/feature-decks/deck-by-id/components/ShareDeckDeleteCloudModal";
 
 // --------------------------- Ассеты ---------------------------
 import ReturnIcon from "@/assets/icons/ReturnIcon.png";
@@ -146,6 +147,8 @@ export default function DeckViewById() {
     useState<boolean>(false);
 
   const [isDeckDeletedModalVisible, setIsDeckDeletedModalVisible] =
+    useState<boolean>(false);
+  const [isShareDeckDeleteModalVisible, setIsShareDeckDeleteModalVisible] =
     useState<boolean>(false);
 
   // --------------------------- Effects ---------------------------
@@ -293,6 +296,12 @@ export default function DeckViewById() {
    */
   const handleSharePress = async () => {
     if (isGenerating) return;
+
+    // СЦЕНАРИЙ 0: Колода удалена автором — показываем модалку становления автором
+    if (isDeletedByAuthor) {
+      setIsShareDeckDeleteModalVisible(true);
+      return;
+    }
 
     // ✅ Если пользователь НЕ автор — просто показываем модалку с текущей ссылкой,
     // без каких-либо запросов на синхронизацию (синхронизация /share — только для автора)
@@ -862,7 +871,7 @@ export default function DeckViewById() {
 
               <Pressable
                 onPress={handleSharePress}
-                disabled={isGenerating || isDeletedByAuthor}
+                disabled={isGenerating}
               >
                 <Image source={ImportButton} style={styles.importButton} />
               </Pressable>
@@ -967,6 +976,15 @@ export default function DeckViewById() {
       <ShareDeckModal
         visible={isShareModalVisible}
         onClose={() => setIsShareModalVisible(false)}
+        onCopyLink={handleCopyLink}
+        onMakePublic={handleMakePublic}
+        isAuthor={isAuthor}
+        deckId={id}
+      />
+
+      <ShareDeckDeleteCloudModal
+        visible={isShareDeckDeleteModalVisible}
+        onClose={() => setIsShareDeckDeleteModalVisible(false)}
         onCopyLink={handleCopyLink}
         onMakePublic={handleMakePublic}
         isAuthor={isAuthor}
