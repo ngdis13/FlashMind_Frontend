@@ -30,7 +30,7 @@
       "origin": "https://flashmind.ru",
       "meta": {
         "apple-mobile-web-app-capable": "yes",
-        "apple-mobile-web-app-status-bar-style": "default"
+        "apple-mobile-web-app-status-bar-style": "black-translucent"
       },
       "manifest": {
         "name": "Flashmind",

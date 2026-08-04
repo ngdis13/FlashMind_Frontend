@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover" />
     <title>Flashmind</title>
   
     <meta name="yandex-verification" content="f0ed17173033e6f5" />
@@ -12,10 +12,18 @@
 
     <!-- The `react-native-web` recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element -->
     <style id="expo-reset">
-      /* These styles make the body full-height */
+      /* These styles make the body full-height and prevent iOS overscroll/bounce in PWA mode */
       html,
       body {
         height: 100%;
+        width: 100%;
+        overflow: hidden;
+        position: fixed;
+        /* Prevent overscroll/bounce on iOS — critical for PWA standalone mode */
+        overscroll-behavior: none;
+        -webkit-overflow-scrolling: auto;
+        /* Prevent pull-to-refresh from triggering Safari UI */
+        overscroll-behavior-y: none;
       }
       /* These styles disable body scrolling if you are using <ScrollView> */
       body {
@@ -25,7 +33,10 @@
       #root {
         display: flex;
         height: 100%;
+        width: 100%;
         flex: 1;
+        overflow: hidden;
+        position: relative;
       }
     </style>
   </head>
