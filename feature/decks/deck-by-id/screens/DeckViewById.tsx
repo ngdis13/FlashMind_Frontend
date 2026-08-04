@@ -44,6 +44,7 @@ import { useCards } from "@/storage/hooks/useCards";
 // --------------------------- Типы и утилиты ---------------------------
 import { StoreCard } from "@/store/card.store";
 import { useDeckStore } from "@/store/deck.store";
+import { LogoSadStar } from "@/components/LogoSadStar";
 
 /**
  * Экран просмотра колоды по ID
@@ -115,7 +116,7 @@ export default function DeckViewById() {
    * Если колода не облачная — пользователь является её автором по умолчанию.
    * Иначе — проверяем флаг is_author из cloud_info.
    */
-  const isAuthor = isCloudDeck ? (deck?.cloud_info?.is_author === true) : true;
+  const isAuthor = isCloudDeck ? deck?.cloud_info?.is_author === true : true;
 
   /**
    * Показывает иконку предупреждения, если колода облачная и требуется синхронизация
@@ -127,6 +128,12 @@ export default function DeckViewById() {
    */
   const showCloudOk = isCloudDeck && !needsSync;
 
+  /**
+   * Проверяет, удалил ли автор колоду из облака.
+   * Условие: колода облачная, но cloud_deck_id отсутствует (null/undefined).
+   */
+  const isDeletedByAuthor = isCloudDeck && cloudDeckId == null;
+
   // --------------------------- Состояния модальных окон ---------------------------
   const [isShareModalVisible, setIsShareModalVisible] =
     useState<boolean>(false);
@@ -136,6 +143,9 @@ export default function DeckViewById() {
   const [isAccessModalVisible, setIsAccessModalVisible] =
     useState<boolean>(false);
   const [isAddedAccessModalVisible, setIsAddedAccessModalVisible] =
+    useState<boolean>(false);
+
+  const [isDeckDeletedModalVisible, setIsDeckDeletedModalVisible] =
     useState<boolean>(false);
 
   // --------------------------- Effects ---------------------------
@@ -365,7 +375,6 @@ export default function DeckViewById() {
       try {
         setIsGenerating(true);
 
-
         const response = await makeDeckPublic(id);
         console.log("📦 Ответ от makeDeckPublic (локальная):", response);
 
@@ -555,6 +564,10 @@ export default function DeckViewById() {
    */
   const handleCardPress = (cardId: string): void => {
     router.push(`/card/${cardId}?deckId=${id}`);
+  };
+
+  const handleDeletedByAuthorAlert = (): void => {
+    setIsDeckDeletedModalVisible(true);
   };
 
   // ============================================
@@ -813,13 +826,22 @@ export default function DeckViewById() {
                 <Image source={ReturnIcon} style={{ width: 12, height: 22 }} />
               </Pressable>
 
-              <Typography variant="h1">
-                Вернуться к колодам
-              </Typography>
+              <Typography variant="h1">Вернуться к колодам</Typography>
             </View>
 
             <View style={styles.noticeBox}>
-              {showCloudAlert && (
+              {/* Приоритет 1: колода удалена автором */}
+              {isDeletedByAuthor && (
+                <Pressable
+                  onPress={handleDeletedByAuthorAlert}
+                  style={styles.cloudAlertAbsoluteLeft}
+                >
+                  <Image source={InfoIcon} style={{ width: 24, height: 24 }} />
+                </Pressable>
+              )}
+
+              {/* Приоритет 2: нужна синхронизация (только если не удалена) */}
+              {!isDeletedByAuthor && showCloudAlert && (
                 <Pressable
                   onPress={handleCloudSyncAlert}
                   style={styles.cloudAlertAbsoluteLeft}
@@ -828,7 +850,8 @@ export default function DeckViewById() {
                 </Pressable>
               )}
 
-              {showCloudOk && (
+              {/* Приоритет 3: всё ок (только если не удалена и не нужна синхронизация) */}
+              {!isDeletedByAuthor && showCloudOk && (
                 <Pressable
                   onPress={handleAccessSync}
                   style={styles.cloudAlertAbsoluteLeft}
@@ -837,7 +860,10 @@ export default function DeckViewById() {
                 </Pressable>
               )}
 
-              <Pressable onPress={handleSharePress} disabled={isGenerating}>
+              <Pressable
+                onPress={handleSharePress}
+                disabled={isGenerating || isDeletedByAuthor}
+              >
                 <Image source={ImportButton} style={styles.importButton} />
               </Pressable>
             </View>
@@ -971,6 +997,19 @@ export default function DeckViewById() {
         }
         confirmText="Отлично"
         onConfirm={handleSuccessConfirm}
+      />
+
+      <CustomAlertCloud
+        visible={isDeckDeletedModalVisible}
+        onCancel={() => setIsDeckDeletedModalVisible(false)}
+        message="Оригинальная колода удалена"
+        metaMessage="Автор удалил эту колоду из общего облака. Обновлений больше не будет и синхронизация не доступна."
+        metaMessageBottom="Если ты хочешь поделиться колодой со своими карточками, то ты можешь стать автором колоды."
+        confirmText="Понятно"
+        onConfirm={() => setIsDeckDeletedModalVisible(false)}
+        showLine={true}
+        iconComponent={<LogoSadStar size={140}/>}
+  
       />
     </View>
   );
