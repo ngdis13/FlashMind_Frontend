@@ -1,0 +1,147 @@
+{
+     "one_time_metrics": {
+         "total_study_seconds": 45630,
+         "total_reviews": 1234
+     },
+    "forecast": {
+        "points": [
+            {"date": "2026-08-06", "count": 12},
+            {"date": "2026-08-07", "count": 8},
+            {"date": "2026-08-08", "count": 15},
+            {"date": "2026-08-09", "count": 6},
+            {"date": "2026-08-10", "count": 10},
+            {"date": "2026-08-11", "count": 14},
+            {"date": "2026-08-12", "count": 9},
+            {"date": "2026-08-13", "count": 7},
+            {"date": "2026-08-14", "count": 11},
+            {"date": "2026-08-15", "count": 13},
+            {"date": "2026-08-16", "count": 5},
+            {"date": "2026-08-17", "count": 8},
+            {"date": "2026-08-18", "count": 16},
+            {"date": "2026-08-19", "count": 7},
+            {"date": "2026-08-20", "count": 10},
+            {"date": "2026-08-21", "count": 6},
+            {"date": "2026-08-22", "count": 9},
+            {"date": "2026-08-23", "count": 12},
+            {"date": "2026-08-24", "count": 8},
+            {"date": "2026-08-25", "count": 11},
+            {"date": "2026-08-26", "count": 14},
+            {"date": "2026-08-27", "count": 7},
+            {"date": "2026-08-28", "count": 10},
+            {"date": "2026-08-29", "count": 6},
+            {"date": "2026-08-30", "count": 9},
+            {"date": "2026-08-31", "count": 13},
+            {"date": "2026-09-01", "count": 8},
+            {"date": "2026-09-02", "count": 11},
+            {"date": "2026-09-03", "count": 7},
+            {"date": "2026-09-04", "count": 10}
+        ]
+    },
+    "review_count": {
+        "points": [
+            {"date": "2026-07-07", "forgotten": 3, "hard": 2, "good": 8, "easy": 5},
+            {"date": "2026-07-08", "forgotten": 1, "hard": 3, "good": 10, "easy": 7},
+            {"date": "2026-07-09", "forgotten": 5, "hard": 4, "good": 6, "easy": 3},
+            {"date": "2026-07-10", "forgotten": 2, "hard": 1, "good": 12, "easy": 8},
+            {"date": "2026-07-11", "forgotten": 4, "hard": 3, "good": 7, "easy": 4},
+            {"date": "2026-07-12", "forgotten": 0, "hard": 2, "good": 15, "easy": 10},
+            {"date": "2026-07-13", "forgotten": 6, "hard": 5, "good": 4, "easy": 2},
+            {"date": "2026-07-14", "forgotten": 2, "hard": 2, "good": 9, "easy": 6},
+            {"date": "2026-07-15", "forgotten": 3, "hard": 1, "good": 11, "easy": 8},
+            {"date": "2026-07-16", "forgotten": 1, "hard": 3, "good": 8, "easy": 5},
+            {"date": "2026-07-17", "forgotten": 4, "hard": 2, "good": 10, "easy": 7},
+            {"date": "2026-07-18", "forgotten": 2, "hard": 4, "good": 6, "easy": 3},
+            {"date": "2026-07-19", "forgotten": 0, "hard": 1, "good": 14, "easy": 9},
+            {"date": "2026-07-20", "forgotten": 5, "hard": 3, "good": 5, "easy": 2},
+            {"date": "2026-07-21", "forgotten": 3, "hard": 2, "good": 9, "easy": 6},
+            {"date": "2026-07-22", "forgotten": 1, "hard": 1, "good": 12, "easy": 8},
+            {"date": "2026-07-23", "forgotten": 4, "hard": 4, "good": 6, "easy": 3},
+            {"date": "2026-07-24", "forgotten": 2, "hard": 2, "good": 10, "easy": 7},
+            {"date": "2026-07-25", "forgotten": 0, "hard": 3, "good": 13, "easy": 9},
+            {"date": "2026-07-26", "forgotten": 3, "hard": 1, "good": 8, "easy": 5},
+            {"date": "2026-07-27", "forgotten": 5, "hard": 3, "good": 5, "easy": 2},
+            {"date": "2026-07-28", "forgotten": 1, "hard": 2, "good": 11, "easy": 7},
+            {"date": "2026-07-29", "forgotten": 2, "hard": 4, "good": 7, "easy": 4},
+            {"date": "2026-07-30", "forgotten": 4, "hard": 2, "good": 9, "easy": 6},
+            {"date": "2026-07-31", "forgotten": 0, "hard": 1, "good": 14, "easy": 10},
+            {"date": "2026-08-01", "forgotten": 3, "hard": 3, "good": 8, "easy": 5},
+            {"date": "2026-08-02", "forgotten": 2, "hard": 1, "good": 10, "easy": 7},
+            {"date": "2026-08-03", "forgotten": 5, "hard": 4, "good": 5, "easy": 3},
+            {"date": "2026-08-04", "forgotten": 1, "hard": 2, "good": 12, "easy": 8},
+            {"date": "2026-08-05", "forgotten": 3, "hard": 2, "good": 9, "easy": 6}
+        ]
+    },
+    "review_time": {
+        "points": [
+            {"date": "2026-07-07", "seconds": 1200},
+            {"date": "2026-07-08", "seconds": 1500},
+            {"date": "2026-07-09", "seconds": 1800},
+            {"date": "2026-07-10", "seconds": 900},
+            {"date": "2026-07-11", "seconds": 1350},
+            {"date": "2026-07-12", "seconds": 1680},
+            {"date": "2026-07-13", "seconds": 2100},
+            {"date": "2026-07-14", "seconds": 1100},
+            {"date": "2026-07-15", "seconds": 1400},
+            {"date": "2026-07-16", "seconds": 1250},
+            {"date": "2026-07-17", "seconds": 1550},
+            {"date": "2026-07-18", "seconds": 980},
+            {"date": "2026-07-19", "seconds": 1300},
+            {"date": "2026-07-20", "seconds": 1900},
+            {"date": "2026-07-21", "seconds": 1150},
+            {"date": "2026-07-22", "seconds": 1450},
+            {"date": "2026-07-23", "seconds": 1700},
+            {"date": "2026-07-24", "seconds": 1200},
+            {"date": "2026-07-25", "seconds": 1600},
+            {"date": "2026-07-26", "seconds": 1050},
+            {"date": "2026-07-27", "seconds": 1850},
+            {"date": "2026-07-28", "seconds": 1350},
+            {"date": "2026-07-29", "seconds": 1100},
+            {"date": "2026-07-30", "seconds": 1500},
+            {"date": "2026-07-31", "seconds": 1750},
+            {"date": "2026-08-01", "seconds": 1250},
+            {"date": "2026-08-02", "seconds": 1400},
+            {"date": "2026-08-03", "seconds": 1950},
+            {"date": "2026-08-04", "seconds": 1150},
+            {"date": "2026-08-05", "seconds": 1300}
+        ]
+    },
+    "hourly_breakdown": {
+        "points": [
+            {"hour_range": "00:00-04:00", "percentage": 55.3},
+            {"hour_range": "04:00-08:00", "percentage": 68.7},
+            {"hour_range": "08:00-12:00", "percentage": 85.2},
+            {"hour_range": "12:00-16:00", "percentage": 78.9},
+            {"hour_range": "16:00-20:00", "percentage": 72.1},
+            {"hour_range": "20:00-24:00", "percentage": 61.5}
+        ]
+    },
+    "difficulty_distribution": {
+        "points": [
+            {"range_label": "1-2", "count": 5},
+            {"range_label": "2-3", "count": 12},
+            {"range_label": "3-4", "count": 25},
+            {"range_label": "4-5", "count": 38},
+            {"range_label": "5-6", "count": 42},
+            {"range_label": "6-7", "count": 35},
+            {"range_label": "7-8", "count": 22},
+            {"range_label": "8-9", "count": 10},
+            {"range_label": "9-10", "count": 3}
+        ]
+    },
+    "stability_distribution": {
+        "points": [
+            {"range_label": "1-25 дней", "count": 15},
+            {"range_label": "25-50 дней", "count": 30},
+            {"range_label": "50-100 дней", "count": 45},
+            {"range_label": ">100 дней", "count": 60}
+        ]
+    },
+    "card_types": {
+        "points": [
+            {"card_type": "новые", "count": 10},
+            {"card_type": "изучаемые", "count": 45},
+            {"card_type": "изученные", "count": 50},
+            {"card_type": "отложенные", "count": 5}
+        ]
+    }
+}

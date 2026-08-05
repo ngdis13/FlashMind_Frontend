@@ -4,6 +4,7 @@ export const colors = {
   mainColor: "#6E75D9",
   darkMainColor: "#282B54",
   lightMainColor: "#999DD5",
+  light2MainColor: "#DDE1F7",
 
   lightGray: "#E3E3E3",
   darkGray: "#777777",
@@ -45,4 +46,10 @@ export const colors = {
   ratingLightGreen: "#A9FFAD",
   ratingDarkGreen: "#7EE083",
 
+
+  /**Цвета для верхних плашек статистики */
+  background1: '#6E679A',
+  mainNumber: '#645E88',
+  labelNumber: '#6E679A',
+  
 };

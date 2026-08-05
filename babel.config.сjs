@@ -3,10 +3,12 @@ module.exports = function (api) {
   return {
     presets: ['babel-preset-expo'],
     plugins: [
+      // 1. Трансформатор мета-данных
+      'babel-plugin-transform-import-meta',
+
+      // 2. Настройка ваших путей (алиасов)
       [
-      'babel-plugin-transform-import-meta', // Добавьте это первой строкой в плагины
-      'expo-router/babel',
-      'babel-plugin-module-resolver',
+        'babel-plugin-module-resolver',
         {
           alias: {
             '@components': './src/components',
@@ -14,6 +16,9 @@ module.exports = function (api) {
           },
         },
       ],
+
+      // 3. Плагин анимаций Reanimated (ОБЯЗАТЕЛЬНО ДОЛЖЕН БЫТЬ ПОСЛЕДНИМ)
+      'react-native-reanimated/plugin',
     ],
   }
 }
