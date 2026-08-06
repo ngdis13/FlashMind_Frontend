@@ -68,7 +68,7 @@
             {"date": "2026-08-02", "forgotten": 2, "hard": 1, "good": 10, "easy": 7},
             {"date": "2026-08-03", "forgotten": 5, "hard": 4, "good": 5, "easy": 3},
             {"date": "2026-08-04", "forgotten": 1, "hard": 2, "good": 12, "easy": 8},
-            {"date": "2026-08-05", "forgotten": 3, "hard": 2, "good": 9, "easy": 6}
+            {"date": "2026-08-05", "forgotten": 0, "hard": 0, "good": 15, "easy": 10}
         ]
     },
     "review_time": {

@@ -51,5 +51,8 @@ export const colors = {
   background1: '#6E679A',
   mainNumber: '#645E88',
   labelNumber: '#6E679A',
+  badSuccess: "#DE878E",
+  greatSuccess: "#89C579",
+
   
 };

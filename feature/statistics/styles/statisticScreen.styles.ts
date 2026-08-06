@@ -142,7 +142,9 @@ export const styles = StyleSheet.create({
   },
 
   /**График Активности */
-  activityGraph: {},
+  activityGraph: {
+    flexDirection: "column",
+  },
   activityGraph_header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -160,23 +162,169 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     backgroundColor: colors.light2MainColor,
     borderRadius: 14,
-    padding: 4, 
+    padding: 4,
     position: "relative",
   },
   toggleSlider: {
     position: "absolute",
     top: 4,
     bottom: 4,
-    left: 4, 
-    width: 88, 
+    left: 4,
+    width: 88,
     backgroundColor: colors.mainNumber,
     borderRadius: 12,
   },
   toggleButton: {
     width: 88,
-    height: 33, 
+    height: 33,
     justifyContent: "center",
     alignItems: "center",
-    zIndex: 2, 
+    zIndex: 2,
+  },
+
+  chartOuterContainer: {
+    flexDirection: "row",
+    marginTop: 24,
+    width: "100%",
+    position: "relative",
+  },
+  yAxis: {
+    justifyContent: "space-between",
+    alignItems: "flex-end",
+    height: 200,
+    paddingRight: 8,
+    width: 35,
+    borderRightWidth: 2,
+    borderRightColor: colors.lightGray,
+  },
+  axisText: {
+    fontSize: 10,
+    color: colors.darkGray,
+  },
+  chartScrollContent: {
+    paddingRight: 20,
+    paddingBottom: 60,
+  },
+  chartBarsContainer: {
+    flexDirection: "row",
+    position: "relative",
+    alignItems: "flex-end",
+    paddingBottom: 2,
+    paddingRight: 16,
+  },
+  gridLine: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    borderBottomWidth: 1,
+    borderColor: colors.lightGray,
+  },
+  barColumnWrapper: {
+    alignItems: "center",
+    width: 24,
+    marginHorizontal: 10, // Расстояние между колонками: 10+10 = 20px gap
+    height: "100%",
+    justifyContent: "flex-end",
+  },
+  barColumn: {
+    width: 24,
+    justifyContent: "flex-end",
+    zIndex: 3,
+    overflow: "hidden",
+  },
+  barSegment: {
+    width: "100%",
+  },
+  xLabelWrapper: {
+    position: "absolute",
+    bottom: -55,
+    width: 80,
+    transform: [{ rotate: "70deg" }], // Поворот текста дат для экономии места
+    alignItems: "flex-start",
+  },
+  xLabelText: {
+    fontSize: 10,
+    color: colors.darkGray,
+  },
+
+  tooltipContainer: {
+    position: "absolute",
+    backgroundColor: colors.darkMainColor,
+    borderRadius: 8,
+    padding: 8,
+    width: 170,
+    zIndex: 999,
+    elevation: 999,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  tooltipDate: {
+    fontSize: 8,
+    color: colors.lightGray,
+  },
+  tooltipTotal: {
+    fontSize: 8,
+    color: colors.white,
+    fontWeight: "bold",
+    marginVertical: 2,
+  },
+  tooltipSuccessText: {
+    fontSize: 10,
+    color: colors.white,
+    textAlign: "center",
+    marginVertical: 4,
+
+  },
+  tooltipMetricsRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 4,
+  },
+  metricDotBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  dotText: {
+    fontSize: 9,
+    color: colors.white,
+  },
+  tooltipArrow: {
+    position: "absolute",
+    bottom: -6,
+    left: 62,
+    width: 0,
+    height: 0,
+    borderLeftWidth: 6,
+    borderLeftColor: "transparent",
+    borderRightWidth: 6,
+    borderRightColor: "transparent",
+    borderTopWidth: 6,
+    borderTopColor: colors.darkMainColor,
+  },
+  // ЛЕГЕНДА КАТЕГОРИЙ ПОД ГРАФИКОМ
+  legendContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 16,
+    marginTop: 20,
+    flexWrap: "wrap",
+  },
+  legendItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  legendDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 12,
   },
 });

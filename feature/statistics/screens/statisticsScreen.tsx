@@ -1,5 +1,12 @@
-import React, { useState } from "react";
-import { Pressable, ScrollView, View, Image } from "react-native";
+import React, { useState, useEffect, useRef } from "react";
+import {
+  Pressable,
+  ScrollView,
+  View,
+  Image,
+  StyleSheet,
+  GestureResponderEvent,
+} from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -39,6 +46,36 @@ const SMOOTH_CONFIG = {
   easing: Easing.bezier(0.25, 1, 0.5, 1),
 };
 
+// Форматирование дат: «Сегодня», «Вчера» или «5 Августа»
+const formatDateLabel = (dateStr: string) => {
+  const checkDate = new Date(dateStr);
+
+  const months = [
+    "Января",
+    "Февраля",
+    "Марта",
+    "Апреля",
+    "Мая",
+    "Июня",
+    "Июля",
+    "Августа",
+    "Сентября",
+    "Октября",
+    "Ноября",
+    "Декабря",
+  ];
+  const [, , day] = dateStr.split("-");
+  return `${parseInt(day)} ${months[checkDate.getMonth()]}`;
+};
+
+type ReviewPoint = {
+  date: string;
+  forgotten: number;
+  hard: number;
+  good: number;
+  easy: number;
+};
+
 export default function StatisticScreen() {
   const { decks } = useDecks();
 
@@ -52,6 +89,56 @@ export default function StatisticScreen() {
 
   //Выбранный график в Активности
   const [activeTab, setActiveTab] = useState<"cards" | "time">("cards");
+  const [selectedBar, setSelectedBar] = useState<ReviewPoint | null>(null);
+  const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
+  const [scrollOffsetX, setScrollOffsetX] = useState(0);
+
+  // 1. Вычисляем суммарное максимальное значение среди всех дней для правильного масштабирования высоты (Y)
+  const maxTotalValue = Math.max(
+    Math.ceil(
+      Math.max(
+        ...mockData.review_count.points.map(
+          (d) => d.forgotten + d.hard + d.good + d.easy,
+        ),
+      ) * 1.15,
+    ),
+    20, // Предохранитель на случай нулевых данных
+  );
+  const chartHeight = 200; // Фиксированная высота рабочей области графика
+
+  const handleBarPress = (
+    item: ReviewPoint,
+    index: number,
+    event: GestureResponderEvent,
+  ) => {
+    const barWidthWithGap = 44; // Ширина колонки (24) + gap (20)
+    const total = item.forgotten + item.hard + item.good + item.easy;
+    const barPixelHeight = (total / maxTotalValue) * chartHeight;
+    const tooltipHeightWithGap = 68; // Высота тултипа + минимальный зазор
+
+    setTooltipPos({
+      x: index * barWidthWithGap - 7, // Центр столбика + смещение на ось Y (35+8=43px)
+      y: chartHeight - barPixelHeight - tooltipHeightWithGap, // Над столбиком с зазором 10px
+    });
+
+    // Если кликнули на ту же колонку — закрываем тултип
+    if (selectedBar?.date === item.date) {
+      setSelectedBar(null);
+    } else {
+      setSelectedBar(item);
+    }
+  };
+
+  // Авто-скрытие тултипа через 3 секунды
+  const tooltipTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (selectedBar) {
+      tooltipTimer.current = setTimeout(() => setSelectedBar(null), 3000);
+    }
+    return () => {
+      if (tooltipTimer.current) clearTimeout(tooltipTimer.current);
+    };
+  }, [selectedBar]);
 
   const metrics = mockData.one_time_metrics;
   const reviewPoints = mockData.review_count.points;
@@ -60,6 +147,17 @@ export default function StatisticScreen() {
   // Вычисляемые из графиков значения
   const computedSuccessRate = calcSuccessRate(reviewPoints);
   const computedAverageSpeed = calcAverageSpeed(timePoints, reviewPoints);
+
+  // Успешность за сегодняшний день
+  const todayStr = new Date().toISOString().split("T")[0];
+  const todayPoint = reviewPoints.find((p) => p.date === todayStr);
+  const todaySuccessRate = todayPoint
+    ? calcSuccessRate([todayPoint])
+    : null;
+  const successDiff =
+    todaySuccessRate !== null
+      ? todaySuccessRate - computedSuccessRate
+      : 0;
 
   // Конфигурация карточек на основе серверных данных
   const STATS_DATA = [
@@ -107,7 +205,7 @@ export default function StatisticScreen() {
     return {
       transform: [
         {
-          // 88 — это точный шаг сдвига, равный ширине одной кнопки
+         
           translateX: tabProgress.value * 88,
         },
       ],
@@ -305,7 +403,9 @@ export default function StatisticScreen() {
                   <Typography
                     variant="h3"
                     color={
-                      activeTab === "cards" ? colors.white : colors.darkMainColor
+                      activeTab === "cards"
+                        ? colors.white
+                        : colors.darkMainColor
                     }
                   >
                     Карточки
@@ -325,6 +425,303 @@ export default function StatisticScreen() {
                     Время
                   </Typography>
                 </Pressable>
+              </View>
+            </View>
+
+            <View style={styles.chartOuterContainer}>
+              {/* Левая ось Y со шкалой из 5 значений */}
+              <View style={styles.yAxis}>
+                <Typography variant="h2" style={styles.axisText}>
+                  {maxTotalValue}
+                </Typography>
+                <Typography variant="h2" style={styles.axisText}>
+                  {Math.round(maxTotalValue * 0.75)}
+                </Typography>
+                <Typography variant="h2" style={styles.axisText}>
+                  {Math.round(maxTotalValue / 2)}
+                </Typography>
+                <Typography variant="h2" style={styles.axisText}>
+                  {Math.round(maxTotalValue * 0.25)}
+                </Typography>
+                <Typography variant="h2" style={styles.axisText}>
+                  0
+                </Typography>
+              </View>
+
+              {/* Горизонтальный скролл для колонок */}
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.chartScrollContent}
+                onScrollBeginDrag={() => setSelectedBar(null)}
+                onScroll={(e) =>
+                  setScrollOffsetX(e.nativeEvent.contentOffset.x)
+                }
+                scrollEventThrottle={16}
+              >
+                <View
+                  style={[styles.chartBarsContainer, { height: chartHeight }]}
+                >
+                  {/* Сетка из 5 горизонтальных линий (4 равных интервала) */}
+                  <View style={StyleSheet.absoluteFill}>
+                    <View style={[styles.gridLine, { top: 0 }]} />
+                    <View style={[styles.gridLine, { top: "25%" }]} />
+                    <View style={[styles.gridLine, { top: "50%" }]} />
+                    <View style={[styles.gridLine, { top: "75%" }]} />
+                    <View
+                      style={[
+                        styles.gridLine,
+                        {
+                          bottom: 0,
+                          borderBottomWidth: 2,
+                          borderColor: "#E5E5E5",
+                        },
+                      ]}
+                    />
+                  </View>
+
+                  {/* Рендер колонок */}
+                  {[...mockData.review_count.points]
+                    .sort(
+                      (a, b) =>
+                        new Date(b.date).getTime() - new Date(a.date).getTime(),
+                    )
+                    .map((item, index) => {
+                      const total =
+                        item.forgotten + item.hard + item.good + item.easy;
+
+                      // Расчет высоты каждого сегмента в пикселях на основе пропорции
+                      const forgottenHeight =
+                        (item.forgotten / maxTotalValue) * chartHeight;
+                      const hardHeight =
+                        (item.hard / maxTotalValue) * chartHeight;
+                      const goodHeight =
+                        (item.good / maxTotalValue) * chartHeight;
+                      const easyHeight =
+                        (item.easy / maxTotalValue) * chartHeight;
+
+                      return (
+                        <View key={item.date} style={styles.barColumnWrapper}>
+                          {/* Сама интерактивная составная колонка */}
+                          <Pressable
+                            style={[
+                              styles.barColumn,
+                              { height: (total / maxTotalValue) * chartHeight },
+                            ]}
+                            onPress={(e) => handleBarPress(item, index, e)}
+                          >
+                            <View
+                              style={[
+                                styles.barSegment,
+                                {
+                                  height: forgottenHeight,
+                                  backgroundColor: colors.ratingRed,
+                                },
+                              ]}
+                            />
+                            <View
+                              style={[
+                                styles.barSegment,
+                                {
+                                  height: hardHeight,
+                                  backgroundColor: colors.ratingYellow,
+                                },
+                              ]}
+                            />
+                            <View
+                              style={[
+                                styles.barSegment,
+                                {
+                                  height: goodHeight,
+                                  backgroundColor: colors.ratingLightGreen,
+                                },
+                              ]}
+                            />
+                            <View
+                              style={[
+                                styles.barSegment,
+                                {
+                                  height: easyHeight,
+                                  backgroundColor: colors.ratingDarkGreen,
+                                },
+                              ]}
+                            />
+                          </Pressable>
+
+                          {/* Подпись даты внизу под углом или вертикально */}
+                          <View style={styles.xLabelWrapper}>
+                            <Typography variant="h3" style={styles.xLabelText}>
+                              {formatDateLabel(item.date)}
+                            </Typography>
+                          </View>
+                        </View>
+                      );
+                    })}
+                </View>
+              </ScrollView>
+
+              {/* ИНТЕРАКТИВНЫЙ ТУЛТИП (ПОДСКАЗКА) — вынесен из ScrollView, чтобы не обрезался */}
+              {selectedBar &&
+                (() => {
+                  const totalForSelected =
+                    selectedBar.forgotten +
+                    selectedBar.hard +
+                    selectedBar.good +
+                    selectedBar.easy;
+                  const successRate =
+                    totalForSelected > 0
+                      ? Math.round(
+                          ((selectedBar.good + selectedBar.easy) /
+                            totalForSelected) *
+                            100,
+                        )
+                      : 0;
+
+                  return (
+                    <View
+                      style={[
+                        styles.tooltipContainer,
+                        {
+                          left: tooltipPos.x - scrollOffsetX,
+                          top: tooltipPos.y,
+                        },
+                      ]}
+                    >
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                        }}
+                      >
+                        <Typography variant="h3" style={styles.tooltipDate}>
+                          {formatDateLabel(selectedBar.date)}
+                        </Typography>
+                        <Typography variant="h3" style={styles.tooltipTotal}>
+                          {totalForSelected} карт
+                        </Typography>
+                      </View>
+
+                      {/* Строка успешности с разницей */}
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          marginVertical: 4,
+                        }}
+                      >
+                        <Typography variant="h3" style={styles.tooltipSuccessText}>
+                          Успешность: {successRate}%
+                        </Typography>
+                        <Typography
+                          variant="h3"
+                          style={[
+                            styles.tooltipSuccessText,
+                            {
+                              color:
+                                successRate - computedSuccessRate >= 0
+                                  ? colors.ratingDarkGreen
+                                  : colors.ratingRed,
+                            },
+                          ]}
+                        >
+                          {" "}
+                          ({successRate - computedSuccessRate > 0 ? "+" : ""}
+                          {successRate - computedSuccessRate}%)
+                        </Typography>
+                      </View>
+
+                      <View style={styles.tooltipMetricsRow}>
+                        <View style={styles.metricDotBox}>
+                          <View
+                            style={[
+                              styles.dot,
+                              { backgroundColor: colors.ratingRed },
+                            ]}
+                          />
+                          <Typography style={styles.dotText}>
+                            {selectedBar.forgotten}
+                          </Typography>
+                        </View>
+                        <View style={styles.metricDotBox}>
+                          <View
+                            style={[
+                              styles.dot,
+                              { backgroundColor: colors.ratingYellow },
+                            ]}
+                          />
+                          <Typography style={styles.dotText}>
+                            {selectedBar.hard}
+                          </Typography>
+                        </View>
+                        <View style={styles.metricDotBox}>
+                          <View
+                            style={[
+                              styles.dot,
+                              { backgroundColor: colors.ratingLightGreen },
+                            ]}
+                          />
+                          <Typography style={styles.dotText}>
+                            {selectedBar.good}
+                          </Typography>
+                        </View>
+                        <View style={styles.metricDotBox}>
+                          <View
+                            style={[
+                              styles.dot,
+                              { backgroundColor: colors.ratingDarkGreen },
+                            ]}
+                          />
+                          <Typography style={styles.dotText}>
+                            {selectedBar.easy}
+                          </Typography>
+                        </View>
+                      </View>
+                      {/* Стрелочка тултипа снизу */}
+                      <View style={styles.tooltipArrow} />
+                    </View>
+                  );
+                })()}
+            </View>
+
+            {/* Легенда категорий */}
+            <View style={styles.legendContainer}>
+              <View style={styles.legendItem}>
+                <View
+                  style={[
+                    styles.legendDot,
+                    { backgroundColor: colors.ratingRed },
+                  ]}
+                />
+                <Typography variant="h3">Забыл</Typography>
+              </View>
+              <View style={styles.legendItem}>
+                <View
+                  style={[
+                    styles.legendDot,
+                    { backgroundColor: colors.ratingYellow },
+                  ]}
+                />
+                <Typography variant="h3">Сложно</Typography>
+              </View>
+              <View style={styles.legendItem}>
+                <View
+                  style={[
+                    styles.legendDot,
+                    { backgroundColor: colors.ratingLightGreen },
+                  ]}
+                />
+                <Typography variant="h3">Хорошо</Typography>
+              </View>
+              <View style={styles.legendItem}>
+                <View
+                  style={[
+                    styles.legendDot,
+                    { backgroundColor: colors.ratingDarkGreen },
+                  ]}
+                />
+                <Typography variant="h3">Легко</Typography>
               </View>
             </View>
           </View>
