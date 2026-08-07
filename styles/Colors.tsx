@@ -39,21 +39,23 @@ export const colors = {
   purple2: "#AE71E3",
   purple3: "#7F52A6",
 
-
   /**  цвета для кнопок оценивания карточки*/
   ratingRed: "#FB8B93",
   ratingYellow: "#F7F580",
   ratingLightGreen: "#A9FFAD",
   ratingDarkGreen: "#7EE083",
 
-
   /**Цвета для верхних плашек статистики */
-  background1: '#6E679A',
-  mainNumber: '#645E88',
-  labelNumber: '#6E679A',
+  background1: "#6E679A",
+  mainNumber: "#645E88",
+  labelNumber: "#6E679A",
   badSuccess: "#DE878E",
   greatSuccess: "#89C579",
-  colorTimeStatisticGraph: "#9FACF0"
+  colorTimeStatisticGraph: "#9FACF0",
 
-  
+  /**График статуса карточек */
+  statusColorGreen: "#7EE083",
+  statusColorYellow: "#F7F580",
+  statusColorRed: "#FB8B93",
+  statusColorGrey: "#D9D9D9",
 };

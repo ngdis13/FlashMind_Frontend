@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Pressable, ScrollView, View, Image, StyleSheet } from "react-native";
+import { Pressable, ScrollView, View, Image, StyleSheet, useWindowDimensions } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -29,6 +29,7 @@ import { useDecks } from "@/storage/hooks/useDecks";
 
 import ActivityGraph from "@/feature-statistics/components/ActivityGraph";
 import ProductivityGraph from "../components/ProductivityGraph";
+import CardsStatusGraph from "../components/CardsStatusGraph";
 
 const SMOOTH_TIMING_CONFIG = {
   duration: 280,
@@ -37,6 +38,8 @@ const SMOOTH_TIMING_CONFIG = {
 
 export default function StatisticScreen() {
   const { decks } = useDecks();
+  const { width } = useWindowDimensions();
+  const isWide = width > 768;
 
   const deckOptions = [
     { id: "all", title: "Все колоды" },
@@ -50,6 +53,7 @@ export default function StatisticScreen() {
   const reviewPoints = mockData.review_count.points;
   const timePoints = mockData.review_time.points;
   const hourlyBreakdown = mockData.hourly_breakdown.points;
+  const cardTypes = mockData.card_types.points;
 
   // Вычисляемые из графиков значения (для верхних плашек)
   const computedSuccessRate = calcSuccessRate(reviewPoints);
@@ -270,12 +274,19 @@ export default function StatisticScreen() {
           </View>
 
           {/**Контейнер со всеми графиками */}
-          <View style={styles.graphsBox}>
+          <View style={[styles.graphsBox, isWide && { flexDirection: "row", flexWrap: "wrap" }]}>
             <ActivityGraph
               reviewPoints={reviewPoints}
               timePoints={timePoints}
             />
-            <ProductivityGraph hourlyBreakdown={hourlyBreakdown} />
+            <View style={isWide ? { flex: 1, flexDirection: "row", gap: 16 } : { gap: 16 }}>
+              <View style={isWide && { flex: 1 }}>
+                <ProductivityGraph hourlyBreakdown={hourlyBreakdown} />
+              </View>
+              <View style={isWide && { flex: 1 }}>
+                <CardsStatusGraph cardTypes={cardTypes} isWide={isWide} />
+              </View>
+            </View>
           </View>
         </ScrollView>
       </View>
