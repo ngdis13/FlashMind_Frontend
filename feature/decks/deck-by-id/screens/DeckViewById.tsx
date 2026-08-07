@@ -364,6 +364,7 @@ export default function DeckViewById() {
             throw new Error("Сервер не вернул cloud_uuid");
           }
         } catch (error) {
+          if (handleCloudDeckNotExistError(error)) return;
           console.error("❌ Ошибка синхронизации:", error);
           Toast.show({
             type: "error",
@@ -403,6 +404,7 @@ export default function DeckViewById() {
           throw new Error("Сервер не вернул cloud_uuid");
         }
       } catch (error) {
+        if (handleCloudDeckNotExistError(error)) return;
         console.error("❌ Ошибка создания ссылки:", error);
         Toast.show({
           type: "error",
@@ -580,6 +582,50 @@ export default function DeckViewById() {
   };
 
   // ============================================
+  // ⭐ ОБРАБОТКА ОШИБКИ "ОБЛАЧНАЯ КОЛОДА УДАЛЕНА"
+  // ============================================
+  /**
+   * Проверяет, является ли ошибка сигналом "колода удалена автором".
+   * Если да — обновляет cloud_info в сторе (cloud_deck_id = null) и показывает toast.
+   * @returns true, если ошибка обработана
+   */
+  const handleCloudDeckNotExistError = (error: unknown): boolean => {
+    const axiosError = error as AxiosError<{ error_code?: string; message?: string }>;
+    if (
+      axiosError?.response?.data?.error_code === "CLOUD_DECK_NOT_EXIST" ||
+      axiosError?.response?.status === 410
+    ) {
+      const store = useDeckStore.getState();
+      const current = store.decksState;
+      if (current && id) {
+        const updatedDecks = current.decks.map((d) =>
+          d.id === id
+            ? {
+                ...d,
+                cloud_info: {
+                  ...d.cloud_info,
+                  cloud_deck_id: null,
+                  is_cloud_deck: true,
+                  needs_sync: false,
+                },
+              }
+            : d,
+        );
+        store.setDecksState({ ...current, decks: updatedDecks });
+      }
+
+      Toast.show({
+        type: "error",
+        text1: "Колода удалена",
+        text2: "Автор удалил эту колоду из общего облака",
+        position: "bottom",
+      });
+      return true;
+    }
+    return false;
+  };
+
+  // ============================================
   // ⭐ УДАЛЕНИЕ КАРТОЧКИ
   // ============================================
   /**
@@ -706,6 +752,7 @@ export default function DeckViewById() {
         return true;
       }
     } catch (error) {
+      if (handleCloudDeckNotExistError(error)) return false;
       console.error("Ошибка синхронизации:", error);
 
       let errorMessage = "Попробуйте позже";
