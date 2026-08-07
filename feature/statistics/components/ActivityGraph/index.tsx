@@ -184,13 +184,19 @@ export default function ActivityGraph({
   }));
 
   // ========== Рендер ==========
+  const handleInfo = () => {
+    console.log("Информация по активности");
+  };
+
   return (
     <View style={[commonStyles.mainBox, styles.activityGraph]}>
       {/* Заголовок с переключателем */}
       <View style={styles.activityGraph__header}>
         <View style={styles.activityGraph__headerName}>
           <Typography variant="h2">Активность</Typography>
-          <Image source={IconInfo} style={styles.activityGraph__infoIcon} />
+          <Pressable onPress={handleInfo}>
+            <Image source={IconInfo} style={styles.activityGraph__infoIcon} />
+          </Pressable>
         </View>
 
         <View style={styles.toggle}>

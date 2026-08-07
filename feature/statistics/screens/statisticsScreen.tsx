@@ -1,11 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import {
-  Pressable,
-  ScrollView,
-  View,
-  Image,
-  StyleSheet,
-} from "react-native";
+import { Pressable, ScrollView, View, Image, StyleSheet } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -32,41 +26,13 @@ import { BlurView } from "expo-blur";
 import { formatStudyTime } from "@/utils/helpers/formatStudyTime";
 import { formatNumber } from "@/utils/helpers/formatNumber";
 import { useDecks } from "@/storage/hooks/useDecks";
+
 import ActivityGraph from "@/feature-statistics/components/ActivityGraph";
+import ProductivityGraph from "../components/ProductivityGraph";
 
 const SMOOTH_TIMING_CONFIG = {
   duration: 280,
   easing: Easing.bezier(0.25, 1, 0.5, 1),
-};
-
-// Форматирование дат: «Сегодня», «Вчера» или «5 Августа»
-const formatDateLabel = (dateStr: string) => {
-  const checkDate = new Date(dateStr);
-
-  const months = [
-    "Января",
-    "Февраля",
-    "Марта",
-    "Апреля",
-    "Мая",
-    "Июня",
-    "Июля",
-    "Августа",
-    "Сентября",
-    "Октября",
-    "Ноября",
-    "Декабря",
-  ];
-  const [, , day] = dateStr.split("-");
-  return `${parseInt(day)} ${months[checkDate.getMonth()]}`;
-};
-
-type ReviewPoint = {
-  date: string;
-  forgotten: number;
-  hard: number;
-  good: number;
-  easy: number;
 };
 
 export default function StatisticScreen() {
@@ -83,6 +49,7 @@ export default function StatisticScreen() {
   const metrics = mockData.one_time_metrics;
   const reviewPoints = mockData.review_count.points;
   const timePoints = mockData.review_time.points;
+  const hourlyBreakdown = mockData.hourly_breakdown.points;
 
   // Вычисляемые из графиков значения (для верхних плашек)
   const computedSuccessRate = calcSuccessRate(reviewPoints);
@@ -301,7 +268,15 @@ export default function StatisticScreen() {
               </View>
             ))}
           </View>
-          <ActivityGraph reviewPoints={reviewPoints} timePoints={timePoints} />
+
+          {/**Контейнер со всеми графиками */}
+          <View style={styles.graphsBox}>
+            <ActivityGraph
+              reviewPoints={reviewPoints}
+              timePoints={timePoints}
+            />
+            <ProductivityGraph hourlyBreakdown={hourlyBreakdown} />
+          </View>
         </ScrollView>
       </View>
     </View>

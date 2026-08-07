@@ -137,4 +137,8 @@ export const styles = StyleSheet.create({
   cardLabel: {
     fontSize: 12,
   },
+
+  graphsBox: {
+    gap: 16
+  }
 });

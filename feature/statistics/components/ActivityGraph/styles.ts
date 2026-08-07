@@ -21,6 +21,7 @@ export const activityGraphStyles = StyleSheet.create({
   activityGraph__infoIcon: {
     width: 16,
     height: 16,
+    padding: 6,
   },
 
   // ===== Переключатель toggle =====
