@@ -58,4 +58,15 @@ export const colors = {
   statusColorYellow: "#F7F580",
   statusColorRed: "#FB8B93",
   statusColorGrey: "#D9D9D9",
+
+  /**График сложности карточек */
+  diffGreen: "#C6E5C7",
+  diffGreen2: "#A4DEA7",
+  diffGreen3: "#7EE083",
+  diffYellow1: "#F8F7B5",
+  diffYellow2: "#FFFD91",
+  diffYellow3: "#FFF763",
+  diffRed1: "#FFC5C9",
+  diffRed2: "#FFAAB0",
+  diffRed3: "#FB8B93",
 };

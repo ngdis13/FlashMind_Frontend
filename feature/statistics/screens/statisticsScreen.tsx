@@ -30,6 +30,7 @@ import { useDecks } from "@/storage/hooks/useDecks";
 import ActivityGraph from "@/feature-statistics/components/ActivityGraph";
 import ProductivityGraph from "../components/ProductivityGraph";
 import CardsStatusGraph from "../components/CardsStatusGraph";
+import DifficultyCardsGraph from "../components/DifficultyCardsGraph";
 
 const SMOOTH_TIMING_CONFIG = {
   duration: 280,
@@ -54,6 +55,7 @@ export default function StatisticScreen() {
   const timePoints = mockData.review_time.points;
   const hourlyBreakdown = mockData.hourly_breakdown.points;
   const cardTypes = mockData.card_types.points;
+  const difficultyDistribution = mockData.difficulty_distribution.points;
 
   // Вычисляемые из графиков значения (для верхних плашек)
   const computedSuccessRate = calcSuccessRate(reviewPoints);
@@ -76,9 +78,9 @@ export default function StatisticScreen() {
     },
     {
       id: "2",
-      icon: IconAverageSuccess,
-      value: `${computedSuccessRate}%`,
-      label: "Средняя успешность",
+      icon: IconAverageTime,
+      value: computedAverageSpeed,
+      label: "Среднее время ответа",
     },
     {
       id: "3",
@@ -88,9 +90,9 @@ export default function StatisticScreen() {
     },
     {
       id: "4",
-      icon: IconAverageTime,
-      value: computedAverageSpeed,
-      label: "Среднее время ответа",
+      icon: IconAverageSuccess,
+      value: `${computedSuccessRate}%`,
+      label: "Средняя успешность",
     },
   ];
 
@@ -287,6 +289,8 @@ export default function StatisticScreen() {
                 <CardsStatusGraph cardTypes={cardTypes} isWide={isWide} />
               </View>
             </View>
+
+            <DifficultyCardsGraph difficultyDistribution={difficultyDistribution} />
           </View>
         </ScrollView>
       </View>
