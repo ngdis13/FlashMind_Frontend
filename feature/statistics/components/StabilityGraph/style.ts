@@ -2,48 +2,53 @@ import { colors } from "@/styles/Colors";
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
-  // ==================== БЛОК: difficultyCardsGraph ====================
-  difficultyCardsGraph: {
+  // ==================== БЛОК: stabilityGraph ====================
+  stabilityGraph: {
     paddingVertical: 20,
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
     position: "relative",
+    borderRadius: 24, // Красивое скругление внешней карточки
   },
-  difficultyCardsGraph__headerName: {
+  stabilityGraph__headerName: {
     flexDirection: "row",
     gap: 8,
     alignItems: "center",
     alignSelf: "flex-start",
     marginBottom: 16,
   },
-  difficultyCardsGraph__infoIcon: {
+  stabilityGraph__infoIcon: {
     width: 16,
     height: 16,
-    padding: 6,
   },
-  difficultyCardsGraph__footer: {
-    alignItems: "center",
-    width: "100%",
-  },
-
 
   // ==================== БЛОК: chart ====================
   chart: {
     flexDirection: "row",
     width: "100%",
-    position: "relative",
+    marginBottom: 16
   },
   chart__yAxis: {
     justifyContent: "space-between",
     alignItems: "flex-end",
-    height: 200,
+    height: 200, 
     paddingRight: 12,
     width: 45,
     borderRightWidth: 2,
     borderRightColor: colors.lightGray,
+    paddingBottom: 2, 
   },
   chart__axisText: {
     fontSize: 11,
     color: colors.darkGray,
+  },
+  chart__content: {
+    flex: 1,
+  },
+  chart__lines: {
+    height: 200, 
+    position: "relative",
+    borderBottomWidth: 2, 
+    borderBottomColor: colors.lightGray,
   },
   chart__gridLine: {
     position: "absolute",
@@ -52,11 +57,8 @@ export const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: colors.lightGray,
   },
-  chart__lines: {
-    flex: 1,
-    height: 200,
-    position: "relative",
-  },
+
+  // Столбцы
   chart__barsContainer: {
     position: "absolute",
     left: 0,
@@ -65,30 +67,41 @@ export const styles = StyleSheet.create({
     top: 0,
     flexDirection: "row",
     justifyContent: "space-around",
-    alignItems: "flex-end",
+    alignItems: "flex-end", 
     paddingHorizontal: 8,
-    paddingBottom: 1,
   },
-  chart__barWrapper: {
-    flex: 1,
+  chart__column: {
     alignItems: "center",
+    width: "20%", 
     height: "100%",
     justifyContent: "flex-end",
   },
   chart__bar: {
-    width: "75%",
+    width: "100%",
+    backgroundColor: colors.mainColor,
   },
+  chart__barValue: {
+    marginBottom: 6,
+  },
+
+  // Ось X
   chart__xAxis: {
     flexDirection: "row",
     justifyContent: "space-around",
-    paddingLeft: 53,
-    paddingRight: 8,
     marginTop: 8,
-    width: "100%",
-    marginBottom: 16
+    paddingLeft: 2, 
   },
-  chart__xLabelWrapper: {
-    flex: 1,
+  chart__xAxisText: {
+    fontSize: 10,
+    color: colors.darkGray,
+    textAlign: "center",
+    width: "22%",
+  },
+
+  // Нижний футер
+  stabilityGraph__footer: {
     alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
   },
 });

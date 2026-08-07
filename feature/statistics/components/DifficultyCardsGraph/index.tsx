@@ -1,7 +1,7 @@
 import { commonStyles } from "@/styles/Common";
 import { Typography } from "@/styles/Typography";
 import { colors } from "@/styles/Colors";
-import { Pressable, View, Image, StyleSheet } from "react-native";
+import { Pressable, View, Image, StyleSheet, type DimensionValue } from "react-native";
 import IconInfo from "@/assets/icons/IconInfo.png";
 import { styles } from "./styles";
 
@@ -122,7 +122,7 @@ export default function DifficultyCardsGraph({
                   <View
                     style={[
                       styles.chart__bar,
-                      { height: barHeight, backgroundColor: barColor },
+                      { height: barHeight as DimensionValue, backgroundColor: barColor },
                     ]}
                   />
                 </View>
