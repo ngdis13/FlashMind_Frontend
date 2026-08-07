@@ -53,6 +53,7 @@ export const colors = {
   labelNumber: '#6E679A',
   badSuccess: "#DE878E",
   greatSuccess: "#89C579",
+  colorTimeStatisticGraph: "#9FACF0"
 
   
 };

@@ -187,6 +187,7 @@ export const styles = StyleSheet.create({
     marginTop: 24,
     width: "100%",
     position: "relative",
+    marginBottom: 16
   },
   yAxis: {
     justifyContent: "space-between",
@@ -267,15 +268,12 @@ export const styles = StyleSheet.create({
   tooltipTotal: {
     fontSize: 8,
     color: colors.white,
-    fontWeight: "bold",
-    marginVertical: 2,
   },
   tooltipSuccessText: {
     fontSize: 10,
     color: colors.white,
     textAlign: "center",
     marginVertical: 4,
-
   },
   tooltipMetricsRow: {
     flexDirection: "row",
@@ -299,7 +297,7 @@ export const styles = StyleSheet.create({
   tooltipArrow: {
     position: "absolute",
     bottom: -6,
-    left: 62,
+    left: 79,
     width: 0,
     height: 0,
     borderLeftWidth: 6,
@@ -309,12 +307,21 @@ export const styles = StyleSheet.create({
     borderTopWidth: 6,
     borderTopColor: colors.darkMainColor,
   },
+  // ЛИНЕЙНЫЙ ГРАФИК ВРЕМЕНИ
+  chartLinesWrapper: {
+    flex: 1,
+    height: 200,
+    position: "relative",
+  },
+  totalText: {
+    textAlign: "center",
+    color: colors.darkMainColor,
+  },
   // ЛЕГЕНДА КАТЕГОРИЙ ПОД ГРАФИКОМ
   legendContainer: {
     flexDirection: "row",
     justifyContent: "center",
     gap: 16,
-    marginTop: 20,
     flexWrap: "wrap",
   },
   legendItem: {

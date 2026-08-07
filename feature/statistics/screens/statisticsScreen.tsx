@@ -7,6 +7,7 @@ import {
   StyleSheet,
   GestureResponderEvent,
 } from "react-native";
+import Svg, { Polyline, Circle } from "react-native-svg";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -35,6 +36,13 @@ import { BlurView } from "expo-blur";
 import { formatStudyTime } from "@/utils/helpers/formatStudyTime";
 import { formatNumber } from "@/utils/helpers/formatNumber";
 import { useDecks } from "@/storage/hooks/useDecks";
+
+const HoverableCircle = Circle as unknown as React.ComponentType<
+  React.ComponentProps<typeof Circle> & {
+    onMouseEnter?: (e: any) => void;
+    onMouseLeave?: () => void;
+  }
+>;
 
 const SMOOTH_TIMING_CONFIG = {
   duration: 280,
@@ -93,6 +101,14 @@ export default function StatisticScreen() {
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
   const [scrollOffsetX, setScrollOffsetX] = useState(0);
 
+  // Для линейного графика времени
+  const [chartWidth, setChartWidth] = useState(0);
+  const [selectedTimePoint, setSelectedTimePoint] = useState<{
+    point: { date: string; seconds: number };
+    x: number;
+    y: number;
+  } | null>(null);
+
   // 1. Вычисляем суммарное максимальное значение среди всех дней для правильного масштабирования высоты (Y)
   const maxTotalValue = Math.max(
     Math.ceil(
@@ -114,10 +130,10 @@ export default function StatisticScreen() {
     const barWidthWithGap = 44; // Ширина колонки (24) + gap (20)
     const total = item.forgotten + item.hard + item.good + item.easy;
     const barPixelHeight = (total / maxTotalValue) * chartHeight;
-    const tooltipHeightWithGap = 68; // Высота тултипа + минимальный зазор
+    const tooltipHeightWithGap = 90; // Высота тултипа + минимальный зазор
 
     setTooltipPos({
-      x: index * barWidthWithGap - 7, // Центр столбика + смещение на ось Y (35+8=43px)
+      x: index * barWidthWithGap - 26,
       y: chartHeight - barPixelHeight - tooltipHeightWithGap, // Над столбиком с зазором 10px
     });
 
@@ -126,6 +142,19 @@ export default function StatisticScreen() {
       setSelectedBar(null);
     } else {
       setSelectedBar(item);
+    }
+  };
+
+  // Обработчик клика по точке линейного графика (время)
+  const handleTimePointPress = (
+    point: { date: string; seconds: number },
+    x: number,
+    y: number,
+  ) => {
+    if (selectedTimePoint?.point.date === point.date) {
+      setSelectedTimePoint(null);
+    } else {
+      setSelectedTimePoint({ point, x, y });
     }
   };
 
@@ -144,6 +173,15 @@ export default function StatisticScreen() {
   const reviewPoints = mockData.review_count.points;
   const timePoints = mockData.review_time.points;
 
+  // Данные для линейного графика (время) — отсортированы хронологически
+  const TIME_DATA = [...timePoints].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+  );
+  const maxSeconds = Math.max(...TIME_DATA.map((p) => p.seconds), 60);
+  const maxMinutes = Math.ceil(((maxSeconds / 60) * 1.15) / 4) * 4;
+  const totalSeconds = TIME_DATA.reduce((sum, p) => sum + p.seconds, 0);
+  const totalHoursLabel = `${Math.floor(totalSeconds / 3600)} ч ${Math.floor((totalSeconds % 3600) / 60)} мин`;
+
   // Вычисляемые из графиков значения
   const computedSuccessRate = calcSuccessRate(reviewPoints);
   const computedAverageSpeed = calcAverageSpeed(timePoints, reviewPoints);
@@ -151,13 +189,19 @@ export default function StatisticScreen() {
   // Успешность за сегодняшний день
   const todayStr = new Date().toISOString().split("T")[0];
   const todayPoint = reviewPoints.find((p) => p.date === todayStr);
-  const todaySuccessRate = todayPoint
-    ? calcSuccessRate([todayPoint])
-    : null;
+  const todaySuccessRate = todayPoint ? calcSuccessRate([todayPoint]) : null;
   const successDiff =
-    todaySuccessRate !== null
-      ? todaySuccessRate - computedSuccessRate
-      : 0;
+    todaySuccessRate !== null ? todaySuccessRate - computedSuccessRate : 0;
+
+  // Общее среднее время на карточку в секундах (для сравнения в тултипе времени)
+  const computedAverageSeconds = (() => {
+    const totalAllSeconds = timePoints.reduce((s, p) => s + p.seconds, 0);
+    const totalAllCards = reviewPoints.reduce(
+      (s, r) => s + r.forgotten + r.hard + r.good + r.easy,
+      0,
+    );
+    return totalAllCards > 0 ? Math.round(totalAllSeconds / totalAllCards) : 0;
+  })();
 
   // Конфигурация карточек на основе серверных данных
   const STATS_DATA = [
@@ -205,7 +249,6 @@ export default function StatisticScreen() {
     return {
       transform: [
         {
-         
           translateX: tabProgress.value * 88,
         },
       ],
@@ -428,41 +471,313 @@ export default function StatisticScreen() {
               </View>
             </View>
 
-            <View style={styles.chartOuterContainer}>
-              {/* Левая ось Y со шкалой из 5 значений */}
-              <View style={styles.yAxis}>
-                <Typography variant="h2" style={styles.axisText}>
-                  {maxTotalValue}
-                </Typography>
-                <Typography variant="h2" style={styles.axisText}>
-                  {Math.round(maxTotalValue * 0.75)}
-                </Typography>
-                <Typography variant="h2" style={styles.axisText}>
-                  {Math.round(maxTotalValue / 2)}
-                </Typography>
-                <Typography variant="h2" style={styles.axisText}>
-                  {Math.round(maxTotalValue * 0.25)}
-                </Typography>
-                <Typography variant="h2" style={styles.axisText}>
-                  0
-                </Typography>
-              </View>
+            {activeTab === "cards" && (
+              <View style={styles.chartOuterContainer}>
+                {/* Левая ось Y со шкалой из 5 значений */}
+                <View style={styles.yAxis}>
+                  <Typography variant="h2" style={styles.axisText}>
+                    {maxTotalValue}
+                  </Typography>
+                  <Typography variant="h2" style={styles.axisText}>
+                    {Math.round(maxTotalValue * 0.75)}
+                  </Typography>
+                  <Typography variant="h2" style={styles.axisText}>
+                    {Math.round(maxTotalValue / 2)}
+                  </Typography>
+                  <Typography variant="h2" style={styles.axisText}>
+                    {Math.round(maxTotalValue * 0.25)}
+                  </Typography>
+                  <Typography variant="h2" style={styles.axisText}>
+                    0
+                  </Typography>
+                </View>
 
-              {/* Горизонтальный скролл для колонок */}
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.chartScrollContent}
-                onScrollBeginDrag={() => setSelectedBar(null)}
-                onScroll={(e) =>
-                  setScrollOffsetX(e.nativeEvent.contentOffset.x)
-                }
-                scrollEventThrottle={16}
-              >
-                <View
-                  style={[styles.chartBarsContainer, { height: chartHeight }]}
+                {/* Горизонтальный скролл для колонок */}
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.chartScrollContent}
+                  onScrollBeginDrag={() => setSelectedBar(null)}
+                  onScroll={(e) =>
+                    setScrollOffsetX(e.nativeEvent.contentOffset.x)
+                  }
+                  scrollEventThrottle={16}
                 >
-                  {/* Сетка из 5 горизонтальных линий (4 равных интервала) */}
+                  <View
+                    style={[styles.chartBarsContainer, { height: chartHeight }]}
+                  >
+                    {/* Сетка из 5 горизонтальных линий (4 равных интервала) */}
+                    <View style={StyleSheet.absoluteFill}>
+                      <View style={[styles.gridLine, { top: 0 }]} />
+                      <View style={[styles.gridLine, { top: "25%" }]} />
+                      <View style={[styles.gridLine, { top: "50%" }]} />
+                      <View style={[styles.gridLine, { top: "75%" }]} />
+                      <View
+                        style={[
+                          styles.gridLine,
+                          {
+                            bottom: 0,
+                            borderBottomWidth: 2,
+                            borderColor: "#E5E5E5",
+                          },
+                        ]}
+                      />
+                    </View>
+
+                    {/* Рендер колонок */}
+                    {[...mockData.review_count.points]
+                      .sort(
+                        (a, b) =>
+                          new Date(b.date).getTime() -
+                          new Date(a.date).getTime(),
+                      )
+                      .map((item, index) => {
+                        const total =
+                          item.forgotten + item.hard + item.good + item.easy;
+
+                        // Расчет высоты каждого сегмента в пикселях на основе пропорции
+                        const forgottenHeight =
+                          (item.forgotten / maxTotalValue) * chartHeight;
+                        const hardHeight =
+                          (item.hard / maxTotalValue) * chartHeight;
+                        const goodHeight =
+                          (item.good / maxTotalValue) * chartHeight;
+                        const easyHeight =
+                          (item.easy / maxTotalValue) * chartHeight;
+
+                        return (
+                          <View key={item.date} style={styles.barColumnWrapper}>
+                            {/* Сама интерактивная составная колонка */}
+                            <Pressable
+                              style={[
+                                styles.barColumn,
+                                {
+                                  height: (total / maxTotalValue) * chartHeight,
+                                },
+                              ]}
+                              onPress={(e) => handleBarPress(item, index, e)}
+                            >
+                              <View
+                                style={[
+                                  styles.barSegment,
+                                  {
+                                    height: forgottenHeight,
+                                    backgroundColor: colors.ratingRed,
+                                  },
+                                ]}
+                              />
+                              <View
+                                style={[
+                                  styles.barSegment,
+                                  {
+                                    height: hardHeight,
+                                    backgroundColor: colors.ratingYellow,
+                                  },
+                                ]}
+                              />
+                              <View
+                                style={[
+                                  styles.barSegment,
+                                  {
+                                    height: goodHeight,
+                                    backgroundColor: colors.ratingLightGreen,
+                                  },
+                                ]}
+                              />
+                              <View
+                                style={[
+                                  styles.barSegment,
+                                  {
+                                    height: easyHeight,
+                                    backgroundColor: colors.ratingDarkGreen,
+                                  },
+                                ]}
+                              />
+                            </Pressable>
+
+                            {/* Подпись даты внизу под углом или вертикально */}
+                            <View style={styles.xLabelWrapper}>
+                              <Typography
+                                variant="h3"
+                                style={styles.xLabelText}
+                              >
+                                {formatDateLabel(item.date)}
+                              </Typography>
+                            </View>
+                          </View>
+                        );
+                      })}
+                  </View>
+                </ScrollView>
+
+                {/* ИНТЕРАКТИВНЫЙ ТУЛТИП (ПОДСКАЗКА) — вынесен из ScrollView, чтобы не обрезался */}
+                {selectedBar &&
+                  (() => {
+                    const totalForSelected =
+                      selectedBar.forgotten +
+                      selectedBar.hard +
+                      selectedBar.good +
+                      selectedBar.easy;
+                    const successRate =
+                      totalForSelected > 0
+                        ? Math.round(
+                            ((selectedBar.good + selectedBar.easy) /
+                              totalForSelected) *
+                              100,
+                          )
+                        : 0;
+
+                    return (
+                      <View
+                        style={[
+                          styles.tooltipContainer,
+                          {
+                            left: tooltipPos.x - scrollOffsetX,
+                            top: tooltipPos.y,
+                          },
+                        ]}
+                      >
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                          }}
+                        >
+                          <Typography variant="h3" style={styles.tooltipDate}>
+                            {formatDateLabel(selectedBar.date)}
+                          </Typography>
+                          <Typography variant="h3" style={styles.tooltipTotal}>
+                            {totalForSelected} карт
+                          </Typography>
+                        </View>
+
+                        {/* Строка успешности с разницей */}
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            marginVertical: 4,
+                          }}
+                        >
+                          <Typography
+                            variant="h3"
+                            style={styles.tooltipSuccessText}
+                          >
+                            Успешность: {successRate}%
+                          </Typography>
+                          <Typography
+                            variant="h3"
+                            style={[
+                              styles.tooltipSuccessText,
+                              {
+                                color:
+                                  successRate - computedSuccessRate >= 0
+                                    ? colors.ratingDarkGreen
+                                    : colors.ratingRed,
+                              },
+                            ]}
+                          >
+                            {" "}
+                            ({successRate - computedSuccessRate > 0 ? "+" : ""}
+                            {successRate - computedSuccessRate}%)
+                          </Typography>
+                        </View>
+
+                        <View style={styles.tooltipMetricsRow}>
+                          <View style={styles.metricDotBox}>
+                            <View
+                              style={[
+                                styles.dot,
+                                { backgroundColor: colors.ratingRed },
+                              ]}
+                            />
+                            <Typography style={styles.dotText}>
+                              {selectedBar.forgotten}
+                            </Typography>
+                          </View>
+                          <View style={styles.metricDotBox}>
+                            <View
+                              style={[
+                                styles.dot,
+                                { backgroundColor: colors.ratingYellow },
+                              ]}
+                            />
+                            <Typography style={styles.dotText}>
+                              {selectedBar.hard}
+                            </Typography>
+                          </View>
+                          <View style={styles.metricDotBox}>
+                            <View
+                              style={[
+                                styles.dot,
+                                { backgroundColor: colors.ratingLightGreen },
+                              ]}
+                            />
+                            <Typography style={styles.dotText}>
+                              {selectedBar.good}
+                            </Typography>
+                          </View>
+                          <View style={styles.metricDotBox}>
+                            <View
+                              style={[
+                                styles.dot,
+                                { backgroundColor: colors.ratingDarkGreen },
+                              ]}
+                            />
+                            <Typography style={styles.dotText}>
+                              {selectedBar.easy}
+                            </Typography>
+                          </View>
+                        </View>
+                        {/* Стрелочка тултипа снизу */}
+                        <View style={styles.tooltipArrow} />
+                      </View>
+                    );
+                  })()}
+              </View>
+            )}
+
+            {/* Линейный график времени */}
+            {activeTab === "time" && (
+              <View style={styles.chartOuterContainer}>
+                <View style={styles.yAxis}>
+                  <Typography
+                    variant="h2"
+                    style={[styles.axisText, { textAlign: "center" }]}
+                  >
+                    {maxMinutes}
+                  </Typography>
+                  <Typography
+                    variant="h2"
+                    style={[styles.axisText, { textAlign: "center" }]}
+                  >
+                    {Math.round(maxMinutes * 0.75)}
+                  </Typography>
+                  <Typography
+                    variant="h2"
+                    style={[styles.axisText, { textAlign: "center" }]}
+                  >
+                    {Math.round(maxMinutes / 2)}
+                  </Typography>
+                  <Typography
+                    variant="h2"
+                    style={[styles.axisText, { textAlign: "center" }]}
+                  >
+                    {Math.round(maxMinutes * 0.25)}
+                  </Typography>
+                  <Typography
+                    variant="h2"
+                    style={[styles.axisText, { textAlign: "center" }]}
+                  >
+                    0
+                  </Typography>
+                </View>
+                <View
+                  style={styles.chartLinesWrapper}
+                  onLayout={(e) => setChartWidth(e.nativeEvent.layout.width)}
+                >
                   <View style={StyleSheet.absoluteFill}>
                     <View style={[styles.gridLine, { top: 0 }]} />
                     <View style={[styles.gridLine, { top: "25%" }]} />
@@ -479,251 +794,224 @@ export default function StatisticScreen() {
                       ]}
                     />
                   </View>
-
-                  {/* Рендер колонок */}
-                  {[...mockData.review_count.points]
-                    .sort(
-                      (a, b) =>
-                        new Date(b.date).getTime() - new Date(a.date).getTime(),
-                    )
-                    .map((item, index) => {
-                      const total =
-                        item.forgotten + item.hard + item.good + item.easy;
-
-                      // Расчет высоты каждого сегмента в пикселях на основе пропорции
-                      const forgottenHeight =
-                        (item.forgotten / maxTotalValue) * chartHeight;
-                      const hardHeight =
-                        (item.hard / maxTotalValue) * chartHeight;
-                      const goodHeight =
-                        (item.good / maxTotalValue) * chartHeight;
-                      const easyHeight =
-                        (item.easy / maxTotalValue) * chartHeight;
+                  {chartWidth > 0 && (
+                    <View
+                      style={[StyleSheet.absoluteFill, { zIndex: 2 }]}
+                      pointerEvents="box-none"
+                    >
+                      <Svg width={chartWidth} height={chartHeight}>
+                        {(() => {
+                          const paddingX = 4;
+                          const drawWidth = chartWidth - paddingX * 2;
+                          const getX = (i: number) =>
+                            TIME_DATA.length > 1
+                              ? paddingX +
+                                (i / (TIME_DATA.length - 1)) * drawWidth
+                              : chartWidth / 2;
+                          const getY = (seconds: number) => {
+                            const minutes = seconds / 60;
+                            return (
+                              chartHeight - (minutes / maxMinutes) * chartHeight
+                            );
+                          };
+                          return (
+                            <>
+                              <Polyline
+                                points={TIME_DATA.map(
+                                  (p, i) => `${getX(i)},${getY(p.seconds)}`,
+                                ).join(" ")}
+                                fill="none"
+                                stroke={colors.colorTimeStatisticGraph}
+                                strokeWidth={2}
+                              />
+                              {TIME_DATA.map((p, i) => (
+                                <React.Fragment key={p.date}>
+                                  <Circle
+                                    cx={getX(i)}
+                                    cy={getY(p.seconds)}
+                                    r={4}
+                                    fill={colors.colorTimeStatisticGraph}
+                                  />
+                                  <HoverableCircle
+                                    cx={getX(i)}
+                                    cy={getY(p.seconds)}
+                                    r={12}
+                                    fill="transparent"
+                                    onPress={() =>
+                                      handleTimePointPress(
+                                        p,
+                                        getX(i),
+                                        getY(p.seconds),
+                                      )
+                                    }
+                                    onMouseEnter={() =>
+                                      handleTimePointPress(
+                                        p,
+                                        getX(i),
+                                        getY(p.seconds),
+                                      )
+                                    }
+                                  />
+                                </React.Fragment>
+                              ))}
+                            </>
+                          );
+                        })()}
+                      </Svg>
+                    </View>
+                  )}
+                  {selectedTimePoint &&
+                    (() => {
+                      const dayReview = reviewPoints.find(
+                        (r) => r.date === selectedTimePoint.point.date,
+                      );
+                      const dayCards = dayReview
+                        ? dayReview.forgotten +
+                          dayReview.hard +
+                          dayReview.good +
+                          dayReview.easy
+                        : 0;
+                      const dayAvgSec =
+                        dayCards > 0
+                          ? Math.round(
+                              selectedTimePoint.point.seconds / dayCards,
+                            )
+                          : 0;
+                      const avgDiff =
+                        dayCards > 0 ? dayAvgSec - computedAverageSeconds : 0;
 
                       return (
-                        <View key={item.date} style={styles.barColumnWrapper}>
-                          {/* Сама интерактивная составная колонка */}
-                          <Pressable
-                            style={[
-                              styles.barColumn,
-                              { height: (total / maxTotalValue) * chartHeight },
-                            ]}
-                            onPress={(e) => handleBarPress(item, index, e)}
-                          >
-                            <View
-                              style={[
-                                styles.barSegment,
-                                {
-                                  height: forgottenHeight,
-                                  backgroundColor: colors.ratingRed,
-                                },
-                              ]}
-                            />
-                            <View
-                              style={[
-                                styles.barSegment,
-                                {
-                                  height: hardHeight,
-                                  backgroundColor: colors.ratingYellow,
-                                },
-                              ]}
-                            />
-                            <View
-                              style={[
-                                styles.barSegment,
-                                {
-                                  height: goodHeight,
-                                  backgroundColor: colors.ratingLightGreen,
-                                },
-                              ]}
-                            />
-                            <View
-                              style={[
-                                styles.barSegment,
-                                {
-                                  height: easyHeight,
-                                  backgroundColor: colors.ratingDarkGreen,
-                                },
-                              ]}
-                            />
-                          </Pressable>
-
-                          {/* Подпись даты внизу под углом или вертикально */}
-                          <View style={styles.xLabelWrapper}>
-                            <Typography variant="h3" style={styles.xLabelText}>
-                              {formatDateLabel(item.date)}
-                            </Typography>
-                          </View>
-                        </View>
-                      );
-                    })}
-                </View>
-              </ScrollView>
-
-              {/* ИНТЕРАКТИВНЫЙ ТУЛТИП (ПОДСКАЗКА) — вынесен из ScrollView, чтобы не обрезался */}
-              {selectedBar &&
-                (() => {
-                  const totalForSelected =
-                    selectedBar.forgotten +
-                    selectedBar.hard +
-                    selectedBar.good +
-                    selectedBar.easy;
-                  const successRate =
-                    totalForSelected > 0
-                      ? Math.round(
-                          ((selectedBar.good + selectedBar.easy) /
-                            totalForSelected) *
-                            100,
-                        )
-                      : 0;
-
-                  return (
-                    <View
-                      style={[
-                        styles.tooltipContainer,
-                        {
-                          left: tooltipPos.x - scrollOffsetX,
-                          top: tooltipPos.y,
-                        },
-                      ]}
-                    >
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                        }}
-                      >
-                        <Typography variant="h3" style={styles.tooltipDate}>
-                          {formatDateLabel(selectedBar.date)}
-                        </Typography>
-                        <Typography variant="h3" style={styles.tooltipTotal}>
-                          {totalForSelected} карт
-                        </Typography>
-                      </View>
-
-                      {/* Строка успешности с разницей */}
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          justifyContent: "center",
-                          alignItems: "center",
-                          marginVertical: 4,
-                        }}
-                      >
-                        <Typography variant="h3" style={styles.tooltipSuccessText}>
-                          Успешность: {successRate}%
-                        </Typography>
-                        <Typography
-                          variant="h3"
+                        <View
                           style={[
-                            styles.tooltipSuccessText,
+                            styles.tooltipContainer,
                             {
-                              color:
-                                successRate - computedSuccessRate >= 0
-                                  ? colors.ratingDarkGreen
-                                  : colors.ratingRed,
+                              width: 130,
+                              left: selectedTimePoint.x - 65,
+                              top: selectedTimePoint.y - 60,
                             },
                           ]}
                         >
-                          {" "}
-                          ({successRate - computedSuccessRate > 0 ? "+" : ""}
-                          {successRate - computedSuccessRate}%)
-                        </Typography>
-                      </View>
+                          {/* Строка 1: Дата + среднее время с разницей */}
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                              marginBottom: 4
+                            }}
+                          >
+                            <Typography
+                              variant="h3"
+                              style={[styles.tooltipDate]}
+                            >
+                              {formatDateLabel(selectedTimePoint.point.date)}
+                            </Typography>
+                            <View style={{ flexDirection: "row", alignItems: "center" }}>
+                              <Typography
+                                variant="h3"
+                                style={styles.tooltipDate}
+                              >
+                                {dayAvgSec} с
+                              </Typography>
+                              {avgDiff !== 0 && (
+                                <Typography
+                                  variant="h3"
+                                  style={[
+                                    styles.tooltipDate,
+                                    {
+                                      color:
+                                        avgDiff < 0
+                                          ? colors.ratingDarkGreen
+                                          : colors.ratingRed,
+                                    },
+                                  ]}
+                                >
+                                  {" "}
+                                  ({avgDiff > 0 ? "+" : ""}
+                                  {avgDiff})
+                                </Typography>
+                              )}
+                            </View>
+                          </View>
+                          {/* Строка 2: Общее время за день */}
+                          <Typography
+                            variant="h3"
+                            style={[
+                              styles.tooltipTotal,
+                              { textAlign: "center" },
+                            ]}
+                          >
+                            {Math.floor(selectedTimePoint.point.seconds / 60)}{" "}
+                            мин {selectedTimePoint.point.seconds % 60} сек
+                          </Typography>
+                          <View style={[styles.tooltipArrow, { left: 59 }]} />
+                        </View>
+                      );
+                    })()}
+                </View>
+              </View>
+            )}
 
-                      <View style={styles.tooltipMetricsRow}>
-                        <View style={styles.metricDotBox}>
-                          <View
-                            style={[
-                              styles.dot,
-                              { backgroundColor: colors.ratingRed },
-                            ]}
-                          />
-                          <Typography style={styles.dotText}>
-                            {selectedBar.forgotten}
-                          </Typography>
-                        </View>
-                        <View style={styles.metricDotBox}>
-                          <View
-                            style={[
-                              styles.dot,
-                              { backgroundColor: colors.ratingYellow },
-                            ]}
-                          />
-                          <Typography style={styles.dotText}>
-                            {selectedBar.hard}
-                          </Typography>
-                        </View>
-                        <View style={styles.metricDotBox}>
-                          <View
-                            style={[
-                              styles.dot,
-                              { backgroundColor: colors.ratingLightGreen },
-                            ]}
-                          />
-                          <Typography style={styles.dotText}>
-                            {selectedBar.good}
-                          </Typography>
-                        </View>
-                        <View style={styles.metricDotBox}>
-                          <View
-                            style={[
-                              styles.dot,
-                              { backgroundColor: colors.ratingDarkGreen },
-                            ]}
-                          />
-                          <Typography style={styles.dotText}>
-                            {selectedBar.easy}
-                          </Typography>
-                        </View>
-                      </View>
-                      {/* Стрелочка тултипа снизу */}
-                      <View style={styles.tooltipArrow} />
-                    </View>
-                  );
-                })()}
-            </View>
+            {activeTab === "time" && (
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "center",
+                }}
+              >
+                <Typography
+                  variant="h3"
+                  style={[styles.totalText, { fontWeight: "bold" }]}
+                >
+                  Всего:{" "}
+                </Typography>
+                <Typography variant="h3" style={styles.totalText}>
+                  {totalHoursLabel}
+                </Typography>
+              </View>
+            )}
 
             {/* Легенда категорий */}
-            <View style={styles.legendContainer}>
-              <View style={styles.legendItem}>
-                <View
-                  style={[
-                    styles.legendDot,
-                    { backgroundColor: colors.ratingRed },
-                  ]}
-                />
-                <Typography variant="h3">Забыл</Typography>
+            {activeTab === "cards" && (
+              <View style={styles.legendContainer}>
+                <View style={styles.legendItem}>
+                  <View
+                    style={[
+                      styles.legendDot,
+                      { backgroundColor: colors.ratingRed },
+                    ]}
+                  />
+                  <Typography variant="h3">Забыл</Typography>
+                </View>
+                <View style={styles.legendItem}>
+                  <View
+                    style={[
+                      styles.legendDot,
+                      { backgroundColor: colors.ratingYellow },
+                    ]}
+                  />
+                  <Typography variant="h3">Сложно</Typography>
+                </View>
+                <View style={styles.legendItem}>
+                  <View
+                    style={[
+                      styles.legendDot,
+                      { backgroundColor: colors.ratingLightGreen },
+                    ]}
+                  />
+                  <Typography variant="h3">Хорошо</Typography>
+                </View>
+                <View style={styles.legendItem}>
+                  <View
+                    style={[
+                      styles.legendDot,
+                      { backgroundColor: colors.ratingDarkGreen },
+                    ]}
+                  />
+                  <Typography variant="h3">Легко</Typography>
+                </View>
               </View>
-              <View style={styles.legendItem}>
-                <View
-                  style={[
-                    styles.legendDot,
-                    { backgroundColor: colors.ratingYellow },
-                  ]}
-                />
-                <Typography variant="h3">Сложно</Typography>
-              </View>
-              <View style={styles.legendItem}>
-                <View
-                  style={[
-                    styles.legendDot,
-                    { backgroundColor: colors.ratingLightGreen },
-                  ]}
-                />
-                <Typography variant="h3">Хорошо</Typography>
-              </View>
-              <View style={styles.legendItem}>
-                <View
-                  style={[
-                    styles.legendDot,
-                    { backgroundColor: colors.ratingDarkGreen },
-                  ]}
-                />
-                <Typography variant="h3">Легко</Typography>
-              </View>
-            </View>
+            )}
           </View>
         </ScrollView>
       </View>
