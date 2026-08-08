@@ -29,6 +29,7 @@ export const styles = StyleSheet.create({
     marginTop: 24,
     width: "100%",
     position: "relative",
+    right: 7
   },
 
   // ===== Ось Y (5 делений: 100% → 0%) =====
@@ -94,10 +95,11 @@ export const styles = StyleSheet.create({
     justifyContent: "space-around",
     width: "100%",
     paddingLeft: 53,
-    paddingRight: 8,
+    paddingRight: 16,
   },
   chart__xAxisTextWrapper: {
     flex: 1,
     alignItems: "center",
+    marginHorizontal: 4,
   },
 });

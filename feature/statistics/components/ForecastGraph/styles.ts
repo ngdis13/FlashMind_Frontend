@@ -1,30 +1,35 @@
 import { colors } from "@/styles/Colors";
 import { StyleSheet } from "react-native";
 
-export const activityGraphStyles = StyleSheet.create({
-  // ==================== БЛОК: activityGraph ====================
-  activityGraph: {
+export const styles = StyleSheet.create({
+  // ==================== БЛОК: forecastGraph ====================
+  forecastGraph: {
     flexDirection: "column",
+    paddingVertical: 20,
+    paddingHorizontal: 12,
+    position: "relative",
   },
-  activityGraph__header: {
+
+  // ===== Хедер =====
+  forecastGraph__header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     width: "100%",
+    marginBottom: 24,
   },
-  activityGraph__headerName: {
+  forecastGraph__headerName: {
     flexDirection: "row",
     gap: 8,
-    justifyContent: "center",
     alignItems: "center",
   },
-  activityGraph__infoIcon: {
+  forecastGraph__infoIcon: {
     width: 16,
     height: 16,
     padding: 6,
   },
 
-  // ===== Переключатель toggle =====
+  // ===== Переключатель =====
   toggle: {
     flexDirection: "row",
     backgroundColor: colors.light2MainColor,
@@ -52,23 +57,22 @@ export const activityGraphStyles = StyleSheet.create({
   // ==================== БЛОК: chart ====================
   chart: {
     flexDirection: "row",
-    marginTop: 24,
     width: "100%",
     position: "relative",
-    marginBottom: 16,
-        right:12
+    marginBottom: 8,
+    right: 12
   },
   chart__yAxis: {
     justifyContent: "space-between",
     alignItems: "flex-end",
     height: 200,
-    paddingRight: 8,
-    width: 35,
+    paddingRight: 12,
+    width: 45,
     borderRightWidth: 2,
     borderRightColor: colors.lightGray,
   },
   chart__axisText: {
-    fontSize: 10,
+    fontSize: 11,
     color: colors.darkGray,
   },
   chart__gridLine: {
@@ -79,64 +83,76 @@ export const activityGraphStyles = StyleSheet.create({
     borderColor: colors.lightGray,
   },
 
-  // ===== Столбчатый график =====
+  // ===== Скролл-область с графиком =====
   chart__scrollContent: {
-    paddingRight: 20,
-    paddingBottom: 60,
+    paddingBottom: 80,
   },
-  chart__bars: {
+  chart__barsContainer: {
     flexDirection: "row",
-    position: "relative",
     alignItems: "flex-end",
-    paddingBottom: 2,
-    paddingRight: 16,
+    height: 200,
+    position: "relative",
+    paddingLeft: 8,
+    paddingRight: 8,
   },
+
+  // ===== Столбики =====
   chart__barWrapper: {
     alignItems: "center",
-    width: 24,
-    marginHorizontal: 10,
+    width: 16,
+    marginRight: 12,
     height: "100%",
     justifyContent: "flex-end",
   },
   chart__bar: {
-    width: 24,
-    justifyContent: "flex-end",
-    zIndex: 3,
-    overflow: "hidden",
+    width: 16,
+    backgroundColor: colors.mainColor,
   },
-  chart__barSegment: {
-    width: "100%",
-  },
+
+  // ===== Ось X =====
   chart__xLabel: {
     position: "absolute",
-    bottom: -55,
+    bottom: -45,
+    left: "70%",
+    marginLeft: -40,
     width: 80,
     transform: [{ rotate: "70deg" }],
-    alignItems: "flex-start",
+    alignItems: "center",
   },
   chart__xLabelText: {
     fontSize: 10,
     color: colors.darkGray,
   },
 
-  // ===== Линейный график =====
-  chart__lines: {
-    flex: 1,
-    height: 200,
-    position: "relative",
+  // ==================== СВОДНАЯ СТАТИСТИКА ====================
+  stats__row: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    width: "100%",
   },
-  chart__totalText: {
-    textAlign: "center",
+  stats__column: {
+    flexDirection: "column",
+    alignItems: "center",
+    flex: 1,
+  },
+  stats__value: {
+    fontWeight: "700",
     color: colors.darkMainColor,
   },
+  stats__label: {
+    fontSize: 10,
+    color: colors.darkGray,
+    textAlign: "center",
+    marginTop: 4,
+  },
 
-  // ==================== БЛОК: tooltip ====================
+  // ==================== ТУЛТИП ====================
   tooltip: {
     position: "absolute",
     backgroundColor: colors.darkMainColor,
     borderRadius: 8,
     padding: 8,
-    width: 170,
+    width: 80,
     zIndex: 999,
     elevation: 999,
     shadowColor: "#000",
@@ -145,44 +161,20 @@ export const activityGraphStyles = StyleSheet.create({
     shadowRadius: 4,
   },
   tooltip__date: {
-    fontSize: 8,
+    fontSize: 7,
     color: colors.lightGray,
+    textAlign: "center",
+    marginBottom: 2,
   },
-  tooltip__total: {
-    fontSize: 8,
-    color: colors.white,
-    fontWeight: "bold",
-    marginVertical: 2,
-  },
-  tooltip__success: {
+  tooltip__count: {
     fontSize: 10,
     color: colors.white,
     textAlign: "center",
-    marginVertical: 4,
-  },
-  tooltip__metrics: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 4,
-  },
-  tooltip__metricDot: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 3,
-  },
-  tooltip__dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  tooltip__dotText: {
-    fontSize: 9,
-    color: colors.white,
   },
   tooltip__arrow: {
     position: "absolute",
     bottom: -6,
-    left: 79,
+    left: 34,
     width: 0,
     height: 0,
     borderLeftWidth: 6,
@@ -191,23 +183,5 @@ export const activityGraphStyles = StyleSheet.create({
     borderRightColor: "transparent",
     borderTopWidth: 6,
     borderTopColor: colors.darkMainColor,
-  },
-
-  // ==================== БЛОК: legend ====================
-  legend: {
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 16,
-    flexWrap: "wrap",
-  },
-  legend__item: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  legend__dot: {
-    width: 12,
-    height: 12,
-    borderRadius: 12,
   },
 });

@@ -32,6 +32,7 @@ import ProductivityGraph from "../components/ProductivityGraph";
 import CardsStatusGraph from "../components/CardsStatusGraph";
 import DifficultyCardsGraph from "../components/DifficultyCardsGraph";
 import StabilityGraph from "../components/StabilityGraph";
+import ForecastGraph from "../components/ForecastGraph";
 
 const SMOOTH_TIMING_CONFIG = {
   duration: 280,
@@ -58,6 +59,7 @@ export default function StatisticScreen() {
   const cardTypes = mockData.card_types.points;
   const difficultyDistribution = mockData.difficulty_distribution.points;
   const stabilityDistribution = mockData.stability_distribution.points;
+  const forecast = mockData.forecast.points;
 
   // Вычисляемые из графиков значения (для верхних плашек)
   const computedSuccessRate = calcSuccessRate(reviewPoints);
@@ -146,6 +148,7 @@ export default function StatisticScreen() {
     >
       <View style={[commonStyles.container, { flex: 1 }]}>
         <ScrollView
+          showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContainer}
           style={{ width: "100%" }}
           scrollEventThrottle={16}
@@ -291,6 +294,7 @@ export default function StatisticScreen() {
                 <CardsStatusGraph cardTypes={cardTypes} isWide={isWide} />
               </View>
             </View>
+            <ForecastGraph forecast={forecast} />
 
             <DifficultyCardsGraph difficultyDistribution={difficultyDistribution} />
             <StabilityGraph stabilityDistribution={stabilityDistribution} />

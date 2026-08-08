@@ -25,7 +25,8 @@ export const styles = StyleSheet.create({
   chart: {
     flexDirection: "row",
     width: "100%",
-    marginBottom: 16
+    marginBottom: 16,
+    right: 12
   },
   chart__yAxis: {
     justifyContent: "space-between",
