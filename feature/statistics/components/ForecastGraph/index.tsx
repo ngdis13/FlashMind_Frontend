@@ -3,12 +3,6 @@ import { commonStyles } from "@/styles/Common";
 import { Typography } from "@/styles/Typography";
 import { colors } from "@/styles/Colors";
 import { Pressable, View, Image, StyleSheet, ScrollView, type DimensionValue } from "react-native";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-  Easing,
-} from "react-native-reanimated";
 import { styles } from "./styles";
 import IconInfo from "@/assets/icons/IconInfo.png";
 
@@ -21,11 +15,6 @@ interface ForecastGraphProps {
   forecast: ForecastPoint[];
 }
 
-const SMOOTH_CONFIG = {
-  duration: 250,
-  easing: Easing.bezier(0.25, 1, 0.5, 1),
-};
-
 const formatDateLabel = (dateStr: string) => {
   const checkDate = new Date(dateStr);
   const months = [
@@ -37,33 +26,30 @@ const formatDateLabel = (dateStr: string) => {
 };
 
 export default function ForecastGraph({ forecast }: ForecastGraphProps) {
-  const [activeTab, setActiveTab] = useState<"days" | "weeks">("days");
-  const tabProgress = useSharedValue(0);
-
   const [selectedBar, setSelectedBar] = useState<ForecastPoint | null>(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
   const [scrollOffsetX, setScrollOffsetX] = useState(0);
-
-  const handleTabChange = (tab: "days" | "weeks") => {
-    setActiveTab(tab);
-    tabProgress.value = withTiming(tab === "days" ? 0 : 1, SMOOTH_CONFIG);
-  };
-
-  const sliderStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: tabProgress.value * 88 }],
-  }));
 
   const handleInfo = () => {
     console.log("Информация о прогнозе");
   };
 
-  const maxCount = Math.max(...forecast.map((p) => p.count), 10);
+  // Все дни
+  const displayData = forecast;
+
+  // Месячные метки: каждые 30 дней
+  const monthMarkers = Array.from({ length: Math.ceil(displayData.length / 30) }, (_, m) => ({
+    index: m * 30,
+    label: m === 0 ? "Текущий мес" : `+${m} мес`,
+  }));
+
+  const maxCount = Math.max(...displayData.map((p) => p.count), 10);
   const maxValue = Math.ceil(maxCount * 1.15);
 
   const handleBarPress = (item: ForecastPoint, index: number) => {
-    const barWidthWithGap = 28; // 16 + 12 gap
+    const barWidthWithGap = 10; // 8 wrapper + 2 margin
     const barHeightPx = (item.count / maxValue) * 200;
-    setTooltipPos({ x: index * barWidthWithGap + 21, y: 200 - barHeightPx - 55 });
+    setTooltipPos({ x: index * barWidthWithGap + 17, y: 200 - barHeightPx - 55 });
     setSelectedBar(selectedBar?.date === item.date ? null : item);
   };
 
@@ -80,28 +66,12 @@ export default function ForecastGraph({ forecast }: ForecastGraphProps) {
 
   return (
     <View style={[commonStyles.mainBox, styles.forecastGraph]}>
-      {/* ===== Заголовок с переключателем ===== */}
-      <View style={styles.forecastGraph__header}>
-        <View style={styles.forecastGraph__headerName}>
-          <Typography variant="h2">Прогноз</Typography>
-          <Pressable onPress={handleInfo}>
-            <Image source={IconInfo} style={styles.forecastGraph__infoIcon} />
-          </Pressable>
-        </View>
-
-        <View style={styles.toggle}>
-          <Animated.View style={[styles.toggle__slider, sliderStyle]} />
-          <Pressable style={styles.toggle__button} onPress={() => handleTabChange("days")}>
-            <Typography variant="h3" color={activeTab === "days" ? colors.white : colors.darkMainColor}>
-              Дни
-            </Typography>
-          </Pressable>
-          <Pressable style={styles.toggle__button} onPress={() => handleTabChange("weeks")}>
-            <Typography variant="h3" color={activeTab === "weeks" ? colors.white : colors.darkMainColor}>
-              Недели
-            </Typography>
-          </Pressable>
-        </View>
+      {/* ===== Заголовок ===== */}
+      <View style={styles.forecastGraph__headerName}>
+        <Typography variant="h2">Прогноз</Typography>
+        <Pressable onPress={handleInfo}>
+          <Image source={IconInfo} style={styles.forecastGraph__infoIcon} />
+        </Pressable>
       </View>
 
       {/* ===== Блок chart ===== */}
@@ -135,27 +105,28 @@ export default function ForecastGraph({ forecast }: ForecastGraphProps) {
             </View>
 
             {/* Столбики */}
-            {forecast.map((point, index) => {
+            {displayData.map((point, index) => {
               const barHeight = maxValue > 0 ? `${(point.count / maxValue) * 100}%` : "0%";
               return (
                 <Pressable key={index} style={styles.chart__barWrapper} onPress={() => handleBarPress(point, index)}>
                   <View style={[styles.chart__bar, { height: barHeight as DimensionValue }]} />
-                  {/* Подпись даты */}
-                  <View style={styles.chart__xLabel}>
-                    <Typography variant="h3" style={styles.chart__xLabelText}>
-                      {formatDateLabel(point.date)}
-                    </Typography>
-                  </View>
                 </Pressable>
               );
             })}
+
+            {/* Метки месяцев */}
+            {monthMarkers.map((m) => (
+              <Typography key={m.index} variant="h3" style={[styles.chart__axisText, { position: "absolute", left: m.index * 10 + 8, bottom: -16, zIndex: 1 }]}>
+                {m.label}
+              </Typography>
+            ))}
           </View>
         </ScrollView>
 
         {/* Тултип */}
         {selectedBar && (
           <View style={[styles.tooltip, { left: tooltipPos.x - scrollOffsetX, top: tooltipPos.y }]}>
-            <Typography variant="h3" style={styles.tooltip__date}>{formatDateLabel(selectedBar.date)}</Typography>
+            <Typography variant="h3" style={styles.tooltip__date}>{selectedBar.date.includes(" ") ? selectedBar.date : formatDateLabel(selectedBar.date)}</Typography>
             <Typography variant="h3" style={styles.tooltip__count}>{selectedBar.count} карт</Typography>
             <View style={styles.tooltip__arrow} />
           </View>
@@ -164,11 +135,11 @@ export default function ForecastGraph({ forecast }: ForecastGraphProps) {
 
       {/* ===== Сводная статистика ===== */}
       {(() => {
-        const nextDayCount = forecast[0]?.count ?? 0;
+        const nextDayCount = displayData[0]?.count ?? 0;
         const averageDaily = Math.round(
-          forecast.reduce((sum, p) => sum + p.count, 0) / forecast.length,
+          displayData.reduce((sum, p) => sum + p.count, 0) / displayData.length,
         );
-        const totalViews = forecast.reduce((sum, p) => sum + p.count, 0);
+        const totalViews = displayData.reduce((sum, p) => sum + p.count, 0);
 
         return (
           <View style={styles.stats__row}>

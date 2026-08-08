@@ -8,20 +8,16 @@ export const styles = StyleSheet.create({
     paddingVertical: 20,
     paddingHorizontal: 12,
     position: "relative",
+
   },
 
   // ===== Хедер =====
-  forecastGraph__header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    width: "100%",
-    marginBottom: 24,
-  },
+
   forecastGraph__headerName: {
     flexDirection: "row",
     gap: 8,
     alignItems: "center",
+     marginBottom: 16,
   },
   forecastGraph__infoIcon: {
     width: 16,
@@ -29,30 +25,7 @@ export const styles = StyleSheet.create({
     padding: 6,
   },
 
-  // ===== Переключатель =====
-  toggle: {
-    flexDirection: "row",
-    backgroundColor: colors.light2MainColor,
-    borderRadius: 14,
-    padding: 4,
-    position: "relative",
-  },
-  toggle__slider: {
-    position: "absolute",
-    top: 4,
-    bottom: 4,
-    left: 4,
-    width: 88,
-    backgroundColor: colors.mainNumber,
-    borderRadius: 12,
-  },
-  toggle__button: {
-    width: 88,
-    height: 33,
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 2,
-  },
+
 
   // ==================== БЛОК: chart ====================
   chart: {
@@ -85,7 +58,7 @@ export const styles = StyleSheet.create({
 
   // ===== Скролл-область с графиком =====
   chart__scrollContent: {
-    paddingBottom: 80,
+    paddingBottom: 20,
   },
   chart__barsContainer: {
     flexDirection: "row",
@@ -99,13 +72,13 @@ export const styles = StyleSheet.create({
   // ===== Столбики =====
   chart__barWrapper: {
     alignItems: "center",
-    width: 16,
-    marginRight: 12,
+    width: 8,
+    marginRight: 2,
     height: "100%",
     justifyContent: "flex-end",
   },
   chart__bar: {
-    width: 16,
+    width: 6,
     backgroundColor: colors.mainColor,
   },
 
@@ -122,6 +95,12 @@ export const styles = StyleSheet.create({
   chart__xLabelText: {
     fontSize: 10,
     color: colors.darkGray,
+  },
+
+  // ===== Метки месяцев =====
+  chart__monthsRow: {
+    position: "relative",
+    height: 20,
   },
 
   // ==================== СВОДНАЯ СТАТИСТИКА ====================

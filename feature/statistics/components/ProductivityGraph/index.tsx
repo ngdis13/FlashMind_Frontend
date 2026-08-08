@@ -1,5 +1,6 @@
+import React, { useEffect, useRef } from "react";
 import { commonStyles } from "@/styles/Common";
-import { View, StyleSheet, Image, Pressable } from "react-native";
+import { View, StyleSheet, Image, Pressable, Animated } from "react-native";
 import { Typography } from "@/styles/Typography";
 import { styles } from "./styles";
 
@@ -29,6 +30,21 @@ export default function ProductivityGraph({
   hourlyBreakdown,
 }: ProductivityGraphProps) {
   const maxPercentage = 100;
+
+  // Анимация столбиков
+  const barAnimations = useRef(hourlyBreakdown.map(() => new Animated.Value(0))).current;
+
+  useEffect(() => {
+    const animations = barAnimations.map((anim, i) =>
+      Animated.timing(anim, {
+        toValue: 1,
+        duration: 400,
+        delay: 1000 + i * 100,
+        useNativeDriver: false,
+      })
+    );
+    Animated.parallel(animations).start();
+  }, []);
 
   const handleInfo = () => {
     console.log('Информация по продуктивности по часам')
@@ -68,10 +84,18 @@ export default function ProductivityGraph({
 
           {/* Столбики: высота = percentage от maxPercentage */}
           <View style={styles.chart__barsContainer}>
-            {hourlyBreakdown.map((p) => (
+            {hourlyBreakdown.map((p, i) => (
               <View key={p.hour_range} style={styles.chart__barWrapper}>
-                <View
-                  style={[styles.chart__bar, { height: `${(p.percentage / maxPercentage) * 100}%` }]}
+                <Animated.View
+                  style={[
+                    styles.chart__bar,
+                    {
+                      height: barAnimations[i].interpolate({
+                        inputRange: [0, 1],
+                        outputRange: ["0%", `${(p.percentage / maxPercentage) * 100}%`],
+                      }),
+                    },
+                  ]}
                 />
               </View>
             ))}
