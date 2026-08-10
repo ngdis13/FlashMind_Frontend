@@ -5,6 +5,7 @@ import { colors } from "@/styles/Colors";
 import { Pressable, View, Image, StyleSheet, ScrollView, type DimensionValue } from "react-native";
 import { styles } from "./styles";
 import IconInfo from "@/assets/icons/IconInfo.png";
+import { InfoForecast } from "./components/InfoForecast";
 
 type ForecastPoint = {
   date: string;
@@ -30,8 +31,10 @@ export default function ForecastGraph({ forecast }: ForecastGraphProps) {
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
   const [scrollOffsetX, setScrollOffsetX] = useState(0);
 
+  const [isInfoVisible, setIsInfoVisible] = useState(false);
+
   const handleInfo = () => {
-    console.log("Информация о прогнозе");
+    setIsInfoVisible(true);
   };
 
   // Все дни
@@ -155,6 +158,10 @@ export default function ForecastGraph({ forecast }: ForecastGraphProps) {
               <Typography variant="h2" style={styles.stats__value}>{totalViews.toLocaleString("ru-RU")}</Typography>
               <Typography variant="h3" style={styles.stats__label}>всего{"\n"}просмотров</Typography>
             </View>
+            <InfoForecast
+              visible={isInfoVisible}
+              onClose={() => setIsInfoVisible(false)}
+            />
           </View>
         );
       })()}

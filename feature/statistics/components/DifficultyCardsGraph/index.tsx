@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { commonStyles } from "@/styles/Common";
 import { Typography } from "@/styles/Typography";
 import { colors } from "@/styles/Colors";
 import { Pressable, View, Image, StyleSheet, type DimensionValue } from "react-native";
 import IconInfo from "@/assets/icons/IconInfo.png";
 import { styles } from "./styles";
+import { InfoDifficulty } from "./components/InfoDifficulty";
 
 type DifficultyPoint = {
   range_label: string; // Сложность: "1", "2", ..., "9+"
@@ -29,8 +31,10 @@ const BAR_COLORS = [
 export default function DifficultyCardsGraph({
   difficultyDistribution = [],
 }: DifficultyCardsGraphProps) {
+  const [isInfoVisible, setIsInfoVisible] = useState(false);
+
   const handleInfo = () => {
-    console.log("Информация о сложности карточек");
+    setIsInfoVisible(true);
   };
 
   // 1. Максимум по оси Y (количество карточек) из данных
@@ -124,6 +128,10 @@ export default function DifficultyCardsGraph({
                       styles.chart__bar,
                       { height: barHeight as DimensionValue, backgroundColor: barColor },
                     ]}
+                  />
+                  <InfoDifficulty
+                    visible={isInfoVisible}
+                    onClose={() => setIsInfoVisible(false)}
                   />
                 </View>
               );
