@@ -21,6 +21,8 @@ import { activityGraphStyles as styles } from "./styles";
 import { calcSuccessRate } from "@/utils/helpers/calcSuccessRate";
 
 import IconInfo from "@/assets/icons/IconInfo.png";
+import { InfoActivityCards } from "./components/InfoActivityCards";
+import { InfoActivityTime } from "./components/InfoActivityTime";
 
 // ==================== Типы ====================
 type ReviewPoint = {
@@ -86,6 +88,7 @@ export default function ActivityGraph({
   const [selectedBar, setSelectedBar] = useState<ReviewPoint | null>(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
   const [scrollOffsetX, setScrollOffsetX] = useState(0);
+  const [isInfoVisible, setIsInfoVisible] = useState(false);
 
   const [chartWidth, setChartWidth] = useState(0);
   const [selectedTimePoint, setSelectedTimePoint] = useState<{
@@ -185,7 +188,7 @@ export default function ActivityGraph({
 
   // ========== Рендер ==========
   const handleInfo = () => {
-    console.log("Информация по активности");
+    setIsInfoVisible(true);
   };
 
   return (
@@ -332,7 +335,10 @@ export default function ActivityGraph({
                         />
                       </Pressable>
                       <View style={styles.chart__xLabel}>
-                        <Typography variant="h3" style={styles.chart__xLabelText}>
+                        <Typography
+                          variant="h3"
+                          style={styles.chart__xLabelText}
+                        >
                           {formatDateLabel(item.date)}
                         </Typography>
                       </View>
@@ -469,25 +475,25 @@ export default function ActivityGraph({
               variant="h2"
               style={[styles.chart__axisText, { textAlign: "center" }]}
             >
-              {maxMinutes} 
+              {maxMinutes}
             </Typography>
             <Typography
               variant="h2"
               style={[styles.chart__axisText, { textAlign: "center" }]}
             >
-              {Math.round(maxMinutes * 0.75)} 
+              {Math.round(maxMinutes * 0.75)}
             </Typography>
             <Typography
               variant="h2"
               style={[styles.chart__axisText, { textAlign: "center" }]}
             >
-              {Math.round(maxMinutes / 2)} 
+              {Math.round(maxMinutes / 2)}
             </Typography>
             <Typography
               variant="h2"
               style={[styles.chart__axisText, { textAlign: "center" }]}
             >
-              {Math.round(maxMinutes * 0.25)} 
+              {Math.round(maxMinutes * 0.25)}
             </Typography>
             <Typography
               variant="h2"
@@ -684,7 +690,10 @@ export default function ActivityGraph({
         <View style={styles.legend}>
           <View style={styles.legend__item}>
             <View
-              style={[styles.legend__dot, { backgroundColor: colors.ratingRed }]}
+              style={[
+                styles.legend__dot,
+                { backgroundColor: colors.ratingRed },
+              ]}
             />
             <Typography variant="h3">Забыл</Typography>
           </View>
@@ -716,6 +725,17 @@ export default function ActivityGraph({
             <Typography variant="h3">Легко</Typography>
           </View>
         </View>
+      )}
+      {activeTab === "cards" ? (
+        <InfoActivityCards
+          visible={isInfoVisible}
+          onClose={() => setIsInfoVisible(false)}
+        />
+      ) : (
+        <InfoActivityTime
+          visible={isInfoVisible}
+          onClose={() => setIsInfoVisible(false)}
+        />
       )}
     </View>
   );

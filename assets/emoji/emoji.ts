@@ -1,0 +1,18 @@
+export const AppEmojis = {
+  arrows: require("../emoji-png/arrows.png"),
+  stopwatch: require("../emoji-png/stopwatch.png"),
+  lightning: require("../emoji-png/lightning.png"),
+  barChart: require("../emoji-png/barChart.png"),
+  warning: require("../emoji-png/warning.png"),
+  brain: require("../emoji-png/brain.png"),
+  target: require("../emoji-png/target.png"),
+  sleep: require("../emoji-png/sleep.png"),
+  rocket: require("../emoji-png/rocket.png"),
+  chartDown: require("../emoji-png/chartDown.png"),
+  hourglass: require("../emoji-png/hourglass.png"),
+  calendar: require("../emoji-png/calendar.png"),
+  box: require("../emoji-png/box.png"),
+  chartUp: require("../emoji-png/chartUp.png"),
+  tapFinger: require("../emoji-png/tapFinger.png"),
+  lightbulb: require("../emoji-png/lightbulb.png"),
+};

@@ -1,7 +1,7 @@
-import React from 'react';
-import { Text, TextProps, TextStyle } from 'react-native';
+import React from "react";
+import { Text, TextProps, TextStyle } from "react-native";
 
-type TypographyVariant = 'h1' | 'h2' | 'h3';
+type TypographyVariant = "h1" | "h2" | "h3" | "span" | "p";
 
 interface TypographyProps extends TextProps {
   variant?: TypographyVariant;
@@ -9,31 +9,41 @@ interface TypographyProps extends TextProps {
 }
 
 const baseStyle: TextStyle = {
-  fontFamily: 'MontserratSemiBold',
+  fontFamily: "MontserratSemiBold",
   fontSize: 16,
-  color: '#282B54',
+  color: "#282B54",
 };
 
 export const variants: Record<TypographyVariant, TextStyle> = {
   h1: {
     fontSize: 24,
-    fontFamily: 'MontserratSemiBold',
-    color: '#282B54',
+    fontFamily: "MontserratSemiBold",
+    color: "#282B54",
   },
   h2: {
     fontSize: 16,
-    fontFamily: 'MontserratSemiBold',
-    color: '#282B54',
+    fontFamily: "MontserratSemiBold",
+    color: "#282B54",
   },
   h3: {
     fontSize: 12,
-    fontFamily: 'MontserratSemiBold',
-    color: '#282B54',
+    fontFamily: "MontserratSemiBold",
+    color: "#282B54",
+  },
+  span: {
+    fontSize: 14,
+    fontFamily: "MontserratSemiBold",
+    color: "#282B54",
+  },
+  p: {
+    fontSize: 13,
+    fontFamily: "MontserratSemiBold",
+    color: "#282B54",
   },
 };
 
 export const Typography = ({
-  variant = 'h2',
+  variant = "h2",
   style,
   color,
   children,
@@ -42,12 +52,7 @@ export const Typography = ({
   return (
     <Text
       {...props}
-      style={[
-        baseStyle,
-        variants[variant],
-        color ? { color } : {},
-        style,
-      ]}
+      style={[baseStyle, variants[variant], color ? { color } : {}, style]}
     >
       {children}
     </Text>
