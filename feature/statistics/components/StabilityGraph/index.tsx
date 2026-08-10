@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { commonStyles } from "@/styles/Common";
 import { Pressable, View, Image, StyleSheet } from "react-native";
 import { styles } from "./style";
 import { Typography } from "@/styles/Typography";
 import IconInfo from "@/assets/icons/IconInfo.png";
+import { InfoStability } from "./components/InfoStability";
 
 type StabilityPoint = {
   range_label: string;
@@ -18,8 +20,10 @@ export default function StabilityGraph({
   stabilityDistribution,
   averageStability = "42 дня",
 }: StabilityGraphProps) {
+  const [isInfoVisible, setIsInfoVisible] = useState(false);
+
   const handleInfo = () => {
-    console.log("Информация о стабильности");
+    setIsInfoVisible(true);
   };
 
   // 1. Находим чистый максимум из данных
@@ -75,6 +79,10 @@ export default function StabilityGraph({
                     </Typography>
                     {/* Сам столбец */}
                     <View style={[styles.chart__bar, { height: `${barHeightPercentage}%` }]} />
+                    <InfoStability
+                      visible={isInfoVisible}
+                      onClose={() => setIsInfoVisible(false)}
+                    />
                   </View>
                 );
               })}
