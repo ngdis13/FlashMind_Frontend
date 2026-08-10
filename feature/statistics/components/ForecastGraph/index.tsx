@@ -158,13 +158,13 @@ export default function ForecastGraph({ forecast }: ForecastGraphProps) {
               <Typography variant="h2" style={styles.stats__value}>{totalViews.toLocaleString("ru-RU")}</Typography>
               <Typography variant="h3" style={styles.stats__label}>всего{"\n"}просмотров</Typography>
             </View>
-            <InfoForecast
-              visible={isInfoVisible}
-              onClose={() => setIsInfoVisible(false)}
-            />
           </View>
         );
       })()}
+      <InfoForecast
+        visible={isInfoVisible}
+        onClose={() => setIsInfoVisible(false)}
+      />
     </View>
   );
 }

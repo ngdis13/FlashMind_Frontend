@@ -2,7 +2,13 @@ import { useState } from "react";
 import { commonStyles } from "@/styles/Common";
 import { Typography } from "@/styles/Typography";
 import { colors } from "@/styles/Colors";
-import { Pressable, View, Image, StyleSheet, type DimensionValue } from "react-native";
+import {
+  Pressable,
+  View,
+  Image,
+  StyleSheet,
+  type DimensionValue,
+} from "react-native";
 import IconInfo from "@/assets/icons/IconInfo.png";
 import { styles } from "./styles";
 import { InfoDifficulty } from "./components/InfoDifficulty";
@@ -126,12 +132,11 @@ export default function DifficultyCardsGraph({
                   <View
                     style={[
                       styles.chart__bar,
-                      { height: barHeight as DimensionValue, backgroundColor: barColor },
+                      {
+                        height: barHeight as DimensionValue,
+                        backgroundColor: barColor,
+                      },
                     ]}
-                  />
-                  <InfoDifficulty
-                    visible={isInfoVisible}
-                    onClose={() => setIsInfoVisible(false)}
                   />
                 </View>
               );
@@ -153,12 +158,14 @@ export default function DifficultyCardsGraph({
 
       {/* ===== Средняя сложность ===== */}
       <View style={styles.difficultyCardsGraph__footer}>
-        <Typography
-          variant="h3"
-        >
+        <Typography variant="h3">
           Средняя сложность: {averageDifficulty}
         </Typography>
       </View>
+      <InfoDifficulty
+        visible={isInfoVisible}
+        onClose={() => setIsInfoVisible(false)}
+      />
     </View>
   );
 }

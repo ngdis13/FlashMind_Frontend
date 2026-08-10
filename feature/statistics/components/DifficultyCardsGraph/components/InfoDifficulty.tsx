@@ -137,7 +137,7 @@ export const InfoDifficulty = ({ visible, onClose }: InfoDifficultyProps) => {
                   чем выше сложность карточки, тем медленнее растет её
                   стабильность.
                 </Typography>
-              </Typography>{" "}
+              </Typography>
             </View>
 
             <View style={styles.listItem}>
@@ -146,7 +146,7 @@ export const InfoDifficulty = ({ visible, onClose }: InfoDifficultyProps) => {
                   2.{" "}
                   <Image source={AppEmojis.tools} style={styles.inlineEmoji} />{" "}
                   Разгружай красную зону:
-                </Typography>{" "}
+                </Typography>
                 Повторяй сложные карточки вне обучения или разбей их на более
                 простые. Если сложных карточек много, они будут тормозить весь
                 прогресс.
