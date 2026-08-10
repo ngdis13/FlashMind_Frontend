@@ -139,6 +139,10 @@ export default function ActivityGraph({
   const totalSeconds = TIME_DATA.reduce((sum, p) => sum + p.seconds, 0);
   const totalHoursLabel = `${Math.floor(totalSeconds / 3600)} ч ${Math.floor((totalSeconds % 3600) / 60)} мин`;
 
+  /** Ширина линейного графика: по 44px на точку, минимум как экран */
+  const POINT_SPACING = 44;
+  const timeChartWidth = Math.max(chartWidth, TIME_DATA.length * POINT_SPACING);
+
   const computedSuccessRate = calcSuccessRate(reviewPoints);
 
   // Общее среднее время на карточку в секундах
@@ -503,36 +507,41 @@ export default function ActivityGraph({
             </Typography>
           </View>
 
-          <View
-            style={styles.chart__lines}
-            onLayout={(e) => setChartWidth(e.nativeEvent.layout.width)}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.chart__scrollContent}
+            onScrollBeginDrag={() => setSelectedTimePoint(null)}
+            scrollEventThrottle={16}
           >
-            <View style={StyleSheet.absoluteFill}>
-              <View style={[styles.chart__gridLine, { top: 0 }]} />
-              <View style={[styles.chart__gridLine, { top: "25%" }]} />
-              <View style={[styles.chart__gridLine, { top: "50%" }]} />
-              <View style={[styles.chart__gridLine, { top: "75%" }]} />
-              <View
-                style={[
-                  styles.chart__gridLine,
-                  { bottom: 0, borderBottomWidth: 2, borderColor: "#E5E5E5" },
-                ]}
-              />
-            </View>
+            <View style={{ width: timeChartWidth, height: chartHeight, position: "relative" }}>
+              {/* Сетка */}
+              <View style={StyleSheet.absoluteFill}>
+                <View style={[styles.chart__gridLine, { top: 0 }]} />
+                <View style={[styles.chart__gridLine, { top: "25%" }]} />
+                <View style={[styles.chart__gridLine, { top: "50%" }]} />
+                <View style={[styles.chart__gridLine, { top: "75%" }]} />
+                <View
+                  style={[
+                    styles.chart__gridLine,
+                    { bottom: 0, borderBottomWidth: 2, borderColor: "#E5E5E5" },
+                  ]}
+                />
+              </View>
 
-            {chartWidth > 0 && (
+              {/* SVG с линией и точками */}
               <View
                 style={[StyleSheet.absoluteFill, { zIndex: 2 }]}
                 pointerEvents="box-none"
               >
-                <Svg width={chartWidth} height={chartHeight}>
+                <Svg width={timeChartWidth} height={chartHeight}>
                   {(() => {
-                    const paddingX = 4;
-                    const drawWidth = chartWidth - paddingX * 2;
+                    const paddingX = 20;
+                    const drawWidth = timeChartWidth - paddingX * 2;
                     const getX = (i: number) =>
                       TIME_DATA.length > 1
                         ? paddingX + (i / (TIME_DATA.length - 1)) * drawWidth
-                        : chartWidth / 2;
+                        : timeChartWidth / 2;
                     const getY = (seconds: number) => {
                       const minutes = seconds / 60;
                       return chartHeight - (minutes / maxMinutes) * chartHeight;
@@ -582,86 +591,113 @@ export default function ActivityGraph({
                   })()}
                 </Svg>
               </View>
-            )}
 
-            {/* Тултип линейного графика */}
-            {selectedTimePoint &&
-              (() => {
-                const dayReview = reviewPoints.find(
-                  (r) => r.date === selectedTimePoint.point.date,
-                );
-                const dayCards = dayReview
-                  ? dayReview.forgotten +
-                    dayReview.hard +
-                    dayReview.good +
-                    dayReview.easy
-                  : 0;
-                const dayAvgSec =
-                  dayCards > 0
-                    ? Math.round(selectedTimePoint.point.seconds / dayCards)
-                    : 0;
-                const avgDiff =
-                  dayCards > 0 ? dayAvgSec - computedAverageSeconds : 0;
-
+              {/* Подписи дат (ось X) */}
+              {TIME_DATA.map((p, i) => {
+                const paddingX = 20;
+                const drawWidth = timeChartWidth - paddingX * 2;
+                const x =
+                  TIME_DATA.length > 1
+                    ? paddingX + (i / (TIME_DATA.length - 1)) * drawWidth
+                    : timeChartWidth / 2;
                 return (
                   <View
-                    style={[
-                      styles.tooltip,
-                      {
-                        width: 130,
-                        left: selectedTimePoint.x - 65,
-                        top: selectedTimePoint.y - 60,
-                      },
-                    ]}
+                    key={`label-${p.date}`}
+                    style={{
+                      position: "absolute",
+                      bottom: -55,
+                      left: x - 40,
+                      width: 80,
+                      transform: [{ rotate: "70deg" }],
+                      alignItems: "flex-start",
+                    }}
                   >
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                      }}
-                    >
-                      <Typography variant="h3" style={styles.tooltip__date}>
-                        {formatDateLabel(selectedTimePoint.point.date)}
-                      </Typography>
-                      <View
-                        style={{ flexDirection: "row", alignItems: "center" }}
-                      >
-                        <Typography variant="h3" style={styles.tooltip__date}>
-                          {dayAvgSec} с
-                        </Typography>
-                        {avgDiff !== 0 && (
-                          <Typography
-                            variant="h3"
-                            style={[
-                              styles.tooltip__date,
-                              {
-                                color:
-                                  avgDiff < 0
-                                    ? colors.ratingDarkGreen
-                                    : colors.ratingRed,
-                              },
-                            ]}
-                          >
-                            {" "}
-                            ({avgDiff > 0 ? "+" : ""}
-                            {avgDiff})
-                          </Typography>
-                        )}
-                      </View>
-                    </View>
-                    <Typography
-                      variant="h3"
-                      style={[styles.tooltip__total, { textAlign: "center" }]}
-                    >
-                      {Math.floor(selectedTimePoint.point.seconds / 60)} мин{" "}
-                      {selectedTimePoint.point.seconds % 60} сек
+                    <Typography variant="h3" style={{ fontSize: 10, color: colors.darkGray }}>
+                      {formatDateLabel(p.date)}
                     </Typography>
-                    <View style={[styles.tooltip__arrow, { left: 59 }]} />
                   </View>
                 );
-              })()}
-          </View>
+              })}
+
+              {/* Тултип линейного графика */}
+              {selectedTimePoint &&
+                (() => {
+                  const dayReview = reviewPoints.find(
+                    (r) => r.date === selectedTimePoint.point.date,
+                  );
+                  const dayCards = dayReview
+                    ? dayReview.forgotten +
+                      dayReview.hard +
+                      dayReview.good +
+                      dayReview.easy
+                    : 0;
+                  const dayAvgSec =
+                    dayCards > 0
+                      ? Math.round(selectedTimePoint.point.seconds / dayCards)
+                      : 0;
+                  const avgDiff =
+                    dayCards > 0 ? dayAvgSec - computedAverageSeconds : 0;
+
+                  return (
+                    <View
+                      style={[
+                        styles.tooltip,
+                        {
+                          width: 130,
+                          left: selectedTimePoint.x - 65,
+                          top: selectedTimePoint.y - 60,
+                        },
+                      ]}
+                    >
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                        }}
+                      >
+                        <Typography variant="h3" style={styles.tooltip__date}>
+                          {formatDateLabel(selectedTimePoint.point.date)}
+                        </Typography>
+                        <View
+                          style={{ flexDirection: "row", alignItems: "center" }}
+                        >
+                          <Typography variant="h3" style={styles.tooltip__date}>
+                            {dayAvgSec} с
+                          </Typography>
+                          {avgDiff !== 0 && (
+                            <Typography
+                              variant="h3"
+                              style={[
+                                styles.tooltip__date,
+                                {
+                                  color:
+                                    avgDiff < 0
+                                      ? colors.ratingDarkGreen
+                                      : colors.ratingRed,
+                                },
+                              ]}
+                            >
+                              {" "}
+                              ({avgDiff > 0 ? "+" : ""}
+                              {avgDiff})
+                            </Typography>
+                          )}
+                        </View>
+                      </View>
+                      <Typography
+                        variant="h3"
+                        style={[styles.tooltip__total, { textAlign: "center" }]}
+                      >
+                        {Math.floor(selectedTimePoint.point.seconds / 60)} мин{" "}
+                        {selectedTimePoint.point.seconds % 60} сек
+                      </Typography>
+                      <View style={[styles.tooltip__arrow, { left: 59 }]} />
+                    </View>
+                  );
+                })()}
+            </View>
+          </ScrollView>
         </View>
       )}
 
