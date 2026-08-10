@@ -1,10 +1,11 @@
-import React, { useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { commonStyles } from "@/styles/Common";
 import { View, StyleSheet, Image, Pressable, Animated } from "react-native";
 import { Typography } from "@/styles/Typography";
 import { styles } from "./styles";
 
 import IconInfo from "@/assets/icons/IconInfo.png";
+import { InfoProductivity } from "./components/InfoProductivity";
 
 // ==================== Типы ====================
 type HourlyPoint = {
@@ -52,9 +53,11 @@ export default function ProductivityGraph({
     Animated.parallel(animations).start();
   }, [hourlyBreakdown]);
 
+  const [isInfoVisible, setIsInfoVisible] = useState(false);
+
   const handleInfo = () => {
-    console.log('Информация по продуктивности по часам')
-  }
+    setIsInfoVisible(true);
+  };
 
   return (
     <View style={[commonStyles.mainBox, styles.productivityGraph]}>
@@ -119,6 +122,10 @@ export default function ProductivityGraph({
           </View>
         ))}
       </View>
+      <InfoProductivity
+        visible={isInfoVisible}
+        onClose={() => setIsInfoVisible(false)}
+      />
     </View>
   );
 }

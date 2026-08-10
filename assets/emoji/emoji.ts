@@ -15,4 +15,6 @@ export const AppEmojis = {
   chartUp: require("../emoji-png/chartUp.png"),
   tapFinger: require("../emoji-png/tapFinger.png"),
   lightbulb: require("../emoji-png/lightbulb.png"),
+  sparkles: require("../emoji-png/sparkles.png"),
+  clock: require("../emoji-png/clock.png"),
 };

@@ -116,12 +116,9 @@ export const InfoActivityTime = ({ visible, onClose }: InfoActivityProps) => {
 
             <View style={styles.listItem}>
               <Typography variant="h3" style={styles.bodyText}>
-                <Image
-                  source={AppEmojis.barChart}
-                  style={styles.inlineEmoji}
-                />{" "}
+                <Image source={AppEmojis.barChart} style={styles.inlineEmoji} />{" "}
                 <Typography variant="h3" style={styles.boldText}>
-                  Сравнение в скобках (+/-): 
+                  Сравнение в скобках (+/-):
                 </Typography>{" "}
                 Среднее время на одну карточку (в углу).
               </Typography>
@@ -138,7 +135,7 @@ export const InfoActivityTime = ({ visible, onClose }: InfoActivityProps) => {
             <View style={styles.listItem}>
               <Typography variant="h3" style={styles.bodyText}>
                 <Typography variant="h3" style={styles.boldText}>
-                  1. Главное — регулярность, а не рекорды: 
+                  1. Главное — регулярность, а не рекорды:
                 </Typography>{" "}
                 лучше по 10–15 минут каждый день, чем 2 часа раз в неделю.
               </Typography>
@@ -147,15 +144,24 @@ export const InfoActivityTime = ({ visible, onClose }: InfoActivityProps) => {
             <View style={styles.listItem}>
               <Typography variant="h3" style={styles.bodyText}>
                 <Typography variant="h3" style={styles.boldText}>
-                  2.{" "}<Image
-                  source={AppEmojis.warning}
-                  style={styles.inlineEmoji}
-                /> Осторожно с резким ростом:
+                  2.{" "}
+                  <Image
+                    source={AppEmojis.warning}
+                    style={styles.inlineEmoji}
+                  />{" "}
+                  Осторожно с резким ростом:
                 </Typography>{" "}
-                если время резко растёт, притормози с новыми карточками, чтобы не выгореть.
+                если время резко растёт, притормози с новыми карточками, чтобы
+                не выгореть.
               </Typography>
             </View>
           </View>
+
+          <Typography variant="h3" style={styles.boldText}>
+            Учись в удовольствие и прокачивай свой мозг каждый день! {""}
+             <Image source={AppEmojis.brain} style={styles.inlineEmoji} />
+            <Image source={AppEmojis.sparkles} style={styles.inlineEmoji} />
+          </Typography>
         </View>
       </ScrollView>
 
