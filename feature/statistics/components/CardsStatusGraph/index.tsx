@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { commonStyles } from "@/styles/Common";
 import { Pressable, View, Image } from "react-native";
 import { styles } from "./styles";
@@ -5,6 +6,7 @@ import { Typography } from "@/styles/Typography";
 import IconInfo from "@/assets/icons/IconInfo.png";
 import { colors } from "@/styles/Colors";
 import Svg, { Circle, G } from "react-native-svg";
+import { InfoCardsStatus } from "./components/InfoCardsStatus";
 
 type CardTypePoint = {
   card_type: string;
@@ -27,8 +29,10 @@ export default function CardsStatusGraph({
   cardTypes,
   isWide,
 }: CardsStatusGraphProps) {
+  const [isInfoVisible, setIsInfoVisible] = useState(false);
+
   const handleInfo = () => {
-    console.log("Инфа о статусе карточек");
+    setIsInfoVisible(true);
   };
 
   const totalCards = cardTypes.reduce((sum, item) => sum + item.count, 0);
@@ -178,6 +182,10 @@ export default function CardsStatusGraph({
           })}
         </View>
       </View>
+      <InfoCardsStatus
+        visible={isInfoVisible}
+        onClose={() => setIsInfoVisible(false)}
+      />
     </View>
   );
 }
