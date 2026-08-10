@@ -79,10 +79,6 @@ export default function StabilityGraph({
                     </Typography>
                     {/* Сам столбец */}
                     <View style={[styles.chart__bar, { height: `${barHeightPercentage}%` }]} />
-                    <InfoStability
-                      visible={isInfoVisible}
-                      onClose={() => setIsInfoVisible(false)}
-                    />
                   </View>
                 );
               })}
@@ -106,6 +102,10 @@ export default function StabilityGraph({
           Средняя стабильность: {averageStability}
         </Typography>
       </View>
+      <InfoStability
+        visible={isInfoVisible}
+        onClose={() => setIsInfoVisible(false)}
+      />
     </View>
   );
 }
