@@ -1,15 +1,14 @@
 import React from "react";
 import {
-  Modal,
   View,
   StyleSheet,
-  TouchableWithoutFeedback,
   Pressable,
 } from "react-native";
 import { Typography } from "@/styles/Typography";
 import { MainButton } from "@/components/MainButton";
 import { LogoSurprisedStar } from "@/components/LogoSurprised";
 import { colors } from "@/styles/Colors";
+import { InfoModalLayout } from "@/components/InfoModal";
 
 interface SyncDeckModalProps {
   visible: boolean;
@@ -156,62 +155,31 @@ export const SyncDeckModal = ({
   );
 
   return (
-    <Modal
+    <InfoModalLayout
       visible={visible}
-      transparent={true}
-      animationType="fade"
-      onRequestClose={onClose}
+      onClose={onClose}
+      containerStyle={{ minHeight: 373, justifyContent: "center" }}
     >
-      <TouchableWithoutFeedback onPress={onClose}>
-        <View style={styles.overlay}>
-          <TouchableWithoutFeedback>
-            <View style={styles.container}>
-              <View style={styles.logoContainer}>
-                {logo || <LogoSurprisedStar size={150} />}
-              </View>
+      <View style={styles.logoContainer}>
+        {logo || <LogoSurprisedStar size={150} />}
+      </View>
 
-              {type !== undefined
-                ? renderLegacyContent()
-                : renderCustomContent()}
+      {type !== undefined
+        ? renderLegacyContent()
+        : renderCustomContent()}
 
-              <MainButton title={confirmText} onPress={onConfirm} />
+      <MainButton title={confirmText} onPress={onConfirm} />
 
-              <Pressable onPress={onClose} style={styles.cancelButton}>
-                <Typography color={colors.mainColor} variant="h2">
-                  {cancelText}
-                </Typography>
-              </Pressable>
-            </View>
-          </TouchableWithoutFeedback>
-        </View>
-      </TouchableWithoutFeedback>
-    </Modal>
+      <Pressable onPress={onClose} style={styles.cancelButton}>
+        <Typography color={colors.mainColor} variant="h2">
+          {cancelText}
+        </Typography>
+      </Pressable>
+    </InfoModalLayout>
   );
 };
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.4)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  container: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 20,
-    paddingVertical: 30,
-    paddingHorizontal: 12,
-    width: "100%",
-    minHeight: 373,
-    maxWidth: 373,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,
-    justifyContent: "center",
-  },
   logoContainer: {
     marginBottom: 16,
     alignItems: "center",

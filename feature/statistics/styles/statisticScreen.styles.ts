@@ -140,5 +140,8 @@ export const styles = StyleSheet.create({
 
   graphsBox: {
     gap: 16
+  },
+  AiButton: {
+    marginBottom: 16
   }
 });

@@ -2,13 +2,12 @@
 import React from "react";
 import {
   View,
-  Modal,
   StyleSheet,
-  TouchableWithoutFeedback,
 } from "react-native";
 import { Typography } from "@/styles/Typography";
 import { MainButton } from "@/components/MainButton";
 import { colors } from "@/styles/Colors";
+import { InfoModalLayout } from "@/components/InfoModal";
 
 interface InfoStudyProps {
   visible: boolean;
@@ -17,18 +16,13 @@ interface InfoStudyProps {
 
 export const InfoStudy = ({ visible, onCancel }: InfoStudyProps) => {
   return (
-    <Modal
+    <InfoModalLayout
       visible={visible}
-      transparent={true}
-      animationType="fade"
-      onRequestClose={onCancel}
+      onClose={onCancel}
+      containerStyle={{ padding: 20, gap: 20, width: "90%" }}
     >
-      <TouchableWithoutFeedback onPress={onCancel}>
-        <View style={styles.overlay}>
-          <TouchableWithoutFeedback>
-            <View style={styles.mainContainer}>
-              {/* Верхнее описание параметров */}
-              <View style={styles.headerInfo}>
+      {/* Верхнее описание параметров */}
+      <View style={styles.headerInfo}>
                 <Typography variant="h3" style={styles.paragraph}>
                   <Typography variant="h3" style={styles.boldText}>
                     Целевое запоминание
@@ -105,35 +99,12 @@ export const InfoStudy = ({ visible, onCancel }: InfoStudyProps) => {
                   onPress={onCancel}
                   style={styles.button}
                 />
-              </View>
-            </View>
-          </TouchableWithoutFeedback>
-        </View>
-      </TouchableWithoutFeedback>
-    </Modal>
+      </View>
+    </InfoModalLayout>
   );
 };
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.4)", // Слегка затемненный фон
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  mainContainer: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 24, // Округлые углы как на макете
-    padding: 20,
-    maxWidth: 373,
-    width: "90%",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 6,
-    gap: 20, // Расстояние между блоками
-  },
   headerInfo: {
     gap: 16,
   },

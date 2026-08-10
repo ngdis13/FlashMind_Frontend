@@ -31,20 +31,26 @@ export default function ProductivityGraph({
 }: ProductivityGraphProps) {
   const maxPercentage = 100;
 
-  // Анимация столбиков
-  const barAnimations = useRef(hourlyBreakdown.map(() => new Animated.Value(0))).current;
+  // Анимация столбиков (пересоздаётся при изменении данных)
+  const barAnimations = useRef<Animated.Value[]>([]);
+  const prevLength = useRef(0);
+
+  if (hourlyBreakdown.length !== prevLength.current) {
+    barAnimations.current = hourlyBreakdown.map(() => new Animated.Value(0));
+    prevLength.current = hourlyBreakdown.length;
+  }
 
   useEffect(() => {
-    const animations = barAnimations.map((anim, i) =>
+    const animations = barAnimations.current.map((anim, i) =>
       Animated.timing(anim, {
         toValue: 1,
         duration: 400,
-        delay: 1000 + i * 100,
+        delay: 500 + i * 80,
         useNativeDriver: false,
       })
     );
     Animated.parallel(animations).start();
-  }, []);
+  }, [hourlyBreakdown]);
 
   const handleInfo = () => {
     console.log('Информация по продуктивности по часам')
@@ -90,7 +96,7 @@ export default function ProductivityGraph({
                   style={[
                     styles.chart__bar,
                     {
-                      height: barAnimations[i].interpolate({
+                      height: barAnimations.current[i]?.interpolate({
                         inputRange: [0, 1],
                         outputRange: ["0%", `${(p.percentage / maxPercentage) * 100}%`],
                       }),

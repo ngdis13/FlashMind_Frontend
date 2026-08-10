@@ -3,10 +3,8 @@ import React, { useState, useEffect, useRef } from "react";
 
 // --------------------------- React Native ---------------------------
 import {
-  Modal,
   View,
   StyleSheet,
-  TouchableWithoutFeedback,
   Image,
   Pressable,
 } from "react-native";
@@ -18,6 +16,7 @@ import { colors } from "@/styles/Colors";
 // --------------------------- Компоненты ---------------------------
 import { MainButton } from "@/components/MainButton";
 import { SecondButton } from "@/components/SecondButton";
+import { InfoModalLayout } from "@/components/InfoModal";
 
 // --------------------------- Сторонние библиотеки ---------------------------
 import Toast from "react-native-toast-message";
@@ -187,17 +186,8 @@ export const ShareDeckDeleteCloudModal = ({
 
   // --------------------------- Отрисовка ---------------------------
   return (
-    <Modal
-      visible={visible}
-      transparent={true}
-      animationType="fade"
-      onRequestClose={handleClose}
-    >
-      <TouchableWithoutFeedback onPress={handleClose}>
-        <View style={styles.overlay}>
-          <TouchableWithoutFeedback>
-            <View style={styles.container}>
-              {step === "becomeAuthor" ? (
+    <InfoModalLayout visible={visible} onClose={handleClose}>
+      {step === "becomeAuthor" ? (
                 // =====================================================
                 // ШАГ 2: Стать автором колоды? (Подтверждение)
                 // =====================================================
@@ -336,40 +326,13 @@ export const ShareDeckDeleteCloudModal = ({
                     </Typography>
                   </Pressable>
                 </View>
-              )}
-            </View>
-          </TouchableWithoutFeedback>
-        </View>
-      </TouchableWithoutFeedback>
-    </Modal>
+      )}
+    </InfoModalLayout>
   );
 };
 
 // --------------------------- Стили ---------------------------
 const styles = StyleSheet.create({
-  // Оверлей и контейнер
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.4)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  container: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 28,
-    paddingVertical: 30,
-    paddingHorizontal: 12,
-    minWidth: 373,
-    width: "100%",
-    maxWidth: 370,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,
-  },
-
   // Общие для всех шагов
   stepContainer: {
     width: "100%",

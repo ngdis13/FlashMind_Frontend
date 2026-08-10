@@ -25,13 +25,12 @@ export const styles = StyleSheet.create({
     width: "100%",
   },
 
-
   // ==================== БЛОК: chart ====================
   chart: {
     flexDirection: "row",
     width: "100%",
     position: "relative",
-    right: 12
+    right: 12,
   },
   chart__yAxis: {
     justifyContent: "space-between",
@@ -82,11 +81,11 @@ export const styles = StyleSheet.create({
   chart__xAxis: {
     flexDirection: "row",
     justifyContent: "space-around",
-    paddingLeft: 53,
+    paddingLeft: 40,
     paddingRight: 8,
     marginTop: 8,
     width: "100%",
-    marginBottom: 16
+    marginBottom: 16,
   },
   chart__xLabelWrapper: {
     flex: 1,

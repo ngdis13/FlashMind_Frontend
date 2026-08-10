@@ -3,10 +3,8 @@ import React, { useState, useEffect, useRef } from "react";
 
 // --------------------------- React Native ---------------------------
 import {
-  Modal,
   View,
   StyleSheet,
-  TouchableWithoutFeedback,
   Image,
   Pressable,
   ActivityIndicator,
@@ -20,6 +18,7 @@ import { colors } from "@/styles/Colors";
 import { MainButton } from "@/components/MainButton";
 import { SecondButton } from "@/components/SecondButton";
 import { LogoCuteStar } from "@/components/LogoCuteStar";
+import { InfoModalLayout } from "@/components/InfoModal";
 
 // --------------------------- API ---------------------------
 import { checkCanTakeOwnershipApi, takeOwnershipApi } from "@/storage/api/api";
@@ -226,17 +225,8 @@ export const ShareDeckModal = ({
 
   // --------------------------- Отрисовка ---------------------------
   return (
-    <Modal
-      visible={visible}
-      transparent={true}
-      animationType="fade"
-      onRequestClose={handleClose}
-    >
-      <TouchableWithoutFeedback onPress={handleClose}>
-        <View style={styles.overlay}>
-          <TouchableWithoutFeedback>
-            <View style={styles.container}>
-              {isAuthor ? (
+    <InfoModalLayout visible={visible} onClose={handleClose}>
+      {isAuthor ? (
                 step === "private" ? (
                   // ШАГ 1: Приватный доступ
                   <View style={{ width: "100%" }}>
@@ -454,11 +444,7 @@ export const ShareDeckModal = ({
                   </Pressable>
                 </View>
               )}
-            </View>
-          </TouchableWithoutFeedback>
-        </View>
-      </TouchableWithoutFeedback>
-    </Modal>
+    </InfoModalLayout>
   );
 };
 
@@ -468,33 +454,6 @@ export const ShareDeckModal = ({
  * @constant
  */
 const styles = StyleSheet.create({
-  /**
-   * Стиль полупрозрачного фона, перекрывающего весь экран
-   */
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.4)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  /**
-   * Стиль контейнера модального окна
-   */
-  container: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 28,
-    paddingVertical: 30,
-    paddingHorizontal: 12,
-    minWidth: 373,
-    width: "100%",
-    maxWidth: 370,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,
-  },
   /**
    * Стиль контейнера для логотипа
    */

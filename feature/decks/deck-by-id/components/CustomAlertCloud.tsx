@@ -4,9 +4,7 @@ import React from "react";
 // --------------------------- React Native ---------------------------
 import {
   View,
-  Modal,
   StyleSheet,
-  TouchableWithoutFeedback,
 } from "react-native";
 
 // --------------------------- Стили ---------------------------
@@ -16,6 +14,7 @@ import { colors } from "@/styles/Colors";
 // --------------------------- Компоненты ---------------------------
 import { MainButton } from "@/components/MainButton";
 import { Logo } from "@/components/Logo";
+import { InfoModalLayout } from "@/components/InfoModal";
 
 // --------------------------- Типы ---------------------------
 interface CustomAlertCloudProps {
@@ -99,89 +98,64 @@ export const CustomAlertCloud = ({
   };
 
   return (
-    <Modal
+    <InfoModalLayout
       visible={visible}
-      transparent={true}
-      animationType="fade"
-      onRequestClose={onCancel}
+      onClose={onCancel ?? (() => {})}
+      containerStyle={[
+        { width: containerWidth },
+        containerPadding && { ...containerPadding },
+      ]}
     >
-      <TouchableWithoutFeedback onPress={onCancel}>
-        <View style={styles.overlay}>
-          <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
-            <View
-              style={[
-                styles.alertContainer,
-                { width: containerWidth },
-                containerPadding && { ...containerPadding },
-              ]}
-            >
-              {/* Иконка (если есть) */}
-              {!hideIcon && (
-                <View style={styles.iconContainer}>{renderIcon()}</View>
-              )}
+      {/* Иконка (если есть) */}
+      {!hideIcon && (
+        <View style={styles.iconContainer}>{renderIcon()}</View>
+      )}
 
-              {/* Основной текст (темный) */}
-              <Typography
-                variant="h2"
-                style={[styles.messageText, messageTextStyle]}
-              >
-                {message}
-              </Typography>
+      {/* Основной текст (темный) */}
+      <Typography
+        variant="h2"
+        style={[styles.messageText, messageTextStyle]}
+      >
+        {message}
+      </Typography>
 
-              {/* Дополнительный текст 1 (серый, до линии) */}
-              {metaMessage && (
-                <Typography
-                  variant="h3"
-                  style={[
-                    styles.metaText,
-                    metaTextStyle,
-                    showLine && styles.metaTextWithLine,
-                  ]}
-                >
-                  {metaMessage}
-                </Typography>
-              )}
+      {/* Дополнительный текст 1 (серый, до линии) */}
+      {metaMessage && (
+        <Typography
+          variant="h3"
+          style={[
+            styles.metaText,
+            metaTextStyle,
+            showLine && styles.metaTextWithLine,
+          ]}
+        >
+          {metaMessage}
+        </Typography>
+      )}
 
-              {/* Линия (если включена) */}
-              {renderLine()}
+      {/* Линия (если включена) */}
+      {renderLine()}
 
-              {/* Дополнительный текст 2 (серый, после линии) */}
-              {metaMessageBottom && (
-                <Typography
-                  variant="h3"
-                  style={[styles.metaTextBottom, metaTextBottomStyle]}
-                >
-                  {metaMessageBottom}
-                </Typography>
-              )}
+      {/* Дополнительный текст 2 (серый, после линии) */}
+      {metaMessageBottom && (
+        <Typography
+          variant="h3"
+          style={[styles.metaTextBottom, metaTextBottomStyle]}
+        >
+          {metaMessageBottom}
+        </Typography>
+      )}
 
-              {/* Кнопка */}
-              <View style={styles.buttonContainer}>
-                <MainButton title={confirmText} onPress={onConfirm} />
-              </View>
-            </View>
-          </TouchableWithoutFeedback>
-        </View>
-      </TouchableWithoutFeedback>
-    </Modal>
+      {/* Кнопка */}
+      <View style={styles.buttonContainer}>
+        <MainButton title={confirmText} onPress={onConfirm} />
+      </View>
+    </InfoModalLayout>
   );
 };
 
 // --------------------------- Стили ---------------------------
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.4)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  alertContainer: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 28,
-    paddingHorizontal: 16,
-    paddingTop: 45,
-    paddingBottom: 45,
-  },
   iconContainer: {
     alignItems: "center",
     marginBottom: 16,

@@ -1,5 +1,12 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Pressable, ScrollView, View, Image, StyleSheet, useWindowDimensions } from "react-native";
+import React, { useState, useRef, useCallback } from "react";
+import {
+  Pressable,
+  ScrollView,
+  View,
+  Image,
+  StyleSheet,
+  useWindowDimensions,
+} from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -17,7 +24,7 @@ import IconAverageTime from "@/feature-statistics/assets/IconAverageTime.png";
 import IconTotalCards from "@/feature-statistics/assets/IconTotalCards.png";
 import IconTotalTime from "@/feature-statistics/assets/IconTotalTime.png";
 import IconAverageSuccess from "@/feature-statistics/assets/IconAverageSuccess.png";
-import mockData from "../stats-mock-data.json";
+import { fetchStats, type StatsResponse } from "../api/statsApi";
 import { calcSuccessRate } from "@/utils/helpers/calcSuccessRate";
 import { calcAverageSpeed } from "@/utils/helpers/calcAverageSpeed";
 
@@ -25,6 +32,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
 import { formatStudyTime } from "@/utils/helpers/formatStudyTime";
 import { formatNumber } from "@/utils/helpers/formatNumber";
+import { useFocusEffect } from "expo-router";
 import { useDecks } from "@/storage/hooks/useDecks";
 
 import ActivityGraph from "@/feature-statistics/components/ActivityGraph";
@@ -33,6 +41,7 @@ import CardsStatusGraph from "../components/CardsStatusGraph";
 import DifficultyCardsGraph from "../components/DifficultyCardsGraph";
 import StabilityGraph from "../components/StabilityGraph";
 import ForecastGraph from "../components/ForecastGraph";
+import AiInsightsButton from "../components/AiInsightsButton";
 
 const SMOOTH_TIMING_CONFIG = {
   duration: 280,
@@ -51,15 +60,58 @@ export default function StatisticScreen() {
 
   const [isOpen, setIsOpen] = useState(false);
   const [selectedDeck, setSelectedDeck] = useState(deckOptions[0]);
+  const [statsData, setStatsData] = useState<StatsResponse | null>(null);
+  const [isAiLoading, setIsAiLoading] = useState(false);
 
-  const metrics = mockData.one_time_metrics;
-  const reviewPoints = mockData.review_count.points;
-  const timePoints = mockData.review_time.points;
-  const hourlyBreakdown = mockData.hourly_breakdown.points;
-  const cardTypes = mockData.card_types.points;
-  const difficultyDistribution = mockData.difficulty_distribution.points;
-  const stabilityDistribution = mockData.stability_distribution.points;
-  const forecast = mockData.forecast.points;
+  useFocusEffect(
+    useCallback(() => {
+      const deckId = selectedDeck.id === "all" ? null : selectedDeck.id;
+      console.log(`🔄 Запрос статистики для: ${deckId ?? "все колоды"}`);
+      fetchStats(deckId)
+        .then((data) => {
+          console.log(
+            `📊 Получено review_count точек: ${data.review_count.points.length}`,
+          );
+          setStatsData(data);
+        })
+        .catch((err) =>
+          console.warn("⚠️ Статистика с сервера не загружена:", err),
+        );
+    }, [selectedDeck]),
+  );
+
+  const metrics = statsData?.one_time_metrics ?? {
+    total_reviews: 0,
+    total_study_seconds: 0,
+  };
+  const reviewPoints = statsData?.review_count.points ?? [];
+  const timePoints = statsData?.review_time.points ?? [];
+  const hourlyBreakdown = statsData?.hourly_breakdown.points ?? [];
+  const cardTypes = statsData?.card_types.points ?? [];
+  const difficultyDistribution =
+    statsData?.difficulty_distribution.points ?? [];
+  const stabilityDistribution = statsData?.stability_distribution.points ?? [];
+
+  // Средняя стабильность (взвешенное среднее)
+  const averageStability = (() => {
+    if (stabilityDistribution.length === 0) return "—";
+    let totalCount = 0;
+    let totalWeight = 0;
+    stabilityDistribution.forEach((item) => {
+      const mid = item.range_label.startsWith(">")
+        ? 120
+        : (() => {
+            const parts = item.range_label.split(" ")[0].split("-");
+            return (parseInt(parts[0]) + parseInt(parts[1])) / 2;
+          })();
+      totalCount += item.count;
+      totalWeight += mid * item.count;
+    });
+    const avg = totalCount > 0 ? Math.round(totalWeight / totalCount) : 0;
+    return `${avg} дней`;
+  })();
+
+  const forecast = statsData?.forecast.points ?? [];
 
   // Вычисляемые из графиков значения (для верхних плашек)
   const computedSuccessRate = calcSuccessRate(reviewPoints);
@@ -129,6 +181,14 @@ export default function StatisticScreen() {
         if (isFinished) runOnJS(setIsOpen)(false);
       },
     );
+  };
+  const handleAiInsights = () => {
+    console.log('Ai инсайты');
+    setIsAiLoading(true);
+    // Имитация задержки для тестирования анимации
+    setTimeout(() => {
+      setIsAiLoading(false);
+    }, 3000);
   };
 
   const arrowStyle = useAnimatedStyle(() => {
@@ -279,14 +339,28 @@ export default function StatisticScreen() {
               </View>
             ))}
           </View>
+          <View style={styles.AiButton}>
+            <AiInsightsButton onPress={handleAiInsights} isLoading={isAiLoading}/>
+          </View>
 
           {/**Контейнер со всеми графиками */}
-          <View style={[styles.graphsBox, isWide && { flexDirection: "row", flexWrap: "wrap" }]}>
+          <View
+            style={[
+              styles.graphsBox,
+              isWide && { flexDirection: "row", flexWrap: "wrap" },
+            ]}
+          >
             <ActivityGraph
               reviewPoints={reviewPoints}
               timePoints={timePoints}
             />
-            <View style={isWide ? { flex: 1, flexDirection: "row", gap: 16 } : { gap: 16 }}>
+            <View
+              style={
+                isWide
+                  ? { flex: 1, flexDirection: "row", gap: 16 }
+                  : { gap: 16 }
+              }
+            >
               <View style={isWide && { flex: 1 }}>
                 <ProductivityGraph hourlyBreakdown={hourlyBreakdown} />
               </View>
@@ -296,8 +370,13 @@ export default function StatisticScreen() {
             </View>
             <ForecastGraph forecast={forecast} />
 
-            <DifficultyCardsGraph difficultyDistribution={difficultyDistribution} />
-            <StabilityGraph stabilityDistribution={stabilityDistribution} />
+            <DifficultyCardsGraph
+              difficultyDistribution={difficultyDistribution}
+            />
+            <StabilityGraph
+              stabilityDistribution={stabilityDistribution}
+              averageStability={averageStability}
+            />
           </View>
         </ScrollView>
       </View>
