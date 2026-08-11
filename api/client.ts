@@ -2,6 +2,7 @@ import axios, { AxiosError, type AxiosInstance } from "axios";
 import { setupAuthInterceptor } from "./interceptors/auth.interceptor";
 import { router } from "expo-router";
 import Toast from "react-native-toast-message";
+import { setupTimezoneInterceptor } from "./interceptors/timezone.interceptor";
 
 const apiClient: AxiosInstance = axios.create({
   baseURL: "",
@@ -14,6 +15,7 @@ const apiClient: AxiosInstance = axios.create({
 
 //Обработка 401 ошибки
 setupAuthInterceptor(apiClient);
+setupTimezoneInterceptor(apiClient)
 
 apiClient.interceptors.response.use(
   (response) => response,
