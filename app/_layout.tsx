@@ -47,7 +47,7 @@ const toastConfig: ToastConfig = {
     return (
       <View
         style={{
-          minHeight: 40, 
+          minHeight: 40,
           maxWidth: 750,
           width: "95%",
           backgroundColor: "#FA2C56",
@@ -56,10 +56,9 @@ const toastConfig: ToastConfig = {
           paddingVertical: hasText2 ? 12 : 8,
           flexDirection: "row",
           gap: 8,
-          alignItems: "center", 
+          alignItems: "center",
         }}
       >
-
         <View style={{ marginTop: hasText2 ? 2 : 0 }}>
           <ErrorIcon />
         </View>
@@ -71,9 +70,9 @@ const toastConfig: ToastConfig = {
 
           {hasText2 && (
             <Typography
-              variant="h3" 
+              variant="h3"
               color={colors.white}
-              style={{ marginTop: 4, opacity: 0.85 }} 
+              style={{ marginTop: 4, opacity: 0.85 }}
             >
               {text2}
             </Typography>

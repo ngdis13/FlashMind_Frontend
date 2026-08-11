@@ -3,6 +3,7 @@ import {
   Pressable,
   ScrollView,
   View,
+  Modal,
   Image,
   StyleSheet,
   useWindowDimensions,
@@ -42,6 +43,8 @@ import DifficultyCardsGraph from "../components/DifficultyCardsGraph";
 import StabilityGraph from "../components/StabilityGraph";
 import ForecastGraph from "../components/ForecastGraph";
 import AiInsightsButton from "../components/AiInsightsButton";
+import { AiInsightsScreen } from "../components/AiInsightsScreen";
+import aiInsightsMock from "../aiInsights.json";
 
 const SMOOTH_TIMING_CONFIG = {
   duration: 280,
@@ -182,12 +185,35 @@ export default function StatisticScreen() {
       },
     );
   };
+  const [isAiModalVisible, setIsAiModalVisible] = useState(false);
+
+  /** Плавный выезд AI-экрана снизу */
+  const aiTranslateY = useSharedValue(400);
+  const aiOpacity = useSharedValue(0);
+
+  const openAiModal = () => {
+    setIsAiModalVisible(true);
+    aiTranslateY.value = withTiming(0, SMOOTH_TIMING_CONFIG);
+    aiOpacity.value = withTiming(1, SMOOTH_TIMING_CONFIG);
+  };
+
+  const closeAiModal = () => {
+    aiTranslateY.value = withTiming(400, SMOOTH_TIMING_CONFIG);
+    aiOpacity.value = withTiming(0, SMOOTH_TIMING_CONFIG, (finished) => {
+      if (finished) runOnJS(setIsAiModalVisible)(false);
+    });
+  };
+
+  const aiAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: aiTranslateY.value }],
+    opacity: aiOpacity.value,
+  }));
+
   const handleAiInsights = () => {
-    console.log('Ai инсайты');
     setIsAiLoading(true);
-    // Имитация задержки для тестирования анимации
     setTimeout(() => {
       setIsAiLoading(false);
+      openAiModal();
     }, 3000);
   };
 
@@ -204,182 +230,214 @@ export default function StatisticScreen() {
 
   return (
     <View
-      style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}
-    >
-      <View style={[commonStyles.container, { flex: 1 }]}>
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContainer}
-          style={{ width: "100%" }}
-          scrollEventThrottle={16}
-        >
-          <View style={styles.responsiveWrapper}>
-            <Typography
-              variant="h1"
-              style={{ marginBottom: 16, width: "100%" }}
-            >
-              Статистика
-            </Typography>
-          </View>
+        style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}
+      >
+        <View style={[commonStyles.container, { flex: 1 }]}>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContainer}
+            style={{ width: "100%" }}
+            scrollEventThrottle={16}
+          >
+            <View style={styles.responsiveWrapper}>
+              <Typography
+                variant="h1"
+                style={{ marginBottom: 16, width: "100%" }}
+              >
+                Статистика
+              </Typography>
+            </View>
 
-          {/* Селектор колод */}
-          <View style={[styles.changeDeckList, { zIndex: 10 }]}>
-            <View style={styles.dropdownContainer}>
-              <Pressable style={styles.changeDeckBox} onPress={toggleDropdown}>
-                <Typography variant="h2" color={colors.mainColor}>
-                  {selectedDeck.title}
-                </Typography>
-              </Pressable>
+            {/* Селектор колод */}
+            <View style={[styles.changeDeckList, { zIndex: 10 }]}>
+              <View style={styles.dropdownContainer}>
+                <Pressable
+                  style={styles.changeDeckBox}
+                  onPress={toggleDropdown}
+                >
+                  <Typography variant="h2" color={colors.mainColor}>
+                    {selectedDeck.title}
+                  </Typography>
+                </Pressable>
 
-              {isOpen && (
-                <>
-                  {/* Невидимая подложка: ловит клики "мимо" экрана и закрывает список, 
+                {isOpen && (
+                  <>
+                    {/* Невидимая подложка: ловит клики "мимо" экрана и закрывает список, 
               не мешая при этом скроллить элементы внутри самого списка */}
-                  <Pressable
-                    style={{
-                      position: "absolute",
-                      top: -500, // Перекрывает экран далеко вверх
-                      left: -50,
-                      right: -50,
-                      bottom: -2000, // Перекрывает экран далеко вниз до самого конца
-                      zIndex: 1,
-                    }}
-                    onPress={toggleDropdown}
+                    <Pressable
+                      style={{
+                        position: "absolute",
+                        top: -500, // Перекрывает экран далеко вверх
+                        left: -50,
+                        right: -50,
+                        bottom: -2000, // Перекрывает экран далеко вниз до самого конца
+                        zIndex: 1,
+                      }}
+                      onPress={toggleDropdown}
+                    />
+
+                    <Animated.View
+                      style={[
+                        styles.dropdownList,
+                        dropdownStyle,
+                        { zIndex: 2 },
+                      ]}
+                    >
+                      <ScrollView
+                        style={{ maxHeight: 240 }}
+                        nestedScrollEnabled={true}
+                      >
+                        {deckOptions.map((deck) => {
+                          const isSelected = deck.id === selectedDeck.id;
+                          return (
+                            <Pressable
+                              key={deck.id}
+                              style={[
+                                styles.dropdownItem,
+                                isSelected
+                                  ? styles.dropdownItemActive
+                                  : styles.dropdownItemInactive,
+                              ]}
+                              onPress={() => handleSelectDeck(deck)}
+                            >
+                              <Typography
+                                variant="h2"
+                                color={
+                                  isSelected ? colors.white : colors.mainColor
+                                }
+                              >
+                                {deck.title}
+                              </Typography>
+                            </Pressable>
+                          );
+                        })}
+                      </ScrollView>
+                    </Animated.View>
+                  </>
+                )}
+              </View>
+
+              <Pressable style={styles.changeButton} onPress={toggleDropdown}>
+                <Animated.Image
+                  source={changeIcon}
+                  style={[styles.imageChangeButton, arrowStyle]}
+                />
+              </Pressable>
+            </View>
+
+            {/* Верхние общие плашки статистики*/}
+            <View style={styles.statsGrid}>
+              {STATS_DATA.map((item) => (
+                <View key={item.id} style={styles.statCardContainer}>
+                  {/* 1. Задний фон: Градиент с точным направлением из Figma (снизу-лево в сверху-право) */}
+                  <LinearGradient
+                    colors={[
+                      "rgba(110, 117, 217, 0.5)",
+                      "rgba(219, 221, 252, 0.4)",
+                    ]}
+                    start={{ x: 0, y: 1 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.absoluteGradient}
                   />
 
-                  <Animated.View
-                    style={[styles.dropdownList, dropdownStyle, { zIndex: 2 }]}
+                  {/* 2. Передний слой: Матовое стекло (Glassmorphism) с размытием заднего плана */}
+                  <BlurView
+                    intensity={20}
+                    tint="light"
+                    style={styles.statCardBlur}
                   >
-                    <ScrollView
-                      style={{ maxHeight: 240 }}
-                      nestedScrollEnabled={true}
-                    >
-                      {deckOptions.map((deck) => {
-                        const isSelected = deck.id === selectedDeck.id;
-                        return (
-                          <Pressable
-                            key={deck.id}
-                            style={[
-                              styles.dropdownItem,
-                              isSelected
-                                ? styles.dropdownItemActive
-                                : styles.dropdownItemInactive,
-                            ]}
-                            onPress={() => handleSelectDeck(deck)}
-                          >
-                            <Typography
-                              variant="h2"
-                              color={
-                                isSelected ? colors.white : colors.mainColor
-                              }
-                            >
-                              {deck.title}
-                            </Typography>
-                          </Pressable>
-                        );
-                      })}
-                    </ScrollView>
-                  </Animated.View>
-                </>
-              )}
-            </View>
+                    {/* Блок иконки */}
+                    <View style={styles.cardIconWrapper}>
+                      <Image source={item.icon} style={styles.cardIcon} />
+                    </View>
 
-            <Pressable style={styles.changeButton} onPress={toggleDropdown}>
-              <Animated.Image
-                source={changeIcon}
-                style={[styles.imageChangeButton, arrowStyle]}
+                    {/* Блок текстов (Значение и Подпись) */}
+                    <View>
+                      <Typography
+                        variant="h1"
+                        color={colors.mainNumber}
+                        style={styles.cardValue}
+                      >
+                        {item.value}
+                      </Typography>
+                      <Typography
+                        variant="h3"
+                        color={colors.labelNumber}
+                        style={styles.cardLabel}
+                      >
+                        {item.label}
+                      </Typography>
+                    </View>
+                  </BlurView>
+                </View>
+              ))}
+            </View>
+            <View style={styles.AiButton}>
+              <AiInsightsButton
+                onPress={handleAiInsights}
+                isLoading={isAiLoading}
               />
-            </Pressable>
-          </View>
-
-          {/* Верхние общие плашки статистики*/}
-          <View style={styles.statsGrid}>
-            {STATS_DATA.map((item) => (
-              <View key={item.id} style={styles.statCardContainer}>
-                {/* 1. Задний фон: Градиент с точным направлением из Figma (снизу-лево в сверху-право) */}
-                <LinearGradient
-                  colors={[
-                    "rgba(110, 117, 217, 0.5)",
-                    "rgba(219, 221, 252, 0.4)",
-                  ]}
-                  start={{ x: 0, y: 1 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.absoluteGradient}
-                />
-
-                {/* 2. Передний слой: Матовое стекло (Glassmorphism) с размытием заднего плана */}
-                <BlurView
-                  intensity={20}
-                  tint="light"
-                  style={styles.statCardBlur}
-                >
-                  {/* Блок иконки */}
-                  <View style={styles.cardIconWrapper}>
-                    <Image source={item.icon} style={styles.cardIcon} />
-                  </View>
-
-                  {/* Блок текстов (Значение и Подпись) */}
-                  <View>
-                    <Typography
-                      variant="h1"
-                      color={colors.mainNumber}
-                      style={styles.cardValue}
-                    >
-                      {item.value}
-                    </Typography>
-                    <Typography
-                      variant="h3"
-                      color={colors.labelNumber}
-                      style={styles.cardLabel}
-                    >
-                      {item.label}
-                    </Typography>
-                  </View>
-                </BlurView>
-              </View>
-            ))}
-          </View>
-          <View style={styles.AiButton}>
-            <AiInsightsButton onPress={handleAiInsights} isLoading={isAiLoading}/>
-          </View>
-
-          {/**Контейнер со всеми графиками */}
-          <View
-            style={[
-              styles.graphsBox,
-              isWide && { flexDirection: "row", flexWrap: "wrap" },
-            ]}
-          >
-            <ActivityGraph
-              reviewPoints={reviewPoints}
-              timePoints={timePoints}
-            />
-            <View
-              style={
-                isWide
-                  ? { flex: 1, flexDirection: "row", gap: 16 }
-                  : { gap: 16 }
-              }
-            >
-              <View style={isWide && { flex: 1 }}>
-                <ProductivityGraph hourlyBreakdown={hourlyBreakdown} />
-              </View>
-              <View style={isWide && { flex: 1 }}>
-                <CardsStatusGraph cardTypes={cardTypes} isWide={isWide} />
-              </View>
             </View>
-            <ForecastGraph forecast={forecast} />
 
-            <DifficultyCardsGraph
-              difficultyDistribution={difficultyDistribution}
-            />
-            <StabilityGraph
-              stabilityDistribution={stabilityDistribution}
-              averageStability={averageStability}
-            />
+            {/**Контейнер со всеми графиками */}
+            <View
+              style={[
+                styles.graphsBox,
+                isWide && { flexDirection: "row", flexWrap: "wrap" },
+              ]}
+            >
+              <ActivityGraph
+                reviewPoints={reviewPoints}
+                timePoints={timePoints}
+              />
+              <View
+                style={
+                  isWide
+                    ? { flex: 1, flexDirection: "row", gap: 16 }
+                    : { gap: 16 }
+                }
+              >
+                <View style={isWide && { flex: 1 }}>
+                  <ProductivityGraph hourlyBreakdown={hourlyBreakdown} />
+                </View>
+                <View style={isWide && { flex: 1 }}>
+                  <CardsStatusGraph cardTypes={cardTypes} isWide={isWide} />
+                </View>
+              </View>
+              <ForecastGraph forecast={forecast} />
+
+              <DifficultyCardsGraph
+                difficultyDistribution={difficultyDistribution}
+              />
+              <StabilityGraph
+                stabilityDistribution={stabilityDistribution}
+                averageStability={averageStability}
+              />
+            </View>
+          </ScrollView>
+        </View>
+
+        {/* Полноэкранная модалка AI Insights с плавным выездом */}
+        <Modal
+          visible={isAiModalVisible}
+          transparent
+          animationType="none"
+          onRequestClose={closeAiModal}
+        >
+          <View style={styles.aiModalOverlay}>
+            <Animated.View
+              style={[
+                styles.aiModalContent,
+                aiAnimatedStyle,
+              ]}
+            >
+              <AiInsightsScreen
+                data={aiInsightsMock}
+                onBack={closeAiModal}
+              />
+            </Animated.View>
           </View>
-        </ScrollView>
+        </Modal>
       </View>
-    </View>
   );
 }

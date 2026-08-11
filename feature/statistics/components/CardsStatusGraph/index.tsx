@@ -19,10 +19,10 @@ interface CardsStatusGraphProps {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  отложенные: { label: "Отложенные", color: colors.statusColorRed },
-  новые: { label: "Новые", color: colors.statusColorGrey },
-  изученные: { label: "Изученные", color: colors.statusColorGreen },
-  изучаемые: { label: "Изучаемые", color: colors.statusColorYellow },
+  suspended: { label: "Отложенные", color: colors.statusColorRed },
+  new: { label: "Новые", color: colors.statusColorGrey },
+  learned: { label: "Изученные", color: colors.statusColorGreen },
+  in_learning: { label: "Изучаемые", color: colors.statusColorYellow },
 };
 
 export default function CardsStatusGraph({
@@ -48,13 +48,13 @@ export default function CardsStatusGraph({
   const capPercent = capLength / circumference;
 
   // ПОРЯДОК ДЛЯ ЛЕГЕНДЫ: строго как на дизайне (сверху вниз)
-  const legendOrder = ["изученные", "изучаемые", "отложенные", "новые"];
+  const legendOrder = ["learned", "in_learning", "suspended", "new"];
   const legendSegments = legendOrder
     .map((type) => cardTypes.find((item) => item.card_type === type))
     .filter((item): item is CardTypePoint => item !== undefined);
 
   // ПОРЯДОК ДЛЯ ГРАФИКА: по часовой стрелке с 12 часов (Красный -> Серый -> Зеленый -> Желтый)
-  const chartOrder = ["отложенные", "новые", "изученные", "изучаемые"];
+  const chartOrder = ["suspended", "new", "learned", "in_learning"];
   const chartSegments = chartOrder
     .map((type) => cardTypes.find((item) => item.card_type === type))
     .filter(
