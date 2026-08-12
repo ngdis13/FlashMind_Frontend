@@ -44,7 +44,8 @@ import StabilityGraph from "../components/StabilityGraph";
 import ForecastGraph from "../components/ForecastGraph";
 import AiInsightsButton from "../components/AiInsightsButton";
 import { AiInsightsScreen } from "../components/AiInsightsScreen";
-import aiInsightsMock from "../aiInsights.json";
+import { AiModal, InsufficientReviewsData } from "../components/AiModal";
+import { analyzeStudyStat, StudyStatAnalyzeResponse } from "../api/aiApi";
 
 const SMOOTH_TIMING_CONFIG = {
   duration: 280,
@@ -65,6 +66,9 @@ export default function StatisticScreen() {
   const [selectedDeck, setSelectedDeck] = useState(deckOptions[0]);
   const [statsData, setStatsData] = useState<StatsResponse | null>(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
+  const [aiData, setAiData] = useState<StudyStatAnalyzeResponse | null>(null);
+  const [aiError, setAiError] = useState<InsufficientReviewsData | null>(null);
+  const [isAiErrorModal, setIsAiErrorModal] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -209,12 +213,20 @@ export default function StatisticScreen() {
     opacity: aiOpacity.value,
   }));
 
-  const handleAiInsights = () => {
+  const handleAiInsights = async () => {
     setIsAiLoading(true);
-    setTimeout(() => {
-      setIsAiLoading(false);
+    try {
+      const result = await analyzeStudyStat();
+      setAiData(result);
       openAiModal();
-    }, 3000);
+    } catch (err: any) {
+      if (err?.response?.status === 422) {
+        setAiError(err.response.data);
+        setIsAiErrorModal(true);
+      }
+    } finally {
+      setIsAiLoading(false);
+    }
   };
 
   const arrowStyle = useAnimatedStyle(() => {
@@ -431,13 +443,21 @@ export default function StatisticScreen() {
                 aiAnimatedStyle,
               ]}
             >
+              {aiData && (
               <AiInsightsScreen
-                data={aiInsightsMock}
+                data={aiData}
                 onBack={closeAiModal}
               />
+              )}
             </Animated.View>
           </View>
         </Modal>
+
+      <AiModal
+        visible={isAiErrorModal}
+        onClose={() => setIsAiErrorModal(false)}
+        data={aiError}
+      />
       </View>
   );
 }

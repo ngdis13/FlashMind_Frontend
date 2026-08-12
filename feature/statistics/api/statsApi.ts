@@ -57,19 +57,7 @@ export interface StatsResponse {
   card_types: { points: CardTypePoint[] };
 }
 
-// ==================== API ====================
 
-const logServerResponse = (data: StatsResponse) => {
-  console.log("📦 СЕРВЕР ПРИСЛАЛ СТАТИСТИКУ:");
-  console.log(`  - Метрики: ${data.one_time_metrics.total_reviews} карт, ${data.one_time_metrics.total_study_seconds}с`);
-  console.log(`  - review_count точек: ${data.review_count.points.length}`);
-  console.log(`  - review_time точек: ${data.review_time.points.length}`);
-  console.log(`  - forecast точек: ${data.forecast.points.length}`);
-  console.log(`  - hourly точек: ${data.hourly_breakdown.points.length}`);
-  console.log(`  - difficulty точек: ${data.difficulty_distribution.points.length}`);
-  console.log(`  - stability точек: ${data.stability_distribution.points.length}`);
-  console.log(`  - card_types: ${data.card_types.points.map(p => p.card_type).join(", ")}`);
-};
 
 
 /**
@@ -105,3 +93,6 @@ export const fetchStats = async (
     throw err;
   }
 };
+
+
+
