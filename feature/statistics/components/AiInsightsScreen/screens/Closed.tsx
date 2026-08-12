@@ -1,8 +1,8 @@
 // --------------------------- React ---------------------------
-import React, { useMemo } from "react";
+import React, { useMemo, useRef, useEffect } from "react";
 
 // --------------------------- React Native ---------------------------
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, Animated } from "react-native";
 
 // --------------------------- Стили & Графика ---------------------------
 import { Typography } from "@/styles/Typography";
@@ -40,11 +40,60 @@ const getTimeRemaining = (nextDateStr: string): string => {
 export const Closed = ({ data, onBack }: ClosedProps) => {
   const timeLeft = useMemo(() => getTimeRemaining(data.analysis_next_date), [data.analysis_next_date]);
 
+  // Анимация для всего контента (появление после свайпа)
+  const contentFade = useRef(new Animated.Value(0)).current;
+  const contentTranslateY = useRef(new Animated.Value(50)).current;
+  
+  // Анимация для логотипа
+  const logoScale = useRef(new Animated.Value(0.5)).current;
+
+  useEffect(() => {
+    // 1. Анимация появления всего контента
+    Animated.parallel([
+      Animated.timing(contentFade, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.spring(contentTranslateY, {
+        toValue: 0,
+        tension: 50,
+        friction: 7,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    // 2. Анимация логотипа (с задержкой)
+    setTimeout(() => {
+      Animated.spring(logoScale, {
+        toValue: 1,
+        tension: 60,
+        friction: 6,
+        useNativeDriver: true,
+      }).start();
+    }, 200);
+  }, []);
+
   return (
-    <View style={styles.container}>
-      <View style={styles.characterWrapper}>
+    <Animated.View 
+      style={[
+        styles.container,
+        {
+          opacity: contentFade,
+          transform: [{ translateY: contentTranslateY }],
+        }
+      ]}
+    >
+      <Animated.View 
+        style={[
+          styles.characterWrapper,
+          {
+            transform: [{ scale: logoScale }],
+          }
+        ]}
+      >
         <Logo size={240} />
-      </View>
+      </Animated.View>
 
       <View style={styles.contentBlock}>
         <Typography variant="span" style={styles.mainTitle}>
@@ -59,7 +108,7 @@ export const Closed = ({ data, onBack }: ClosedProps) => {
       <View style={styles.bottomBlock}>
         <MainButton title="До встречи!" onPress={onBack} style={styles.button} />
       </View>
-    </View>
+    </Animated.View>
   );
 };
 

@@ -1,8 +1,8 @@
 // --------------------------- React ---------------------------
-import React from "react";
+import React, { useRef, useEffect } from "react";
 
 // --------------------------- React Native ---------------------------
-import { View, StyleSheet, Image, Dimensions, ScrollView } from "react-native";
+import { View, StyleSheet, Image, ScrollView, Animated } from "react-native";
 
 // --------------------------- Библиотеки ---------------------------
 import { LinearGradient } from "expo-linear-gradient";
@@ -27,16 +27,89 @@ interface ProgressProps {
 }
 
 export const Progress = ({ data, onNext }: ProgressProps) => {
+  // Анимация для всего контента (появление после свайпа)
+  const contentFade = useRef(new Animated.Value(0)).current;
+  const contentTranslateY = useRef(new Animated.Value(50)).current;
+  
+  // Анимация для звездочки
+  const starScale = useRef(new Animated.Value(0.5)).current;
+  
+  // Анимации для каждой карточки
+  const cardAnimations = useRef(
+    data.insights.map(() => ({
+      fade: new Animated.Value(0),
+      translateY: new Animated.Value(40),
+    }))
+  ).current;
+
+  useEffect(() => {
+    // 1. Анимация появления всего контента
+    Animated.parallel([
+      Animated.timing(contentFade, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.spring(contentTranslateY, {
+        toValue: 0,
+        tension: 50,
+        friction: 7,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    // 2. Анимация звездочки (с задержкой)
+    setTimeout(() => {
+      Animated.spring(starScale, {
+        toValue: 1,
+        tension: 60,
+        friction: 6,
+        useNativeDriver: true,
+      }).start();
+    }, 200);
+
+    // 3. Анимация карточек (каскадом)
+    cardAnimations.forEach((anim, index) => {
+      Animated.parallel([
+        Animated.timing(anim.fade, {
+          toValue: 1,
+          duration: 500,
+          delay: 400 + index * 120,
+          useNativeDriver: true,
+        }),
+        Animated.spring(anim.translateY, {
+          toValue: 0,
+          tension: 50,
+          friction: 7,
+          delay: 400 + index * 120,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    });
+  }, []);
+
   return (
-    <View style={styles.container}>
+    <Animated.View 
+      style={[
+        styles.container,
+        {
+          opacity: contentFade,
+          transform: [{ translateY: contentTranslateY }],
+        }
+      ]}
+    >
       <ScrollView
         style={{ width: "100%" }}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        <View>
+        <Animated.View
+          style={{
+            transform: [{ scale: starScale }],
+          }}
+        >
           <LogoHappyStar size={180} style={{ alignSelf: "center" }} />
-        </View>
+        </Animated.View>
 
         {/* Список карточек */}
         <View style={styles.listContainer}>
@@ -44,45 +117,51 @@ export const Progress = ({ data, onNext }: ProgressProps) => {
             Что круто?
           </Typography>
           {data.insights.map((item, index) => {
+            const anim = cardAnimations[index];
             return (
-              <LinearGradient
+              <Animated.View
                 key={index}
-                colors={[
-                  "rgba(137, 197, 121, 0.48)",
-                  "rgba(188, 255, 170, 0.24)",
-                ]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.listItemGradient}
+                style={{
+                  opacity: anim.fade,
+                  transform: [{ translateY: anim.translateY }],
+                }}
               >
-                {/* Универсальный белый выразительный бэдж-круг */}
-                <View style={styles.emojiWrapper}>
-                  <Image source={AppEmojis.rocket} style={styles.inlineEmoji} />
-                </View>
+                <LinearGradient
+                  colors={[
+                    "rgba(137, 197, 121, 0.48)",
+                    "rgba(188, 255, 170, 0.24)",
+                  ]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.listItemGradient}
+                >
+                  <View style={styles.emojiWrapper}>
+                    <Image source={AppEmojis.rocket} style={styles.inlineEmoji} />
+                  </View>
 
-                {/* Текстовое наполнение карточки */}
-                <View style={styles.cardContent}>
-                  <Typography variant="h3" style={styles.cardTitle}>
-                    {item.title}
-                  </Typography>
-                  <Typography variant="h3" style={styles.cardBody}>
-                    {item.text}
-                  </Typography>
-                </View>
-              </LinearGradient>
+                  <View style={styles.cardContent}>
+                    <Typography variant="h3" style={styles.cardTitle}>
+                      {item.title}
+                    </Typography>
+                    <Typography variant="h3" style={styles.cardBody}>
+                      {item.text}
+                    </Typography>
+                  </View>
+                </LinearGradient>
+              </Animated.View>
             );
           })}
         </View>
+      </ScrollView>
 
-        </ScrollView>
       <View style={styles.buttonWrap}>
-          <MainButton title="Далее" onPress={onNext} style={styles.button} />
-        </View>
-    </View>
+        <MainButton title="Далее" onPress={onNext} style={styles.button} />
+      </View>
+    </Animated.View>
   );
 };
 
-// --------------------------- Системные Премиум-Стили ---------------------------
+// --------------------------- Системные Премиум-Стили (НЕ ИЗМЕНЕНЫ) ---------------------------
 const styles = StyleSheet.create({
   container: {
     maxWidth: 800,
@@ -91,8 +170,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   scrollContent: {
-    paddingTop: 16, // Большой отступ сверху, чтобы текст не заезжал под центральную печеньку из index.tsx!
-    paddingBottom: 110, // Отступ снизу, чтобы карточки не перекрывались кнопкой "Далее"
+    paddingTop: 16,
+    paddingBottom: 110,
   },
   sectionTitle: {
     fontSize: 20,
@@ -101,22 +180,20 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     width: "100%",
-    gap: 8, // Строгий шаг между карточками в списке по твоему обновленному ТЗ
+    gap: 8,
   },
-  // Базовый стиль космической градиентной плашки
   listItemGradient: {
     width: "100%",
     flexDirection: "row",
     alignItems: "flex-start",
     padding: 14,
     borderRadius: 16,
-    shadowColor: "#89C579", // Подсветка тени под цвет твоих успехов
+    shadowColor: "#89C579",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.04,
     shadowRadius: 10,
-    elevation: 2, // Стабильный рендер теней на Android
+    elevation: 2,
   },
-  // Белый круглый бэдж для иконки
   emojiWrapper: {
     width: 28,
     height: 28,
@@ -126,8 +203,7 @@ const styles = StyleSheet.create({
     borderColor: "rgba(0, 0, 0, 0.03)",
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 1, // Идеальная посадка по высоте первой строки букв
-    // Микро-тень для самого кружка
+    marginTop: 1,
     shadowColor: "#000000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -142,15 +218,15 @@ const styles = StyleSheet.create({
   cardContent: {
     flex: 1,
     marginLeft: 12,
-    gap: 2, // Микро-шаг между названием карточки и описанием
+    gap: 2,
   },
   cardTitle: {
     fontSize: 14,
-    color: "#54A341", // Твой сочный благородный зеленый на основе greatSuccess
+    color: "#54A341",
   },
   cardBody: {
     fontSize: 13,
-    lineHeight: 15, // Межстрочный интервал строго по твоему стандарту
+    lineHeight: 15,
   },
   buttonWrap: {
     position: "absolute",

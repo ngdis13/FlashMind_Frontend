@@ -1,8 +1,8 @@
 // --------------------------- React ---------------------------
-import React from "react";
+import React, { useRef, useEffect } from "react";
 
 // --------------------------- React Native ---------------------------
-import { View, StyleSheet, Image, ScrollView } from "react-native";
+import { View, StyleSheet, Image, ScrollView, Animated } from "react-native";
 
 // --------------------------- Библиотеки ---------------------------
 import { LinearGradient } from "expo-linear-gradient";
@@ -27,16 +27,89 @@ interface ProblemsProps {
 }
 
 export const Problems = ({ data, onNext }: ProblemsProps) => {
+  // Анимация для всего контента (появление после свайпа)
+  const contentFade = useRef(new Animated.Value(0)).current;
+  const contentTranslateY = useRef(new Animated.Value(50)).current;
+  
+  // Анимация для звездочки
+  const starScale = useRef(new Animated.Value(0.5)).current;
+  
+  // Анимации для каждой карточки
+  const cardAnimations = useRef(
+    data.problem_areas.map(() => ({
+      fade: new Animated.Value(0),
+      translateY: new Animated.Value(40),
+    }))
+  ).current;
+
+  useEffect(() => {
+    // 1. Анимация появления всего контента
+    Animated.parallel([
+      Animated.timing(contentFade, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.spring(contentTranslateY, {
+        toValue: 0,
+        tension: 50,
+        friction: 7,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    // 2. Анимация звездочки (с задержкой)
+    setTimeout(() => {
+      Animated.spring(starScale, {
+        toValue: 1,
+        tension: 60,
+        friction: 6,
+        useNativeDriver: true,
+      }).start();
+    }, 200);
+
+    // 3. Анимация карточек (каскадом)
+    cardAnimations.forEach((anim, index) => {
+      Animated.parallel([
+        Animated.timing(anim.fade, {
+          toValue: 1,
+          duration: 500,
+          delay: 400 + index * 120,
+          useNativeDriver: true,
+        }),
+        Animated.spring(anim.translateY, {
+          toValue: 0,
+          tension: 50,
+          friction: 7,
+          delay: 400 + index * 120,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    });
+  }, []);
+
   return (
-    <View style={styles.container}>
+    <Animated.View 
+      style={[
+        styles.container,
+        {
+          opacity: contentFade,
+          transform: [{ translateY: contentTranslateY }],
+        }
+      ]}
+    >
       <ScrollView
         style={{ width: "100%" }}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        <View>
+        <Animated.View
+          style={{
+            transform: [{ scale: starScale }],
+          }}
+        >
           <LogoSadStar size={180} style={{ alignSelf: "center" }} />
-        </View>
+        </Animated.View>
 
         {/* Список карточек */}
         <View style={styles.listContainer}>
@@ -44,46 +117,54 @@ export const Problems = ({ data, onNext }: ProblemsProps) => {
             Проблемные зоны
           </Typography>
           {data.problem_areas.map((item, index) => {
+            const anim = cardAnimations[index];
             return (
-              <LinearGradient
+              <Animated.View
                 key={index}
-                colors={[
-                  "rgba(251, 139, 147, 0.48)",
-                  "rgba(255, 214, 217, 0.24)",
-                ]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.listItemGradient}
+                style={{
+                  opacity: anim.fade,
+                  transform: [{ translateY: anim.translateY }],
+                }}
               >
-                <View style={styles.emojiWrapper}>
-                  <Image
-                    source={AppEmojis.warning}
-                    style={styles.inlineEmoji}
-                  />
-                </View>
+                <LinearGradient
+                  colors={[
+                    "rgba(251, 139, 147, 0.48)",
+                    "rgba(255, 214, 217, 0.24)",
+                  ]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.listItemGradient}
+                >
+                  <View style={styles.emojiWrapper}>
+                    <Image
+                      source={AppEmojis.warning}
+                      style={styles.inlineEmoji}
+                    />
+                  </View>
 
-                <View style={styles.cardContent}>
-                  <Typography variant="h3" style={styles.cardTitle}>
-                    {item.title}
-                  </Typography>
-                  <Typography variant="h3" style={styles.cardBody}>
-                    {item.text}
-                  </Typography>
-                </View>
-              </LinearGradient>
+                  <View style={styles.cardContent}>
+                    <Typography variant="h3" style={styles.cardTitle}>
+                      {item.title}
+                    </Typography>
+                    <Typography variant="h3" style={styles.cardBody}>
+                      {item.text}
+                    </Typography>
+                  </View>
+                </LinearGradient>
+              </Animated.View>
             );
           })}
         </View>
+      </ScrollView>
 
-        </ScrollView>
       <View style={styles.buttonWrap}>
-          <MainButton title="Далее" onPress={onNext} style={styles.button} />
-        </View>
-    </View>
+        <MainButton title="Далее" onPress={onNext} style={styles.button} />
+      </View>
+    </Animated.View>
   );
 };
 
-// --------------------------- Системные Стили ---------------------------
+// --------------------------- Системные Стили (НЕ ИЗМЕНЕНЫ) ---------------------------
 const styles = StyleSheet.create({
   container: {
     maxWidth: 800,

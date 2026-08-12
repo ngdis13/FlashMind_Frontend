@@ -1,8 +1,8 @@
 // --------------------------- React ---------------------------
-import React from "react";
+import React, { useRef, useEffect } from "react";
 
 // --------------------------- React Native ---------------------------
-import { View, StyleSheet, Image } from "react-native";
+import { View, StyleSheet, Image, Animated } from "react-native";
 
 // --------------------------- Стили & Графика ---------------------------
 import { Typography } from "@/styles/Typography";
@@ -10,6 +10,7 @@ import { AppEmojis } from "@/assets/emoji/emoji";
 import { Logo } from "@/components/Logo";
 import { MainButton } from "@/components/MainButton";
 import { colors } from "@/styles/Colors";
+import { useRouter } from "expo-router"; // или useNavigation из react-navigation
 
 interface WelcomeProps {
   data: {
@@ -19,19 +20,58 @@ interface WelcomeProps {
 }
 
 export const Welcome = ({ data, onNext }: WelcomeProps) => {
+  const router = useRouter();
+  
+  // Анимационные значения
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(0.8)).current;
+  const translateYAnim = useRef(new Animated.Value(30)).current;
+
+  useEffect(() => {
+    // Анимация появления при монтировании
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        tension: 50,
+        friction: 7,
+        useNativeDriver: true,
+      }),
+      Animated.timing(translateYAnim, {
+        toValue: 0,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
   const formattedDate = new Date(data.analysis_date).toLocaleDateString("ru-RU", {
     day: "numeric",
     month: "long",
   });
 
+
   return (
-    <View style={styles.container}>
-      {/* 1. ПРИВЕТСТВЕННАЯ ПЕЧЕНЬКА-ЗВЕЗДОЧКА (По центру) */}
+    <Animated.View 
+      style={[
+        styles.container,
+        {
+          opacity: fadeAnim,
+          transform: [
+            { scale: scaleAnim },
+            { translateY: translateYAnim }
+          ]
+        }
+      ]}
+    >
       <View style={styles.characterWrapper}>
         <Logo size={240} />
       </View>
-
-      {/* 2. КОНТЕНТНЫЙ БЛОК (Заголовок + текст) */}
+      
       <View style={styles.contentBlock}>
         <Typography variant="span" style={styles.mainTitle}>
           Твой отчет готов! <Image source={AppEmojis.rocket} style={styles.inlineEmoji} />
@@ -42,19 +82,23 @@ export const Welcome = ({ data, onNext }: WelcomeProps) => {
         </Typography>
       </View>
 
-      {/* 3. БЛОК С ДАТОЙ И КНОПКОЙ (Фиксированный снизу) */}
+      {/* БЛОК С ДАТОЙ И КНОПКОЙ */}
       <View style={styles.bottomBlock}>
         <Typography variant="h3" style={styles.bottomDate}>
           Обновлено: {formattedDate}
         </Typography>
         
-        <MainButton title="Погнали!" onPress={onNext} style={styles.button} />
+        <MainButton 
+          title="Погнали!" 
+          onPress={onNext} 
+          style={styles.button} 
+        />
       </View>
-    </View>
+    </Animated.View>
   );
 };
 
-// --------------------------- Системные Стили по твоему макету ---------------------------
+// --------------------------- Системные Стили (БЕЗ ИЗМЕНЕНИЙ) ---------------------------
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -62,8 +106,8 @@ const styles = StyleSheet.create({
     maxWidth: 800,
     alignSelf: "center",
     paddingHorizontal: 12,
-    paddingBottom: 30, // Стандартный BOTTOM_MARGIN
-    justifyContent: "center", // Центрируем всё по вертикали
+    paddingBottom: 30,
+    justifyContent: "center",
     alignItems: "center",
     marginTop: 70
   },
