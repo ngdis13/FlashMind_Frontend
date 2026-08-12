@@ -216,7 +216,8 @@ export default function StatisticScreen() {
   const handleAiInsights = async () => {
     setIsAiLoading(true);
     try {
-      const result = await analyzeStudyStat();
+      const deckId = selectedDeck.id === "all" ? null : selectedDeck.id;
+      const result = await analyzeStudyStat(deckId);
       setAiData(result);
       openAiModal();
     } catch (err: any) {
@@ -388,6 +389,7 @@ export default function StatisticScreen() {
               <AiInsightsButton
                 onPress={handleAiInsights}
                 isLoading={isAiLoading}
+                disabled={selectedDeck.id === "all"}
               />
             </View>
 

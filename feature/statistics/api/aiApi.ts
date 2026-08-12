@@ -49,6 +49,8 @@ export const analyzeStudyStat = async (
 
     const resp = await apiClient.post<StudyStatAnalyzeResponse>(
       getMainServiceApiUrl(`/api/v1/flashmind/ai/analyze-study-stat${queryString}`),
+      {},
+      { timeout: 300000 },
     );
 
     console.log(

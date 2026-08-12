@@ -9,32 +9,36 @@ import { MotiView } from "moti";
 interface AiInsightsButtonProps {
   onPress: () => void;
   isLoading: boolean; // Передавайте true, пока идет генерация анализа
+  disabled?: boolean; // Серая неактивная кнопка (например, для "Все колоды")
 }
 
 export default function AiInsightsButton({
   onPress,
   isLoading,
+  disabled = false,
 }: AiInsightsButtonProps) {
+  const isDisabled = disabled || isLoading;
+
   return (
     // Заменили анимацию масштаба на статичный контейнер, кнопка больше не расширяется
-    <View style={styles.buttonWrapper}>
+    <View style={[styles.buttonWrapper, isDisabled && styles.buttonWrapperDisabled]}>
       <Pressable
         onPress={onPress}
-        disabled={isLoading}
+        disabled={isDisabled}
         style={({ pressed }) => [
           styles.pressableArea,
           pressed && !isLoading && styles.buttonPressed,
         ]}
       >
         <LinearGradient
-          colors={["rgba(255, 255, 255, 0.15)", "rgba(255, 255, 255, 0.03)"]}
+          colors={isDisabled ? ["transparent", "transparent"] : ["rgba(255, 255, 255, 0.15)", "rgba(255, 255, 255, 0.03)"]}
           start={[0, 0]}
           end={[0, 1]}
           locations={[0.02, 1.0]}
           style={styles.strokeGradient}
         >
           <LinearGradient
-            colors={["#C55BE6", "#9A64BB", "#5548CE"]}
+            colors={disabled ? ["#B0B0B0", "#9E9E9E", "#888888"] : ["#C55BE6", "#9A64BB", "#5548CE"]}
             locations={[0, 0.53, 1.0]}
             start={[0, 0.2]}
             end={[1, 0.8]}
@@ -137,6 +141,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 20,
     elevation: 8,
+  },
+  buttonWrapperDisabled: {
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  buttonWrapperDisabled: {
+    shadowOpacity: 0,
+    elevation: 0,
   },
   pressableArea: {
     flex: 1,

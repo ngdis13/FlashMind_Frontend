@@ -49,7 +49,7 @@ export const AiModal = ({ visible, onClose, data }: AiModalProps) => {
       </Typography>
 
       <Typography variant="h3" style={styles.message}>
-        Доучи ещё {remaining} карточек, чтобы алгоритм смог рассчитать твой точный прогноз и выявить скрытые суперсилы.
+        Повтори ещё {remaining} карточек, чтобы алгоритм смог рассчитать твой точный прогноз и выявить скрытые суперсилы.
       </Typography>
 
       {/* Прогресс-бар */}
