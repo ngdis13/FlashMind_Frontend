@@ -404,7 +404,7 @@ export default function ProfileScreen() {
 
                           return (
                             <View key={dateStr} style={styles.starWrapper}>
-                              {/* Наш обновленный компонент подсказки */}
+       
                               <StarTooltip
                                 dateStr={dateStr}
                                 count={countForDay}

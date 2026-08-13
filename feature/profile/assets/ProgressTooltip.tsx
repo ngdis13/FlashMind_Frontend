@@ -21,21 +21,21 @@ export const StarTooltip = ({
 }: StarTooltipProps) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  // Форматирование даты из формата "YYYY-MM-DD" в "ДД Месяца" (например, "17 июня")
+  const MONTHS_GENITIVE_RU = [
+    "января", "февраля", "марта", "апреля", "мая", "июня",
+    "июля", "августа", "сентября", "октября", "ноября", "декабря",
+  ];
+
   const formatDate = (dateString: string) => {
     if (!dateString) return "";
-    try {
-      const date = new Date(dateString);
-      // Проверяем корректность даты
-      if (isNaN(date.getTime())) return dateString;
 
-      return date.toLocaleDateString("ru-RU", {
-        day: "numeric",
-        month: "long",
-      });
-    } catch (e) {
+    const [year, month, day] = dateString.split("-").map(Number);
+
+    if (!year || !month || !day || month < 1 || month > 12) {
       return dateString;
     }
+
+    return `${day} ${MONTHS_GENITIVE_RU[month - 1]}`;
   };
 
   const getPluralForm = (n) => {
