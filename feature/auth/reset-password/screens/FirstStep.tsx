@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 // --------------- Компоненты и хуки ----------------
-import { View, Pressable, Image } from "react-native";
+import { View, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { AxiosError } from "axios";
@@ -9,7 +9,6 @@ import { AxiosError } from "axios";
 // --------------- Стили и цвета ----------------
 import { styles } from "@/feature-auth/reset-password/styles/FirstStep.styles";
 import { colors } from "@/styles/Colors";
-import ReturnIcon from "@/assets/icons/ReturnIcon.png";
 
 // --------------- Вспомогательные компоненты ----------------
 import { Typography } from "@/styles/Typography";
@@ -84,30 +83,6 @@ export default function FirstStepResetPassword() {
       style={commonStyles.viewContainer}
     >
       <View style={commonStyles.container}>
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center", // Выравнивает стрелку и текст строго по одной горизонтальной линии
-            gap: 12, // Фиксированный отступ между стрелкой и текстом, как в дизайне
-            width: "100%",
-            paddingTop: 32,
-            paddingBottom: 16,
-            paddingHorizontal: 16, // Боковой отступ, чтобы на мобилках не прижималось к краю
-          }}
-        >
-          <Pressable
-            onPress={handleBack}
-            style={{
-              justifyContent: "center",
-              alignItems: "center",
-              padding: 20,
-              
-            }}
-          >
-            <Image source={ReturnIcon} style={{ width: 12, height: 22 }} />
-          </Pressable>
-        </View>
-
         <View style={{top: 250}}>
           <Typography variant="h1" style={styles.pageNames}>
             Введите ваш адрес электронной почты
@@ -144,6 +119,11 @@ export default function FirstStepResetPassword() {
             onPress={handleContinue}
             disabled={!isButtonActive}
           />
+          <Pressable onPress={handleBack} style={styles.cancelButton}>
+            <Typography color={colors.mainColor} variant="h2">
+              Назад
+            </Typography>
+          </Pressable>
         </View>
       </View>
     </SafeAreaView>

@@ -12,6 +12,7 @@ import { CodeInput } from "@/feature-auth/components/CodeInput";
 
 // --------------------------- Цвета ---------------------------
 import { colors } from "@/styles/Colors";
+import { commonStyles } from "@/styles/Common";
 
 // --------------------------- Сторы и API ---------------------------
 import { useAuthStore } from "../../../../store/auth.store";
@@ -110,50 +111,54 @@ export default function StepConfirmEmail() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Заголовок страницы */}
-      <Typography variant="h1" style={styles.pageNames}>
-        Мы отправили код подтверждения регистрации на вашу почту
-      </Typography>
-
-      {/* Информационный блок */}
-      <View style={styles.infoContainer}>
-        <Typography variant="h2">Пожалуйста, введите код</Typography>
-        <Typography variant="h3" color={"#585858"}>
-          Если код не пришел, проверьте папку спам
-        </Typography>
-      </View>
-
-      {/* Компонент для ввода кода */}
-      <CodeInput length={6} onCodeFilled={handleCodeFilled} />
-
-      {/* Сообщение об ошибке при неверном коде */}
-      {error && (
-        <Typography
-          style={{ maxWidth: 400, marginBottom: 8, textAlign: "center" }}
-          variant="h3"
-          color={colors.errorColor}
-        >
-          {error}
-        </Typography>
-      )}
-
-      {/* Возможность повторной отправки кода */}
-      {canResend ? (
-        <Pressable onPress={handleResendCode}>
-          <Typography
-            variant="h3"
-            color={colors.darkMainColor}
-            style={{ textDecorationLine: "underline" }}
-          >
-            Отправить код повторно
+    <View style={commonStyles.viewContainer}>
+      <View style={commonStyles.container}>
+        <SafeAreaView style={styles.container}>
+          {/* Заголовок страницы */}
+          <Typography variant="h1" style={styles.pageNames}>
+            Мы отправили код подтверждения регистрации на вашу почту
           </Typography>
-        </Pressable>
-      ) : (
-        <Typography variant="h3" color={colors.darkGray}>
-          Отправить код повторно через {secondLeft} сек
-        </Typography>
-      )}
-    </SafeAreaView>
+
+          {/* Информационный блок */}
+          <View style={styles.infoContainer}>
+            <Typography variant="h2">Пожалуйста, введите код</Typography>
+            <Typography variant="h3" color={"#585858"}>
+              Если код не пришел, проверьте папку спам
+            </Typography>
+          </View>
+
+          {/* Компонент для ввода кода */}
+          <CodeInput length={6} onCodeFilled={handleCodeFilled} />
+
+          {/* Сообщение об ошибке при неверном коде */}
+          {error && (
+            <Typography
+              style={{ maxWidth: 400, marginBottom: 8, textAlign: "center" }}
+              variant="h3"
+              color={colors.errorColor}
+            >
+              {error}
+            </Typography>
+          )}
+
+          {/* Возможность повторной отправки кода */}
+          {canResend ? (
+            <Pressable onPress={handleResendCode}>
+              <Typography
+                variant="h3"
+                color={colors.darkMainColor}
+                style={{ textDecorationLine: "underline" }}
+              >
+                Отправить код повторно
+              </Typography>
+            </Pressable>
+          ) : (
+            <Typography variant="h3" color={colors.darkGray}>
+              Отправить код повторно через {secondLeft} сек
+            </Typography>
+          )}
+        </SafeAreaView>
+      </View>
+    </View>
   );
 }

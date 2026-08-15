@@ -34,8 +34,13 @@ export const styles = StyleSheet.create({
     width: "100%",
     justifyContent: "center",
     alignItems: "center",
-    gap: 12,
+    gap: 10,
     bottom: 30,
     paddingHorizontal: 10,
+  },
+  cancelButton: {
+    height: 46,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

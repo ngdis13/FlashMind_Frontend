@@ -4,6 +4,7 @@ import { StyleSheet } from "react-native";
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
+    width: "100%",
     paddingTop: 100,
     alignItems: "center",
     padding: 24,
@@ -33,7 +34,6 @@ export const styles = StyleSheet.create({
   },
   inputContainer: {
     width: "100%",
-    maxWidth: 400,
     alignItems: "center",
     gap: 16,
     marginBottom: 16,
@@ -41,7 +41,6 @@ export const styles = StyleSheet.create({
   passwordWrapper: {
     position: "relative",
     width: "100%",
-    maxWidth: 400,
     alignSelf: "center",
   },
   input: {

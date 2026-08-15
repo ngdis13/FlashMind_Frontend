@@ -5,6 +5,7 @@ import { useRouter } from "expo-router";
 
 // --------------------------- Стили ---------------------------
 import { styles } from "../styles/LastStep.styles";
+import { commonStyles } from "@/styles/Common";
 
 // --------------------------- Компоненты ---------------------------
 import { MainButton } from "@/components/MainButton";
@@ -43,16 +44,20 @@ export default function LastStepResetPassword() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Logo />
+    <View style={commonStyles.viewContainer}>
+      <View style={commonStyles.container}>
+        <SafeAreaView style={styles.container}>
+          <Logo />
 
-      <Typography variant="h1" style={styles.pageNames}>
-        Успешный сброс пароля
-      </Typography>
+          <Typography variant="h1" style={styles.pageNames}>
+            Успешный сброс пароля
+          </Typography>
 
-      <View style={styles.buttonContainer}>
-        <MainButton title="Вход в систему" onPress={handleContinue} />
+          <View style={styles.buttonContainer}>
+            <MainButton title="Вход в систему" onPress={handleContinue} />
+          </View>
+        </SafeAreaView>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }

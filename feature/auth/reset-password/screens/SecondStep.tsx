@@ -12,9 +12,13 @@ import { CodeInput } from "@/feature-auth/components/CodeInput";
 
 // --------------- Цвета ----------------
 import { colors } from "@/styles/Colors";
+import { commonStyles } from "@/styles/Common";
 
 // --------------- API и хуки ----------------
-import { verifyResetCode, resendResetCode } from "@/feature-auth/reset-password/api/resetPassword.api";
+import {
+  verifyResetCode,
+  resendResetCode,
+} from "@/feature-auth/reset-password/api/resetPassword.api";
 import { useResetPasswordStore } from "@/feature-auth/store/resetPassword.store";
 import { AxiosError } from "axios";
 import { useInterval } from "@/feature-auth/hooks/useInterval";
@@ -39,13 +43,16 @@ export default function SecondStepResetPassword() {
 
   // ---------------------------
   // Таймер обратного отсчета (улучшен с useInterval)
-  useInterval(() => {
-    if (secondLeft > 0) {
-      setSecondLeft((prev) => prev - 1);
-    } else {
-      setCanResend(true); // Разрешаем повторную отправку после завершения отсчета.
-    }
-  }, secondLeft > 0 ? 1000 : null); // null останавливает интервал
+  useInterval(
+    () => {
+      if (secondLeft > 0) {
+        setSecondLeft((prev) => prev - 1);
+      } else {
+        setCanResend(true); // Разрешаем повторную отправку после завершения отсчета.
+      }
+    },
+    secondLeft > 0 ? 1000 : null,
+  ); // null останавливает интервал
 
   // ---------------------------
   // Функция для проверки введенного кода
@@ -58,7 +65,7 @@ export default function SecondStepResetPassword() {
 
       if (!resp.access_token) {
         setError(
-          "Не удалось подтвердить код. Проверьте email или запросите новый код."
+          "Не удалось подтвердить код. Проверьте email или запросите новый код.",
         );
         return;
       }
@@ -94,10 +101,10 @@ export default function SecondStepResetPassword() {
       setError("Email не найден. Начните заново.");
       return;
     }
-  
+
     setLoading(true);
     setError("");
-  
+
     try {
       await resendResetCode({ email });
       setSecondLeft(60); // Сброс таймера.
@@ -116,50 +123,54 @@ export default function SecondStepResetPassword() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Typography variant="h1" style={styles.pageNames}>
-        Мы отправили код подтверждения сброса пароля на вашу почту
-      </Typography>
-
-      <View style={styles.infoContainer}>
-        <Typography variant="h2">Пожалуйста, введите код</Typography>
-        <Typography variant="h3" color={"#585858"}>
-          Если код не пришел, проверьте папку спам
-        </Typography>
-      </View>
-
-      <CodeInput length={6} onCodeFilled={handleCodeFilled} />
-
-      {error ? (
-        <Typography
-          variant="h3"
-          color={colors.errorColor}
-          style={{
-            alignSelf: "center",
-            maxWidth: 350,
-            textAlign: "center",
-            marginBottom: 8,
-          }}
-        >
-          {error}
-        </Typography>
-      ) : null}
-
-      {canResend ? (
-        <Pressable onPress={handleResendCode} disabled={loading}>
-          <Typography
-            variant="h3"
-            color={colors.darkMainColor}
-            style={{ textDecorationLine: "underline" }}
-          >
-            Отправить код повторно
+    <View style={commonStyles.viewContainer}>
+      <View style={commonStyles.container}>
+        <SafeAreaView style={styles.container}>
+          <Typography variant="h1" style={styles.pageNames}>
+            Мы отправили код подтверждения сброса пароля на вашу почту
           </Typography>
-        </Pressable>
-      ) : (
-        <Typography variant="h3" color={colors.darkGray}>
-          Отправить код повторно через {secondLeft} сек
-        </Typography>
-      )}
-    </SafeAreaView>
+
+          <View style={styles.infoContainer}>
+            <Typography variant="h2">Пожалуйста, введите код</Typography>
+            <Typography variant="h3" color={"#585858"}>
+              Если код не пришел, проверьте папку спам
+            </Typography>
+          </View>
+
+          <CodeInput length={6} onCodeFilled={handleCodeFilled} />
+
+          {error ? (
+            <Typography
+              variant="h3"
+              color={colors.errorColor}
+              style={{
+                alignSelf: "center",
+                maxWidth: 350,
+                textAlign: "center",
+                marginBottom: 8,
+              }}
+            >
+              {error}
+            </Typography>
+          ) : null}
+
+          {canResend ? (
+            <Pressable onPress={handleResendCode} disabled={loading}>
+              <Typography
+                variant="h3"
+                color={colors.darkMainColor}
+                style={{ textDecorationLine: "underline" }}
+              >
+                Отправить код повторно
+              </Typography>
+            </Pressable>
+          ) : (
+            <Typography variant="h3" color={colors.darkGray}>
+              Отправить код повторно через {secondLeft} сек
+            </Typography>
+          )}
+        </SafeAreaView>
+      </View>
+    </View>
   );
 }
