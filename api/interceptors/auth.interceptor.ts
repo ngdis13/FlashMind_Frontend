@@ -1,8 +1,7 @@
 import { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 import { refreshToken } from '../services/auth.service';
 import { useAuthStore } from '@/store/auth.store';
-import { logout } from '@/feature/auth/login/api/login.api';
-import { router, useRouter } from 'expo-router';
+import { router } from 'expo-router';
 
 // ==================== Состояние (только const) ====================
 const refreshState = {
@@ -20,26 +19,37 @@ const failedQueue: FailedRequest[] = [];
 const processQueue = (error: unknown, token?: string) => {
   failedQueue.forEach(({ resolve, reject }) => {
     if (error) {
-      reject(error);        // refresh провалился
+      reject(error);        
     } else {
-      resolve(token);       // refresh прошёл успешно
+      resolve(token);       
     }
   });
-  failedQueue.length = 0;   // очищаем очередь без переприсваивания
+  failedQueue.length = 0;   
 };
 
 // ==================== Основная функция ====================
 export function setupAuthInterceptor(apiClient: AxiosInstance) {
-  const router = useRouter()
   apiClient.interceptors.response.use(
     (response) => response,
 
     async (error: AxiosError) => {
       const originalRequest = error.config as InternalAxiosRequestConfig & {
+        _skipAuthRefresh?: boolean;
       };
-      
+
       // Не 401 — сразу пропускаем
       if (error.response?.status !== 401) {
+        return Promise.reject(error);
+      }
+
+      // Это сам refresh-запрос → не пытаемся обновить токен ещё раз
+      if (originalRequest.url?.includes('/auth/refresh')) {
+        return Promise.reject(error);
+      }
+
+      // Флаг _skipAuthRefresh позволяет принудительно отключить refresh.
+      const hasAuthHeader = Boolean(originalRequest.headers?.Authorization);
+      if (!hasAuthHeader || originalRequest._skipAuthRefresh) {
         return Promise.reject(error);
       }
 
@@ -57,16 +67,7 @@ export function setupAuthInterceptor(apiClient: AxiosInstance) {
       refreshState.isRefreshing = true;   // ← мутация объекта, а не let
 
       try {
-        const _isRefreshRequest = originalRequest.data?.includes('_isRefreshRequest') ?? false;
-        if (_isRefreshRequest) {
-          console.log('Refresh запрос провалился, выходим из системы');
-          throw error
-        }
-
         const { access_token } = await refreshToken();
-
-        // Обновляем токен глобально
-        apiClient.defaults.headers.Authorization = `Bearer ${access_token}`;
 
         // Разблокируем все запросы из очереди
         processQueue(null, access_token);
@@ -79,9 +80,7 @@ export function setupAuthInterceptor(apiClient: AxiosInstance) {
         processQueue(err);
         useAuthStore.getState().logout();
         router.push('/login')
-        
 
-        
         return Promise.reject(err);
       } finally {
         refreshState.isRefreshing = false;   // ← снова мутация объекта

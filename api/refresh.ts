@@ -20,10 +20,6 @@ export async function refresh(): Promise<LoginResponse> {
     const setAccessToken = useAuthStore.getState().setAccessToken; // получаем функцию стора
     setAccessToken(access_token);
 
-    // Обновляем токен в apiClient
-    apiClient.defaults.headers["Authorization"] =
-      `Bearer ${resp.data.access_token}`;
-    
     console.info('Обновлен токен доступа')
     // Получаем новые токены
     return resp.data;
