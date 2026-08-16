@@ -1,6 +1,8 @@
 import apiClient from "@/api/client";
 import { getMainServiceApiUrl } from "@/api/getMainServiceApiUrl";
 import { handleApiError } from "@/api/interceptors/error.interceptor";
+import { useAuthStore } from "@/store/auth.store";
+import { AxiosError } from "axios";
 
 // ==================== ТИПЫ ОТВЕТА ====================
 
@@ -36,6 +38,13 @@ export const analyzeStudyStat = async (
   deckId?: string | null,
 ): Promise<StudyStatAnalyzeResponse> => {
   try {
+    const accessToken = useAuthStore.getState().accessToken;
+
+    if (!accessToken) {
+      console.log("❌ Токен доступа отсутствует");
+      throw new Error("Нет токена авторизации");
+    }
+
     const params: Record<string, string> = {};
     if (deckId) params.deck_id = deckId;
 
@@ -50,7 +59,10 @@ export const analyzeStudyStat = async (
     const resp = await apiClient.post<StudyStatAnalyzeResponse>(
       getMainServiceApiUrl(`/api/v1/flashmind/ai/analyze-study-stat${queryString}`),
       {},
-      { timeout: 300000 },
+      {
+        timeout: 300000,
+        headers: { Authorization: `Bearer ${accessToken}` },
+      },
     );
 
     console.log(
@@ -58,9 +70,9 @@ export const analyzeStudyStat = async (
     );
 
     return resp.data;
-  } catch (err: any) {
+  } catch (err: unknown) {
     // 422 — недостаточно повторов, пробрасываем как есть
-    if (err?.response?.status === 422) {
+    if (err instanceof AxiosError && err.response?.status === 422) {
       throw err;
     }
     handleApiError(err, "Не удалось выполнить AI-анализ статистики");

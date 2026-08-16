@@ -1,6 +1,7 @@
 import apiClient from "@/api/client";
 import { getMainServiceApiUrl } from "@/api/getMainServiceApiUrl";
 import { handleApiError } from "@/api/interceptors/error.interceptor";
+import { useAuthStore } from "@/store/auth.store";
 // ==================== ТИПЫ ОТВЕТА ====================
 
 export interface OneTimeMetrics {
@@ -68,6 +69,13 @@ export const fetchStats = async (
   deckId?: string | null,
 ): Promise<StatsResponse> => {
   try {
+    const accessToken = useAuthStore.getState().accessToken;
+
+    if (!accessToken) {
+      console.log("❌ Токен доступа отсутствует");
+      throw new Error("Нет токена авторизации");
+    }
+
     const params: Record<string, string> = {};
     if (deckId) params.deck_id = deckId;
 
@@ -81,6 +89,7 @@ export const fetchStats = async (
 
     const resp = await apiClient.get<StatsResponse>(
       getMainServiceApiUrl(`/api/v1/flashmind/stats/stats${queryString}`),
+      { headers: { Authorization: `Bearer ${accessToken}` } },
     );
 
     const rc = resp.data.review_count.points;
