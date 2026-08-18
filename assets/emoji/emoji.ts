@@ -18,4 +18,6 @@ export const AppEmojis = {
   sparkles: require("../emoji-png/sparkles.png"),
   clock: require("../emoji-png/clock.png"),
   tools: require("../emoji-png/tools.png"),
+  star: require("../emoji-png/star.png"),
+  document: require("../emoji-png/document.png"),
 };

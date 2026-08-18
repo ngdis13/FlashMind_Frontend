@@ -29,6 +29,5 @@ export const styles = StyleSheet.create({
   },
   createCardButton: {
     width: "100%", 
-
   }
 });

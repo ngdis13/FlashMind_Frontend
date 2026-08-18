@@ -1,5 +1,6 @@
-import CreateCardView from "@/feature/decks/deck-create-card/screens/CreateCard";
+
+import { TemplateSelectScreen } from "@/feature/decks/deck-create-card/screens/TemplateSelectScreen";
 
 export default function CreateCard() {
-    return <CreateCardView/>
+    return <TemplateSelectScreen/>
 }
