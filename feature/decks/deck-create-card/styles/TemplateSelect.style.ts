@@ -28,10 +28,13 @@ export const styles = StyleSheet.create({
   inlineEmoji: {
     width: 16,
     height: 16,
-    resizeMode: "contain",
   },
   headerName: {
     marginBottom: 12
+  },
+  templateBox: {
+    width: "100%",
+
   },
     createTemplateButton: {
     width: "100%", 

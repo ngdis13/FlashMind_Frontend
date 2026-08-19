@@ -8,7 +8,8 @@ import {
 } from "@/storage/api/api";
 import { loadDeckCards, saveDeckCards } from "@/storage/service/decksStorage";
 import { Card } from "@/storage/types/types";
-import { useDeckStore } from "@/store/deck.store"; 
+import { useDeckStore } from "@/store/deck.store";
+import { CardBlock } from "@/feature/decks/deck-create-card/types/cardBlocks";
 
 
 interface StoreCardListItem {
@@ -33,6 +34,13 @@ type CardState = {
   error: string | null;
   lastFetched: Record<string, number>;
 
+  // Черновик создаваемой карточки
+  draftTitle: string;
+  draftFront: CardBlock[];
+  draftBack: CardBlock[];
+  draftHint1: string;
+  draftHint2: string;
+
   getCards: (deckId: string) => Promise<StoreCard[]>;
   invalidateCards: (deckId: string) => void;
   invalidateAllCards: () => Promise<void>;
@@ -47,11 +55,23 @@ type CardState = {
   clearCards: (deckId?: string) => void;
   // Добавляем прямой метод ручного обновления стора (пригодится хуку)
   setDeckCardsState: (deckId: string, newState: DeckCardsStorage) => void;
+
+  setDraftTitle: (title: string) => void;
+  setDraftFront: (blocks: CardBlock[]) => void;
+  setDraftBack: (blocks: CardBlock[]) => void;
+  setDraftHint1: (hint: string) => void;
+  setDraftHint2: (hint: string) => void;
+  updateDraftBlockValue: (
+    side: "front" | "back",
+    blockId: string,
+    value: string,
+  ) => void;
+  resetDraft: () => void;
 };
 
 export const useCardStore = create<CardState>((set, get) => {
   // Жесткий валидатор формата: если прилетает не объект с isActual и cards — падаем
-  const validateFormat = (deckId: string, data: any) => {
+  const validateFormat = (deckId: string, data: DeckCardsStorage | null | undefined) => {
     if (!data) return;
     const hasCards = Array.isArray(data.cards);
     const hasActualFlag = typeof data.isActual === "boolean";
@@ -70,6 +90,12 @@ export const useCardStore = create<CardState>((set, get) => {
     isLoading: {},
     error: null,
     lastFetched: {},
+
+    draftTitle: "",
+    draftFront: [],
+    draftBack: [],
+    draftHint1: "",
+    draftHint2: "",
 
     setDeckCardsState: (deckId, newState) => {
       validateFormat(deckId, newState);
@@ -338,5 +364,42 @@ export const useCardStore = create<CardState>((set, get) => {
         set({ cards: {}, lastFetched: {} });
       }
     },
+
+    setDraftTitle: (title) => set({ draftTitle: title }),
+    setDraftFront: (blocks) => set({ draftFront: blocks }),
+    setDraftBack: (blocks) => set({ draftBack: blocks }),
+    setDraftHint1: (hint) => set({ draftHint1: hint }),
+    setDraftHint2: (hint) => set({ draftHint2: hint }),
+    updateDraftBlockValue: (side, blockId, value) =>
+      set((state) => {
+        if (side === "front") {
+          return {
+            draftFront: state.draftFront.map((block) => {
+              if (block.id !== blockId) return block;
+              if (block.type === "term" || block.type === "text") {
+                return { ...block, value };
+              }
+              return block;
+            }),
+          };
+        }
+        return {
+          draftBack: state.draftBack.map((block) => {
+            if (block.id !== blockId) return block;
+            if (block.type === "term" || block.type === "text") {
+              return { ...block, value };
+            }
+            return block;
+          }),
+        };
+      }),
+    resetDraft: () =>
+      set({
+        draftTitle: "",
+        draftFront: [],
+        draftBack: [],
+        draftHint1: "",
+        draftHint2: "",
+      }),
   };
 });

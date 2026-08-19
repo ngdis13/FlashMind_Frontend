@@ -1,6 +1,6 @@
 // Твой обновленный файл TemplateSelectScreen.tsx
 import { ScrollView, View, Image, Pressable } from "react-native";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 
 import { BOTTOM_MARGIN, commonStyles } from "@/styles/Common";
@@ -22,54 +22,71 @@ const MOCK_RECENT_TEMPLATES: TemplateCardMock[] = [
   {
     id: "template_1",
     title: "Немецкие глаголы",
-    frontBlocks: [{ id: "f1", type: "term", value: "" }],
-    backBlocks: [{ id: "b1", type: "text", value: "" }, { id: "b2", type: "text", value: "" }]
+    front: [{ id: "f1", type: "term", value: "", position: 0 }],
+    back: [
+      { id: "b1", type: "text", value: "", position: 0 },
+      { id: "b2", type: "text", value: "", position: 1 },
+    ],
   },
   {
     id: "template_2",
     title: "Столицы (квиз)",
-    frontBlocks: [{ id: "f2", type: "text", value: "" }],
-    backBlocks: [{ id: "b3", type: "term", value: "" }]
+    front: [
+      { id: "f2", type: "term", value: "", position: 0 },
+      {
+        id: "f3",
+        type: "quiz",
+        variants: ["Берлин", "Мюнхен", "Франкфурт", "Гамбург"],
+        correctIndex: 0,
+        position: 1,
+      },
+    ],
+    back: [{ id: "b3", type: "text", value: "", position: 0 }],
   },
   {
     id: "template_3",
     title: "Анатомия: Мышцы",
-    frontBlocks: [{ id: "f3", type: "term", value: "" }, { id: "f4", type: "text", value: "" }],
-    backBlocks: [{ id: "b4", type: "text", value: "" }]
-  }
+    front: [
+      { id: "f4", type: "term", value: "", position: 0 },
+      { id: "f5", type: "image", url: "", position: 1 },
+    ],
+    back: [{ id: "b4", type: "text", value: "", position: 0 }],
+  },
 ];
 
 export const TemplateSelectScreen = () => {
   const router = useRouter();
   const [search, setSearch] = useState<string>("");
+  const { id } = useLocalSearchParams<{ id: string }>();
 
   const handleBack = (): void => {
-    router.push("/decks");
+    router.push(`/decks/${id}`);
   };
 
   // Метод перехода в конструктор при выборе конкретного шаблона
-  const handleSelectTemplate = (id: string) => {
+  const handleSelectTemplate = (templateId: string) => {
     router.push({
-      pathname: "/deck-create-card/screens/CreateCard",
-      params: { templateId: id }
+      pathname: `/decks/${id}/create-card/create`,
+      params: { templateId }, // Передаем ID шаблона в параметрах
     });
   };
 
   // Метод перехода для создания карточки с полного нуля
   const handleCreateTemplate = () => {
     router.push({
-      pathname: "/deck-create-card/screens/CreateCard",
-      params: { templateId: "empty" }
+      pathname: `/decks/${id}/create-card/create`,
+      params: { templateId: "empty" },
     });
   };
 
-
-  const filteredTemplates = MOCK_RECENT_TEMPLATES.filter(t => 
-    t.title.toLowerCase().includes(search.toLowerCase())
+  const filteredTemplates = MOCK_RECENT_TEMPLATES.filter((t) =>
+    t.title.toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}>
+    <View
+      style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}
+    >
       <View style={[commonStyles.container, { flex: 1 }]}>
         <ScrollView
           style={{ width: "100%" }}
@@ -84,7 +101,11 @@ export const TemplateSelectScreen = () => {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.header}>
-            <Pressable onPress={handleBack} style={styles.backButton} hitSlop={20}>
+            <Pressable
+              onPress={handleBack}
+              style={styles.backButton}
+              hitSlop={20}
+            >
               <Image source={ReturnIcon} style={{ width: 10, height: 18 }} />
             </Pressable>
             <Typography variant="h2">Новая карточка</Typography>
@@ -104,21 +125,24 @@ export const TemplateSelectScreen = () => {
 
           <View style={styles.templateBox}>
             <Typography variant="h2" style={styles.headerName}>
-              <Image source={AppEmojis.star} style={styles.inlineEmoji} /> {""}
+              <Image source={AppEmojis.star} style={styles.inlineEmoji} resizeMode="contain" /> {""}
               Недавно созданные
             </Typography>
 
             <View style={{ width: "100%" }}>
               {filteredTemplates.map((template) => (
-                <TemplateItem 
-                  key={template.id} 
-                  item={template} 
-                  onPress={handleSelectTemplate} 
+                <TemplateItem
+                  key={template.id}
+                  item={template}
+                  onPress={handleSelectTemplate}
                 />
               ))}
-              
+
               {filteredTemplates.length === 0 && (
-                <Typography variant="h3" style={{ color: colors.darkGray, textAlign: 'center',}}>
+                <Typography
+                  variant="h3"
+                  style={{ color: colors.darkGray, textAlign: "center" }}
+                >
                   Ничего не найдено
                 </Typography>
               )}
@@ -136,7 +160,7 @@ export const TemplateSelectScreen = () => {
         >
           <MainButton
             style={styles.createTemplateButton}
-            title="Создать пустой шаблон"
+            title="Создать свой шаблон"
             onPress={handleCreateTemplate}
           />
         </View>

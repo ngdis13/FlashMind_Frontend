@@ -52,7 +52,6 @@ export const commonStyles = StyleSheet.create({
     alignItems: "center",
   },
 
-
   // Карточки, инфо-боксы и шапки будут занимать 100% от родителя (то есть от макс. 600px)
   mainBox: {
     width: "100%",
@@ -106,4 +105,15 @@ export const commonStyles = StyleSheet.create({
     borderRadius: 12,
   },
 
+  //общая тень для блоков
+  shadowBox: {
+    shadowColor: "#000000",
+    shadowOffset: {
+      width: 0, // Позиция X = 0
+      height: 4, // Позиция Y = 4
+    },
+    shadowRadius: 4, // Blur = 4
+    shadowOpacity: 0.15, // Color opacity = 15%
+    elevation: 5,
+  },
 });
