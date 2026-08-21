@@ -14,7 +14,8 @@ import ReturnIcon from "@/assets/icons/ReturnIcon.png";
 
 export const TextEditor = () => {
   const router = useRouter();
-  const { side, blockId } = useLocalSearchParams<{
+  const { id, side, blockId } = useLocalSearchParams<{
+    id: string;
     side: string;
     blockId: string;
   }>();
@@ -36,13 +37,19 @@ export const TextEditor = () => {
   const [localText, setLocalText] = useState(initialValue);
 
   const handleBack = (): void => {
-    router.back();
+    router.push({
+      pathname: `/decks/${id}/create-card/side-editor`,
+      params: { side },
+    });
   };
 
   // Функция сохранения при клике на MainButton внизу
   const handleSave = (): void => {
     updateDraftBlockValue(sideKey, blockId, localText.trim());
-    router.back();
+    router.push({
+      pathname: `/decks/${id}/create-card/side-editor`,
+      params: { side },
+    });
   };
 
   return (

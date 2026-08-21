@@ -13,6 +13,7 @@ import ReturnIcon from "@/assets/icons/ReturnIcon.png";
 import { Input } from "@/components/Input";
 import { AppEmojis } from "@/assets/emoji/emoji";
 import { MainButton } from "@/components/MainButton";
+import { useCardStore } from "@/store/card.store";
 
 // ИМПОРТИРУЕМ НАШ НОВЫЙ КОМПОНЕНТ И ТИП
 import { TemplateItem, TemplateCardMock } from "../components/TemplateItem";
@@ -65,6 +66,7 @@ export const TemplateSelectScreen = () => {
 
   // Метод перехода в конструктор при выборе конкретного шаблона
   const handleSelectTemplate = (templateId: string) => {
+    useCardStore.getState().resetDraft();
     router.push({
       pathname: `/decks/${id}/create-card/create`,
       params: { templateId }, // Передаем ID шаблона в параметрах
@@ -73,6 +75,7 @@ export const TemplateSelectScreen = () => {
 
   // Метод перехода для создания карточки с полного нуля
   const handleCreateTemplate = () => {
+    useCardStore.getState().resetDraft();
     router.push({
       pathname: `/decks/${id}/create-card/create`,
       params: { templateId: "empty" },

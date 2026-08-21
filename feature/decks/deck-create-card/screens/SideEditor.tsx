@@ -34,7 +34,7 @@ export const SideEditor = () => {
   const sideKey: "front" | "back" = isFront ? "front" : "back";
 
   const handleBack = (): void => {
-    router.back();
+    router.push(`/decks/${id}/create-card/create`);
   };
 
   const handleViewCard = (): void => {};

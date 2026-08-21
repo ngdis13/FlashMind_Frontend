@@ -49,6 +49,7 @@
     "react-native-render-html": "^6.3.4",
     "react-native-safe-area-context": "^5.6.2",
     "react-native-screens": "^4.19.0",
+    "react-native-simple-image-cropper": "^3.2.1",
     "react-native-svg": "15.12.1",
     "react-native-toast-message": "^2.3.3",
     "react-native-web": "^0.21.0",

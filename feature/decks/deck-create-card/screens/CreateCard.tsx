@@ -94,11 +94,12 @@ export default function CreateCardView() {
   const setHint1 = useCardStore((s) => s.setDraftHint1);
   const hint2 = useCardStore((s) => s.draftHint2);
   const setHint2 = useCardStore((s) => s.setDraftHint2);
-  const resetDraft = useCardStore((s) => s.resetDraft);
 
   // Загружаем блоки на основе выбранного шаблона
   useEffect(() => {
-    resetDraft();
+    // Не трогаем черновик, если он уже заполнен (вернулись с редактирования)
+    if (front.length > 0 || back.length > 0) return;
+
     if (templateId === "empty" || !templateId) {
       setFront([]);
       setBack([]);

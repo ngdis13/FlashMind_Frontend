@@ -1,5 +1,5 @@
 // feature-decks/deck-create-card/screens/TermEditor.tsx
-import { ScrollView, View, Image, Pressable, StyleSheet, TextInput } from "react-native";
+import { ScrollView, View, Image, Pressable, StyleSheet } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 
@@ -14,7 +14,8 @@ import { Input } from "@/components/Input";
 
 export const TermEditor = () => {
   const router = useRouter();
-  const { side, blockId } = useLocalSearchParams<{
+  const { id, side, blockId } = useLocalSearchParams<{
+    id: string;
     side: string;
     blockId: string;
   }>();
@@ -36,13 +37,19 @@ export const TermEditor = () => {
   const [localText, setLocalText] = useState(initialValue);
 
   const handleBack = (): void => {
-    router.back();
+    router.push({
+      pathname: `/decks/${id}/create-card/side-editor`,
+      params: { side },
+    });
   };
 
   // Функция сохранения при клике на MainButton внизу
   const handleSave = (): void => {
     updateDraftBlockValue(sideKey, blockId, localText.trim());
-    router.back();
+    router.push({
+      pathname: `/decks/${id}/create-card/side-editor`,
+      params: { side },
+    });
   };
 
   return (
