@@ -5,6 +5,7 @@ import { useEffect, useRef } from "react";
 
 import Toast, { BaseToast, type ToastConfig } from "react-native-toast-message";
 import { View, Text } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import MontserratRegular from "@/assets/fonts/Montserrat-Regular.ttf";
 import MontserratMedium from "@/assets/fonts/Montserrat-Medium.ttf";
@@ -109,7 +110,7 @@ export default function Layout() {
   if (!fontsLoaded) return null;
 
   return (
-    <>
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <Stack
         screenOptions={{
           headerShown: false,
@@ -130,6 +131,6 @@ export default function Layout() {
       </Stack>
 
       <Toast config={toastConfig} />
-    </>
+    </GestureHandlerRootView>
   );
 }

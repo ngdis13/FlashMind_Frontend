@@ -26,9 +26,9 @@ const blockLabel = (block: CardBlock): string => {
     case "text":
       return "Текст";
     case "quiz":
-      return "Квиз";
+      return "Тест";
     case "image":
-      return "Картинка";
+      return "Изображение";
   }
 };
 

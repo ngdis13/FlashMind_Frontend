@@ -123,6 +123,10 @@ export const styles = StyleSheet.create({
     borderColor: colors.lightGray,
     padding: 8,
     borderRadius: 10,
-
+  },
+  emptyStateText: {
+    textAlign: "center",
+    fontStyle: "italic",
+    width: "100%",
   },
 });

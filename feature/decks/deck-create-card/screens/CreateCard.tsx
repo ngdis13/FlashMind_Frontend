@@ -100,8 +100,9 @@ export default function CreateCardView() {
   useEffect(() => {
     resetDraft();
     if (templateId === "empty" || !templateId) {
-      setFront([{ id: "f_empty", type: "term", value: "", position: 0 }]);
-      setBack([{ id: "b_empty", type: "text", value: "", position: 0 }]);
+      setFront([]);
+      setBack([]);
+      setTitle("");
     } else {
       const foundTemplate = MOCK_RECENT_TEMPLATES.find(
         (t) => t.id === templateId,
@@ -238,7 +239,7 @@ export default function CreateCardView() {
             </Pressable>
           </View>
 
-          {/* ЛИЦЕВАЯ СТОРОНА */}
+          {/* ЛИЦЕВАЯ СТОРОНА - показываем всегда заголовок и кнопку, блок скрываем если пусто */}
           <View style={styles.sideBox}>
             <View style={styles.sideHeader}>
               <Typography variant="h2">Лицевая сторона</Typography>
@@ -253,26 +254,29 @@ export default function CreateCardView() {
               </Pressable>
             </View>
 
-            <View
-              style={[
-                commonStyles.mainBox,
-                commonStyles.shadowBox,
-                styles.infoBox,
-              ]}
-            >
-              {[...front]
-                .sort((a, b) => a.position - b.position)
-                .map((block) => (
-                  <View key={block.id} style={styles.blockItem}>
-                    <Typography variant="span" color={colors.darkGray}>
-                      {getBlockTypeName(block)}
-                    </Typography>
-                  </View>
-                ))}
-            </View>
+            {/* Показываем блок ТОЛЬКО если есть блоки */}
+            {front.length > 0 && (
+              <View
+                style={[
+                  commonStyles.mainBox,
+                  commonStyles.shadowBox,
+                  styles.infoBox,
+                ]}
+              >
+                {[...front]
+                  .sort((a, b) => a.position - b.position)
+                  .map((block) => (
+                    <View key={block.id} style={styles.blockItem}>
+                      <Typography variant="span" color={colors.darkGray}>
+                        {getBlockTypeName(block)}
+                      </Typography>
+                    </View>
+                  ))}
+              </View>
+            )}
           </View>
 
-          {/* ОБРАТНАЯ СТОРОНА */}
+          {/* ОБРАТНАЯ СТОРОНА - показываем всегда заголовок и кнопку, блок скрываем если пусто */}
           <View style={styles.sideBox}>
             <View style={styles.sideHeader}>
               <Typography variant="h2">Обратная сторона</Typography>
@@ -287,23 +291,26 @@ export default function CreateCardView() {
               </Pressable>
             </View>
 
-            <View
-              style={[
-                commonStyles.mainBox,
-                commonStyles.shadowBox,
-                styles.infoBox,
-              ]}
-            >
-              {[...back]
-                .sort((a, b) => a.position - b.position)
-                .map((block) => (
-                  <View key={block.id} style={styles.blockItem}>
-                    <Typography variant="span" color={colors.darkGray}>
-                      {getBlockTypeName(block)}
-                    </Typography>
-                  </View>
-                ))}
-            </View>
+            {/* Показываем блок ТОЛЬКО если есть блоки */}
+            {back.length > 0 && (
+              <View
+                style={[
+                  commonStyles.mainBox,
+                  commonStyles.shadowBox,
+                  styles.infoBox,
+                ]}
+              >
+                {[...back]
+                  .sort((a, b) => a.position - b.position)
+                  .map((block) => (
+                    <View key={block.id} style={styles.blockItem}>
+                      <Typography variant="span" color={colors.darkGray}>
+                        {getBlockTypeName(block)}
+                      </Typography>
+                    </View>
+                  ))}
+              </View>
+            )}
           </View>
 
           {/* Подсказки */}

@@ -11,7 +11,6 @@ import { Card } from "@/storage/types/types";
 import { useDeckStore } from "@/store/deck.store";
 import { CardBlock } from "@/feature/decks/deck-create-card/types/cardBlocks";
 
-
 interface StoreCardListItem {
   id: string;
   deck_id: string;
@@ -67,11 +66,15 @@ type CardState = {
     value: string,
   ) => void;
   resetDraft: () => void;
+  addDraftBlock: (side: "front" | "back", block: CardBlock) => void;
 };
 
 export const useCardStore = create<CardState>((set, get) => {
   // Жесткий валидатор формата: если прилетает не объект с isActual и cards — падаем
-  const validateFormat = (deckId: string, data: DeckCardsStorage | null | undefined) => {
+  const validateFormat = (
+    deckId: string,
+    data: DeckCardsStorage | null | undefined,
+  ) => {
     if (!data) return;
     const hasCards = Array.isArray(data.cards);
     const hasActualFlag = typeof data.isActual === "boolean";
@@ -203,11 +206,15 @@ export const useCardStore = create<CardState>((set, get) => {
       const deckIds = Object.keys(allCards);
 
       if (deckIds.length === 0) {
-        console.log("ℹ️ invalidateAllCards: Нет закэшированных карточек для инвалидации");
+        console.log(
+          "ℹ️ invalidateAllCards: Нет закэшированных карточек для инвалидации",
+        );
         return;
       }
 
-      console.log(`🚨 invalidateAllCards: Сбрасываем актуальность для ${deckIds.length} колод`);
+      console.log(
+        `🚨 invalidateAllCards: Сбрасываем актуальность для ${deckIds.length} колод`,
+      );
 
       for (const deckId of deckIds) {
         const record = allCards[deckId];
@@ -220,7 +227,9 @@ export const useCardStore = create<CardState>((set, get) => {
         }
       }
 
-      console.log(`✅ invalidateAllCards: Готово. ${deckIds.length} колод инвалидированы.`);
+      console.log(
+        `✅ invalidateAllCards: Готово. ${deckIds.length} колод инвалидированы.`,
+      );
     },
 
     getCardById: async (cardId: string): Promise<Card | null> => {
@@ -288,7 +297,7 @@ export const useCardStore = create<CardState>((set, get) => {
       }));
 
       await saveDeckCards(data.deck_id, updatedState);
-      useDeckStore.getState().updateDeckTotalCards(data.deck_id, 'increment');
+      useDeckStore.getState().updateDeckTotalCards(data.deck_id, "increment");
       useDeckStore.getState().markDeckNeedsSync(data.deck_id);
       return newCard;
     },
@@ -343,7 +352,7 @@ export const useCardStore = create<CardState>((set, get) => {
         }));
 
         await saveDeckCards(deckId, updatedState);
-        useDeckStore.getState().updateDeckTotalCards(deckId, 'decrement');
+        useDeckStore.getState().updateDeckTotalCards(deckId, "decrement");
         useDeckStore.getState().markDeckNeedsSync(deckId);
       }
     },
@@ -401,5 +410,15 @@ export const useCardStore = create<CardState>((set, get) => {
         draftHint1: "",
         draftHint2: "",
       }),
+
+    addDraftBlock: (side: "front" | "back", block: CardBlock) => {
+      const blocks = side === "front" ? get().draftFront : get().draftBack;
+      const updatedBlocks = [...blocks, { ...block, position: blocks.length }];
+      if (side === "front") {
+        set({ draftFront: updatedBlocks });
+      } else {
+        set({ draftBack: updatedBlocks });
+      }
+    },
   };
 });
