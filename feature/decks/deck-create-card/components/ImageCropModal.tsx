@@ -1,6 +1,12 @@
 // feature-decks/deck-create-card/components/ImageCropModal.tsx
 import React, { useState } from "react";
-import { Modal, View, StyleSheet, Pressable, Image } from "react-native";
+import {
+  Modal,
+  View,
+  StyleSheet,
+  Pressable,
+  Image,
+} from "react-native";
 import * as ImageManipulator from "expo-image-manipulator";
 
 import { Typography } from "@/styles/Typography";
@@ -16,9 +22,8 @@ interface ImageCropModalProps {
   onConfirm: (croppedUri: string) => void;
 }
 
-// Фиксированные размеры твоей карточки из стилей
 const CARD_WIDTH = 373;
-const CROPPER_SIZE = 300; // Оптимальный размер холста, чтобы всё уместилось внутри 611px высоты
+const FIX_ZONE_SIZE = 300; // Размеры невидимой зоны, защищающей от прыжков
 
 export const ImageCropModal: React.FC<ImageCropModalProps> = ({
   isVisible,
@@ -32,45 +37,37 @@ export const ImageCropModal: React.FC<ImageCropModalProps> = ({
     "vertical",
   );
 
-  // Рассчитываем точные пропорции рамки маски (3:4 или 4:3) строго внутри холста 300x300
-  const cropFrameSize =
-    aspectRatio === "vertical"
-      ? { width: CROPPER_SIZE * 0.75, height: CROPPER_SIZE } // Вертикальный прямоугольник (225x300)
-      : { width: CROPPER_SIZE, height: CROPPER_SIZE * 0.75 }; // Горизонтальный прямоугольник (300x225)
+  // ЖЕСТКО ЗАДАЕМ РАЗМЕРЫ БОКСА: Картинка гарантированно отобразится без багов!
+  const currentBoxSize = aspectRatio === "vertical"
+    ? { width: 225, height: 300 }  // Идеальные пропорции 3:4 внутри зоны 300х300
+    : { width: 300, height: 225 }; // Идеальные пропорции 4:3 внутри зоны 300х300
 
   const handleConfirmCrop = async () => {
     if (!imageUri || !origWidth || !origHeight) return;
 
     try {
-      // 1. Вычисляем целевые пропорции (3:4 для вертикального, 4:3 для горизонтального)
       const targetRatio = aspectRatio === "vertical" ? 3 / 4 : 4 / 3;
 
       let cropWidth = origWidth;
       let cropHeight = origHeight;
 
-      // 2. Рассчитываем рамку среза (кадрирование БЕЗ искажения пропорций)
       if (origWidth / origHeight > targetRatio) {
-        // Если картинка шире — фиксируем высоту, срезаем лишнее по бокам
         cropWidth = origHeight * targetRatio;
       } else {
-        // Если картинка выше — фиксируем ширину, срезаем лишнее сверху/снизу
         cropHeight = origWidth / targetRatio;
       }
 
       cropWidth = Math.floor(cropWidth);
       cropHeight = Math.floor(cropHeight);
 
-      // Находим координаты центра для симметричного кадрирования
       let originX = Math.floor((origWidth - cropWidth) / 2);
       let originY = Math.floor((origHeight - cropHeight) / 2);
 
       originX = Math.max(0, Math.min(originX, origWidth - cropWidth));
       originY = Math.max(0, Math.min(originY, origHeight - cropHeight));
 
-      // 3. Формируем цепочку действий с премиум-качеством
       const actions = [
         {
-          // ПЕРВЫЙ ШАГ: Отрезаем лишние края по центру (картинка не деформируется)
           crop: {
             originX,
             originY,
@@ -85,19 +82,14 @@ export const ImageCropModal: React.FC<ImageCropModalProps> = ({
         },
       ];
 
-      // 4. Запускаем обработку со 100% качеством без сжатия в формате PNG
       const result = await ImageManipulator.manipulateAsync(imageUri, actions, {
-        compress: 1.0, // 100% сохранение качества, максимум из возможного
-        format: ImageManipulator.SaveFormat.PNG, // PNG сохраняет пиксели без потерь
+        compress: 1.0,
+        format: ImageManipulator.SaveFormat.PNG,
       });
 
-      // Возвращаем готовую, кристально чистую картинку высокого разрешения
       onConfirm(result.uri);
     } catch (error) {
-      console.error(
-        "Ошибка при выполнении манипуляции кропа и ресайза:",
-        error,
-      );
+      console.error("Ошибка при выполнении манипуляции кропа:", error);
     }
   };
 
@@ -112,28 +104,29 @@ export const ImageCropModal: React.FC<ImageCropModalProps> = ({
     >
       <View style={styles.overlay}>
         <View style={styles.popoverCard}>
-          <Typography variant="h2" style={styles.modalTitle}>
-            Выберите, как будет выглядеть ваша картинка
-          </Typography>
+          {/* Контейнер заголовка */}
+          <View style={styles.titleContainer}>
+            <Typography variant="h2" style={styles.modalTitle}>
+              Выберите, как будет выглядеть ваша картинка
+            </Typography>
+          </View>
 
-          {/* Контейнер отображения фотографии с центрированием */}
-          <View style={styles.cropperWrapper}>
-            <Image source={{ uri: imageUri }} style={styles.sourceImage} />
-            <View
+          {/* ЯКОРЬ ПРОТИВ ПРЫЖКОВ КНОПОК */}
+          <View style={styles.fixedPreviewZone}>
+            <View 
               style={[
-                styles.cropFrame,
-                { width: cropFrameSize.width, height: cropFrameSize.height },
-                aspectRatio === "horizontal" && styles.cropFrameHorizontal,
+                styles.cropperWrapper, 
+                { width: currentBoxSize.width, height: currentBoxSize.height } // Передаем жесткие размеры
               ]}
-            />
+            >
+              <Image source={{ uri: imageUri }} style={styles.sourceImage} />
+            </View>
           </View>
 
           {/* Селектор формата */}
           <View style={styles.formatSelector}>
             <Pressable
-              style={[
-                aspectRatio === "vertical" && styles.formatBtnActive,
-              ]}
+              style={[aspectRatio === "vertical" && styles.formatBtnActive]}
               onPress={() => setAspectRatio("vertical")}
             >
               <View
@@ -146,9 +139,7 @@ export const ImageCropModal: React.FC<ImageCropModalProps> = ({
             </Pressable>
 
             <Pressable
-              style={[
-                aspectRatio === "horizontal" && styles.formatBtnActive,
-              ]}
+              style={[aspectRatio === "horizontal" && styles.formatBtnActive]}
               onPress={() => setAspectRatio("horizontal")}
             >
               <View
@@ -189,49 +180,50 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   popoverCard: {
-    width: CARD_WIDTH, // Твой фиксированный размер
-    height: 611, // Твой фиксированный размер
+    width: CARD_WIDTH,
+    height: 611,
     backgroundColor: "#FFFFFF",
     borderRadius: 20,
-    padding: 20, // Твой оригинальный отступ
+    padding: 20,
     alignItems: "center",
-    justifyContent: "space-between", // Распределяет элементы сверху вниз, чтобы ничего не наезжало
+    justifyContent: "space-between",
+  },
+  titleContainer: {
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 4,
   },
   modalTitle: {
     textAlign: "center",
+    width: "100%",
+  },
+  fixedPreviewZone: {
+    width: FIX_ZONE_SIZE,
+    height: FIX_ZONE_SIZE,
+    justifyContent: "center", 
+    alignItems: "center",     
   },
   cropperWrapper: {
-    width: CROPPER_SIZE, // Фиксируем под размеры карточки
-    height: CROPPER_SIZE,
     borderRadius: 20,
     overflow: "hidden",
-    position: "relative",
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: colors.white,
+    backgroundColor: "#F2F2F7",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   sourceImage: {
     width: "100%",
     height: "100%",
-    resizeMode: "cover",
-  },
-  cropFrame: {
-    position: "absolute",
-    borderWidth: 2,
-    borderColor: "#5A67D8",
-    borderRadius: 12,
-    backgroundColor: "transparent",
-    aspectRatio: 3 / 4,
-  },
-  cropFrameHorizontal: {
-    aspectRatio: 4 / 3,
+    resizeMode: "cover", 
   },
   formatSelector: {
     flexDirection: "row",
     gap: 8,
     alignItems: "center",
   },
-
   formatBtnActive: {
     borderColor: colors.mainColor,
     backgroundColor: "rgba(150, 157, 255, 0.1)",
@@ -257,6 +249,6 @@ const styles = StyleSheet.create({
   },
   cancelBtn: {
     paddingVertical: 4,
-    marginBottom: 10
+    marginBottom: 10,
   },
 });
