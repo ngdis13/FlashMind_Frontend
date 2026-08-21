@@ -1,3 +1,4 @@
+// feature-decks/deck-create-card/screens/SideEditor.tsx
 import { ScrollView, View, Image, Pressable, StyleSheet } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
@@ -14,19 +15,23 @@ import { AddBlockBottomSheet } from "../components/AddBlockBottomSheet";
 import ReturnIcon from "@/assets/icons/ReturnIcon.png";
 import viewCardIcon from "@/feature-decks/assets/viewCardIcon.png";
 import { MainButton } from "@/components/MainButton";
+import { ImageBlock } from "../components/blocks/ImageBlock";
 
 export const SideEditor = () => {
   const router = useRouter();
   const { id, side } = useLocalSearchParams<{ id: string; side: string }>();
   const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
 
+  // Достаем данные и экшены из нашего стора
   const front = useCardStore((s) => s.draftFront);
   const back = useCardStore((s) => s.draftBack);
   const addDraftBlock = useCardStore((s) => s.addDraftBlock);
+  const removeDraftBlock = useCardStore((s) => s.removeDraftBlock); // Кнопка корзины
 
   const isFront = side === "front";
   const title = isFront ? "Лицевая сторона" : "Обратная сторона";
   const blocks = isFront ? front : back;
+  const sideKey: "front" | "back" = isFront ? "front" : "back";
 
   const handleBack = (): void => {
     router.back();
@@ -35,59 +40,41 @@ export const SideEditor = () => {
   const handleViewCard = (): void => {};
 
   const handleEditBlock = (block: CardBlock): void => {
-    const route = block.type === "term" ? "term-editor" : "text-editor";
+    // 1. Вычисляем имя роута на основе типа блока
+    let route = "text-editor";
+    if (block.type === "term") route = "term-editor";
+    if (block.type === "image") route = "image-editor";
+
+    // 2. Делаем роутинг на нужный экран-редактор
     router.push({
       pathname: `/decks/${id}/create-card/${route}`,
       params: { side, blockId: block.id },
     });
   };
 
-  const handleAddBlock = (): void => {
-    setIsBottomSheetVisible(true);
-  };
-
   const handleSelectBlockType = (type: CardBlock["type"]): void => {
-    let newBlock: CardBlock;
+    const baseBlock = {
+      id: `${type}_${Date.now()}`,
+      type,
+      value: "",
+    };
 
-    switch (type) {
-      case "term":
-        newBlock = {
-          id: `${type}_${Date.now()}`,
-          type: "term",
-          position: blocks.length,
-          value: "",
-        };
-        break;
-      case "text":
-        newBlock = {
-          id: `${type}_${Date.now()}`,
-          type: "text",
-          position: blocks.length,
-          value: "",
-        };
-        break;
-      case "image":
-        newBlock = {
-          id: `${type}_${Date.now()}`,
-          type: "image",
-          position: blocks.length,
-          url: "",
-        };
-        break;
-      case "quiz":
-        newBlock = {
-          id: `${type}_${Date.now()}`,
-          type: "quiz",
-          position: blocks.length,
-          variants: ["", "", "", ""],
-          correctIndex: 0,
-        };
-        break;
-      default:
-        return;
+    // Для специфичных типов блоков добавляем их дефолтные поля
+    let finalizedBlock: CardBlock;
+    if (type === "quiz") {
+      finalizedBlock = {
+        ...baseBlock,
+        type: "quiz",
+        variants: ["", "", "", ""],
+        correctIndex: 0,
+      };
+    } else if (type === "image") {
+      finalizedBlock = { ...baseBlock, type: "image", url: "" };
+    } else {
+      finalizedBlock = baseBlock as CardBlock;
     }
-    
-    addDraftBlock(isFront ? "front" : "back", newBlock);
+
+    addDraftBlock(sideKey, finalizedBlock);
     setIsBottomSheetVisible(false);
   };
 
@@ -99,7 +86,7 @@ export const SideEditor = () => {
           id={block.id}
           value={block.value}
           onEdit={() => handleEditBlock(block)}
-          onDelete={() => {}}
+          onDelete={() => removeDraftBlock(sideKey, block.id)}
         />
       );
     }
@@ -110,18 +97,20 @@ export const SideEditor = () => {
           id={block.id}
           value={block.value}
           onEdit={() => handleEditBlock(block)}
-          onDelete={() => {}}
+          onDelete={() => removeDraftBlock(sideKey, block.id)}
         />
       );
     }
+
+    // ИСПРАВЛЕННЫЙ БЛОК: теперь тут рендерится правильный ImageBlock
     if (block.type === "image") {
       return (
-        <TextBlock
+        <ImageBlock
           key={block.id}
           id={block.id}
-          value={block.url || "Нет изображения"}
+          url={block.url || ""} // Передаем url картинки из стора
           onEdit={() => handleEditBlock(block)}
-          onDelete={() => {}}
+          onDelete={() => removeDraftBlock(sideKey, block.id)}
         />
       );
     }
@@ -145,6 +134,7 @@ export const SideEditor = () => {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
+          {/* Шапка экрана */}
           <View style={styles.header}>
             <Pressable
               onPress={handleBack}
@@ -163,14 +153,13 @@ export const SideEditor = () => {
             </Pressable>
           </View>
 
-          {/* Просто рендерим блоки, если они есть */}
+          {/* Список блоков */}
           {blocks.length > 0 && (
-            <View style={styles.blocksList}>
-              {blocks.map(renderBlock)}
-            </View>
+            <View style={styles.blocksList}>{blocks.map(renderBlock)}</View>
           )}
         </ScrollView>
 
+        {/* Нижняя кнопка добавления */}
         <View
           style={{
             width: "100%",
@@ -182,11 +171,12 @@ export const SideEditor = () => {
           <MainButton
             style={styles.addBlockButton}
             title="Добавить блок"
-            onPress={handleAddBlock}
+            onPress={() => setIsBottomSheetVisible(true)}
           />
         </View>
       </View>
 
+      {/* Шторка выбора типов блоков */}
       <AddBlockBottomSheet
         isVisible={isBottomSheetVisible}
         onClose={() => setIsBottomSheetVisible(false)}
@@ -205,21 +195,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     width: "100%",
   },
-  backButton: {
-    position: "absolute",
-    left: -20,
-    padding: 20,
-  },
-  viewCardButton: {
-    position: "absolute",
-    right: -20,
-    padding: 20,
-  },
-  blocksList: {
-    width: "100%",
-    gap: 16,
-  },
-  addBlockButton: {
-    width: "100%",
-  },
+  backButton: { position: "absolute", left: -20, padding: 20 },
+  viewCardButton: { position: "absolute", right: -20, padding: 20 },
+  blocksList: { width: "100%", gap: 16 },
+  addBlockButton: { width: "100%" },
 });

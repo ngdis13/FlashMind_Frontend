@@ -67,6 +67,7 @@ type CardState = {
   ) => void;
   resetDraft: () => void;
   addDraftBlock: (side: "front" | "back", block: CardBlock) => void;
+  removeDraftBlock: (side: "front" | "back", blockId: string) => void;
 };
 
 export const useCardStore = create<CardState>((set, get) => {
@@ -381,26 +382,19 @@ export const useCardStore = create<CardState>((set, get) => {
     setDraftHint2: (hint) => set({ draftHint2: hint }),
     updateDraftBlockValue: (side, blockId, value) =>
       set((state) => {
-        if (side === "front") {
-          return {
-            draftFront: state.draftFront.map((block) => {
-              if (block.id !== blockId) return block;
-              if (block.type === "term" || block.type === "text") {
-                return { ...block, value };
-              }
-              return block;
-            }),
-          };
-        }
-        return {
-          draftBack: state.draftBack.map((block) => {
+        const updateBlocks = (blocks: CardBlock[]) =>
+          blocks.map((block) => {
             if (block.id !== blockId) return block;
-            if (block.type === "term" || block.type === "text") {
-              return { ...block, value };
+            // Если это картинка, пишем в url. Если текст/термин — в value
+            if (block.type === "image") {
+              return { ...block, url: value };
             }
-            return block;
-          }),
-        };
+            return { ...block, value };
+          });
+
+        return side === "front"
+          ? { draftFront: updateBlocks(state.draftFront) }
+          : { draftBack: updateBlocks(state.draftBack) };
       }),
     resetDraft: () =>
       set({
@@ -414,6 +408,28 @@ export const useCardStore = create<CardState>((set, get) => {
     addDraftBlock: (side: "front" | "back", block: CardBlock) => {
       const blocks = side === "front" ? get().draftFront : get().draftBack;
       const updatedBlocks = [...blocks, { ...block, position: blocks.length }];
+      if (side === "front") {
+        set({ draftFront: updatedBlocks });
+      } else {
+        set({ draftBack: updatedBlocks });
+      }
+    },
+    removeDraftBlock: (side: "front" | "back", blockId: string) => {
+      const currentBlocks =
+        side === "front" ? get().draftFront : get().draftBack;
+
+      // 1. Фильтруем массив, полностью вырезая выбранный по id блок
+      const filteredBlocks = currentBlocks.filter(
+        (block) => block.id !== blockId,
+      );
+
+      // 2. Гарантированно переназначаем position на основе актуальных индексов массива
+      const updatedBlocks = filteredBlocks.map((block, index) => ({
+        ...block,
+        position: index, // Первый блок всегда станет 0, второй 1 и так далее
+      }));
+
+      // 3. Записываем обновленный массив в нужную сторону черновика
       if (side === "front") {
         set({ draftFront: updatedBlocks });
       } else {

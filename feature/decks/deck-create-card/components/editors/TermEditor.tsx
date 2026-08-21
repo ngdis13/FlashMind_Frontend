@@ -1,19 +1,16 @@
-import {
-  ScrollView,
-  View,
-  Image,
-  Pressable,
-  StyleSheet,
-  TextInput,
-} from "react-native";
+// feature-decks/deck-create-card/screens/TermEditor.tsx
+import { ScrollView, View, Image, Pressable, StyleSheet, TextInput } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { useState } from "react";
 
-import { commonStyles } from "@/styles/Common";
+import { BOTTOM_MARGIN, commonStyles } from "@/styles/Common";
 import { Typography } from "@/styles/Typography";
 import { colors } from "@/styles/Colors";
 import { useCardStore } from "@/store/card.store";
+import { MainButton } from "@/components/MainButton"; // Импортируем твою стандартную кнопку
 
 import ReturnIcon from "@/assets/icons/ReturnIcon.png";
+import { Input } from "@/components/Input";
 
 export const TermEditor = () => {
   const router = useRouter();
@@ -30,12 +27,21 @@ export const TermEditor = () => {
   const block = (sideKey === "front" ? front : back).find(
     (b) => b.id === blockId,
   );
-  const value =
-    block && (block.type === "term" || block.type === "text")
+  
+  const initialValue = block && (block.type === "term" || block.type === "text")
       ? block.value
       : "";
 
+  // Локальный стейт, чтобы Zustand не перерендеривался на каждый символ
+  const [localText, setLocalText] = useState(initialValue);
+
   const handleBack = (): void => {
+    router.back();
+  };
+
+  // Функция сохранения при клике на MainButton внизу
+  const handleSave = (): void => {
+    updateDraftBlockValue(sideKey, blockId, localText.trim());
     router.back();
   };
 
@@ -61,18 +67,36 @@ export const TermEditor = () => {
             <Typography variant="h2">Термин</Typography>
           </View>
 
-          <TextInput
+          <Input
             style={styles.termArea}
             placeholder="Введите термин"
-            placeholderTextColor="#999"
-            value={value}
-            onChangeText={(text) =>
-              updateDraftBlockValue(sideKey, blockId, text)
-            }
-            maxLength={50}
+            value={localText}
+            onChangeText={setLocalText}
+            maxLength={40} // Ограничение на 40 символов для термина
             multiline
+            autoFocus
           />
+          {/* Счетчик символов */}
+          <Typography variant="h3" color={colors.darkGray} style={styles.counter}>
+            {localText.length} / 40
+          </Typography>
         </ScrollView>
+
+        {/* Стандартная кнопка в самом низу экрана */}
+        <View
+          style={{
+            width: "100%",
+            paddingHorizontal: 10,
+            alignItems: "center",
+            marginBottom: BOTTOM_MARGIN,
+          }}
+        >
+          <MainButton
+            style={styles.saveButton}
+            title="Готово"
+            onPress={handleSave}
+          />
+        </View>
       </View>
     </View>
   );
@@ -95,16 +119,16 @@ const styles = StyleSheet.create({
   termArea: {
     width: "100%",
     height: 60,
-    borderWidth: 2,
-    borderColor: "#DBDBDB",
-    borderRadius: 15,
     paddingVertical: 12,
-    paddingHorizontal: 14,
-    fontSize: 16,
-    fontFamily: "MontserratSemiBold",
-    color: "#000",
     textAlign: "left",
     textAlignVertical: "top",
     backgroundColor: colors.white,
   },
+  counter: {
+    alignSelf: "flex-end",
+    marginTop: 8,
+  },
+  saveButton: {
+    width: "100%",
+  }
 });

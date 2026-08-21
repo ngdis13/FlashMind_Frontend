@@ -1,17 +1,14 @@
-import {
-  ScrollView,
-  View,
-  Image,
-  Pressable,
-  StyleSheet,
-  TextInput,
-} from "react-native";
+// feature-decks/deck-create-card/screens/TextEditor.tsx
+import { ScrollView, View, Image, Pressable, StyleSheet } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { useState } from "react";
 
-import { commonStyles } from "@/styles/Common";
+import { BOTTOM_MARGIN, commonStyles } from "@/styles/Common";
 import { Typography } from "@/styles/Typography";
 import { colors } from "@/styles/Colors";
 import { useCardStore } from "@/store/card.store";
+import { MainButton } from "@/components/MainButton";
+import { Input } from "@/components/Input"; // Твой готовый компонент
 
 import ReturnIcon from "@/assets/icons/ReturnIcon.png";
 
@@ -30,12 +27,21 @@ export const TextEditor = () => {
   const block = (sideKey === "front" ? front : back).find(
     (b) => b.id === blockId,
   );
-  const value =
-    block && (block.type === "term" || block.type === "text")
+  
+  const initialValue = block && (block.type === "term" || block.type === "text")
       ? block.value
       : "";
 
+  // Локальный стейт, чтобы Zustand не перерендеривался на каждый символ
+  const [localText, setLocalText] = useState(initialValue);
+
   const handleBack = (): void => {
+    router.back();
+  };
+
+  // Функция сохранения при клике на MainButton внизу
+  const handleSave = (): void => {
+    updateDraftBlockValue(sideKey, blockId, localText.trim());
     router.back();
   };
 
@@ -61,18 +67,37 @@ export const TextEditor = () => {
             <Typography variant="h2">Текст</Typography>
           </View>
 
-          <TextInput
+          {/* Используем твой компонент Input */}
+          <Input
             style={styles.textArea}
             placeholder="Введите текст"
-            placeholderTextColor="#999"
-            value={value}
-            onChangeText={(text) =>
-              updateDraftBlockValue(sideKey, blockId, text)
-            }
-            maxLength={500}
+            value={localText}
+            onChangeText={setLocalText}
+            maxLength={500} // Ограничение на 500 символов для текста
             multiline
+            autoFocus
           />
+          {/* Счетчик символов */}
+          <Typography variant="h3" color={colors.darkGray} style={styles.counter}>
+            {localText.length} / 500
+          </Typography>
         </ScrollView>
+
+        {/* Стандартная кнопка в самом низу экрана */}
+        <View
+          style={{
+            width: "100%",
+            paddingHorizontal: 10,
+            alignItems: "center",
+            marginBottom: BOTTOM_MARGIN,
+          }}
+        >
+          <MainButton
+            style={styles.saveButton}
+            title="Готово"
+            onPress={handleSave}
+          />
+        </View>
       </View>
     </View>
   );
@@ -94,17 +119,17 @@ const styles = StyleSheet.create({
   },
   textArea: {
     width: "100%",
-    height: 300,
-    borderWidth: 2,
-    borderColor: "#DBDBDB",
-    borderRadius: 15,
+    height: 300, // Высота побольше для удобного ввода длинного текста
     paddingVertical: 12,
-    paddingHorizontal: 14,
-    fontSize: 16,
-    fontFamily: "MontserratSemiBold",
-    color: "#000",
     textAlign: "left",
     textAlignVertical: "top",
     backgroundColor: colors.white,
   },
+  counter: {
+    alignSelf: "flex-end",
+    marginTop: 8,
+  },
+  saveButton: {
+    width: "100%",
+  }
 });

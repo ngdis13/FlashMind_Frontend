@@ -38,7 +38,7 @@ export const TermBlock: React.FC<TermBlockProps> = ({ value, onEdit, onDelete })
       {/* Область контента */}
       <View style={styles.content}>
         <Typography 
-          variant="span" 
+          variant="h3" 
           style={value ? styles.text : styles.placeholder}
         >
           {value || "Нажмите на карандаш, чтобы редактировать..."}
@@ -68,10 +68,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 4,
   },
-  headerTitle: {
-    color: "#FFFFFF",
-    fontWeight: "600",
-  },
+
   headerActions: {
     flexDirection: "row",
     alignItems: "center",
