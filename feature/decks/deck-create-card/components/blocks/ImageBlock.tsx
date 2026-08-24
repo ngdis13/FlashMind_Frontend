@@ -1,5 +1,5 @@
 // feature-decks/deck-create-card/components/blocks/ImageBlock.tsx
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { View, Pressable, StyleSheet, Image } from "react-native";
 import { Typography } from "@/styles/Typography";
 import { colors } from "@/styles/Colors";
@@ -20,6 +20,37 @@ export const ImageBlock: React.FC<ImageBlockProps> = ({
   onEdit,
   onDelete,
 }) => {
+  const [aspectRatio, setAspectRatio] = useState<number>(16/9);
+
+  // Ширина доступной области под картинку
+  const [containerWidth, setContainerWidth] = useState(0);
+
+  const MAX_IMAGE_HEIGHT = 200;
+
+  const displayWidth = containerWidth
+    ? Math.min(containerWidth, MAX_IMAGE_HEIGHT * aspectRatio)
+    : 0;
+  const displayHeight = displayWidth / aspectRatio;
+
+  useEffect(() => {
+    if (!url) return
+
+    let isActive = true
+
+    Image.getSize(
+      url, 
+      (width, height) => {
+        if (isActive && width > 0 && height > 0) {
+          setAspectRatio(width/height)
+        }
+      },
+      () => {}
+    )
+    return () => {
+      isActive = false
+    }
+  }, [url])
+
   return (
     <View style={[styles.card, commonStyles.shadowBox]}>
       {/* Сиреневая шапка блока */}
@@ -44,9 +75,19 @@ export const ImageBlock: React.FC<ImageBlockProps> = ({
       </View>
 
       {/* Область контента */}
-      <View style={styles.content}>
+      <View
+        style={styles.content}
+        onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}
+      >
         {url ? (
-          <Image source={{ uri: url }} style={styles.previewImage} />
+          <View
+            style={[
+              styles.imageWrapper,
+              { width: displayWidth, height: displayHeight },
+            ]}
+          >
+            <Image source={{ uri: url }} style={styles.previewImage} />
+          </View>
         ) : (
           <Typography variant="h3" style={styles.placeholderText}>
             Нажмите на карандаш, чтобы загрузить изображение...
@@ -87,11 +128,15 @@ const styles = StyleSheet.create({
     minHeight: 50,
     justifyContent: "center",
   },
+  imageWrapper: {
+    alignSelf: "center", // центрируем картинку по горизонтали
+    borderRadius: 16, // скругление именно видимых углов фото
+    overflow: "hidden", // обрезает содержимое по радиусу
+  },
   previewImage: {
     width: "100%",
-    height: 200,
-    borderRadius: 12,
-    resizeMode: "cover",
+    height: "100%",
+    resizeMode: "cover", // размеры обёртки уже совпадают с пропорциями фото
   },
 
   placeholderText: {

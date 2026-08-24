@@ -16,6 +16,7 @@ import ReturnIcon from "@/assets/icons/ReturnIcon.png";
 import viewCardIcon from "@/feature-decks/assets/viewCardIcon.png";
 import { MainButton } from "@/components/MainButton";
 import { ImageBlock } from "../components/blocks/ImageBlock";
+import { PreviewModal } from "../components/PreviewModal";
 
 export const SideEditor = () => {
   const router = useRouter();
@@ -33,11 +34,19 @@ export const SideEditor = () => {
   const blocks = isFront ? front : back;
   const sideKey: "front" | "back" = isFront ? "front" : "back";
 
+  const [isPreviewVisible, setIsPreviewVisible] = useState(false);
+
+  // Сторона считается заполненной, если есть хотя бы один блок
+  const hasBlocks = blocks.length > 0;
+
   const handleBack = (): void => {
     router.push(`/decks/${id}/create-card/create`);
   };
 
-  const handleViewCard = (): void => {};
+  const handleViewCard = (): void => {
+    if (!hasBlocks) return; // пустую сторону смотреть нечего
+    setIsPreviewVisible(true); // Включаем поп-ап превью по нажатию на глазик в шапке!
+  };
 
   const handleEditBlock = (block: CardBlock): void => {
     // 1. Вычисляем имя роута на основе типа блока
@@ -53,10 +62,12 @@ export const SideEditor = () => {
   };
 
   const handleSelectBlockType = (type: CardBlock["type"]): void => {
+    const blocks = sideKey === "front" ? front : back;
     const baseBlock = {
       id: `${type}_${Date.now()}`,
       type,
       value: "",
+      position: blocks.length, // Обязательное поле для типов блоков
     };
 
     // Для специфичных типов блоков добавляем их дефолтные поля
@@ -134,7 +145,7 @@ export const SideEditor = () => {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Шапка экрана */}
+          {/* Шапка экрана с рабочим глазиком */}
           <View style={styles.header}>
             <Pressable
               onPress={handleBack}
@@ -146,7 +157,11 @@ export const SideEditor = () => {
             <Typography variant="h2">{title}</Typography>
             <Pressable
               onPress={handleViewCard}
-              style={styles.viewCardButton}
+              style={[
+                styles.viewCardButton,
+                !hasBlocks && styles.viewCardButtonDisabled,
+              ]}
+              disabled={!hasBlocks}
               hitSlop={20}
             >
               <Image source={viewCardIcon} style={{ width: 24, height: 24 }} />
@@ -159,7 +174,6 @@ export const SideEditor = () => {
           )}
         </ScrollView>
 
-        {/* Нижняя кнопка добавления */}
         <View
           style={{
             width: "100%",
@@ -176,11 +190,20 @@ export const SideEditor = () => {
         </View>
       </View>
 
-      {/* Шторка выбора типов блоков */}
       <AddBlockBottomSheet
         isVisible={isBottomSheetVisible}
         onClose={() => setIsBottomSheetVisible(false)}
         onSelectBlockType={handleSelectBlockType}
+      />
+
+
+      <PreviewModal
+        isVisible={isPreviewVisible}
+        onClose={() => setIsPreviewVisible(false)}
+        frontBlocks={front}
+        backBlocks={back}
+        allowFlip={false}
+        initialSide={isFront ? "front" : "back"}
       />
     </View>
   );
@@ -197,6 +220,7 @@ const styles = StyleSheet.create({
   },
   backButton: { position: "absolute", left: -20, padding: 20 },
   viewCardButton: { position: "absolute", right: -20, padding: 20 },
+  viewCardButtonDisabled: { opacity: 0.4 }, // приглушённый глазик для пустой стороны
   blocksList: { width: "100%", gap: 16 },
   addBlockButton: { width: "100%" },
 });

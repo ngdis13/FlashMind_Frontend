@@ -18,6 +18,7 @@ import viewCardIcon from "@/feature-decks/assets/viewCardIcon.png";
 import editCardIcon from "@/feature-decks/assets/editCardIcon.png";
 import iconInfo from "@/assets/icons/IconInfo.png";
 import { useCardStore } from "@/store/card.store";
+import { PreviewModal } from "../components/PreviewModal";
 
 // Моки с первого экрана, переписанные под точную структуру карточки
 const MOCK_RECENT_TEMPLATES: {
@@ -94,6 +95,7 @@ export default function CreateCardView() {
   const setHint1 = useCardStore((s) => s.setDraftHint1);
   const hint2 = useCardStore((s) => s.draftHint2);
   const setHint2 = useCardStore((s) => s.setDraftHint2);
+  const [isPreviewVisible, setIsPreviewVisible] = useState(false);
 
   // Загружаем блоки на основе выбранного шаблона
   useEffect(() => {
@@ -120,7 +122,9 @@ export default function CreateCardView() {
     router.push(`/decks/${id}/create-card`);
   };
 
-  const handleViewCard = (): void => {};
+  const handleViewCard = (): void => {
+    setIsPreviewVisible(true);
+  };
 
   // Функция клика на карандаш
   const handleEditSideBlocks = (side: "front" | "back") => {
@@ -352,6 +356,16 @@ export default function CreateCardView() {
           />
         </View>
       </View>
+      {/* УНИВЕРСАЛЬНЫЙ ПОП-АП ПРЕВЬЮ С ПЕРЕВОРОТОМ ПО ТАПУ НА БЕЛУЮ ОБЛАСТЬ */}
+      <PreviewModal
+        isVisible={isPreviewVisible}
+        onClose={() => setIsPreviewVisible(false)}
+        // Передаем обе стороны из стора. Ротация будет подстраиваться под то, с какого экрана зашли!
+        frontBlocks={front}
+        backBlocks={back}
+        // Магия: если зашли с экрана "обратной стороны", поп-ап автоматически откроется изнанкой (ОТВЕТОМ) вперед
+        initialSide={ "front" }
+      />
     </View>
   );
 }
