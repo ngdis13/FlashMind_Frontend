@@ -1,0 +1,13 @@
+:root {
+  font-family: 'Montserrat', Arial, sans-serif;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+}

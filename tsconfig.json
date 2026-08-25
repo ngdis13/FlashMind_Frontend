@@ -10,7 +10,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "allowJs": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "isolatedModules": true,
     "resolveJsonModule": true,
     "baseUrl": "./",
@@ -34,5 +34,5 @@
   },
   "include": ["**/*.ts", "**/*.tsx", "declarations.d.ts"
 ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "lexical-editor"]
 }
