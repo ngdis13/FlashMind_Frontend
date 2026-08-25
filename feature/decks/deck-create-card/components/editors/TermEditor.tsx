@@ -87,6 +87,8 @@ export const TermEditor = () => {
           <Typography variant="h3" color={colors.darkGray} style={styles.counter}>
             {localText.length} / 40
           </Typography>
+
+          
         </ScrollView>
 
         {/* Стандартная кнопка в самом низу экрана */}

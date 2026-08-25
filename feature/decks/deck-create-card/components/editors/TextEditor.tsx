@@ -1,5 +1,5 @@
 // feature-decks/deck-create-card/screens/TextEditor.tsx
-import { ScrollView, View, Image, Pressable, StyleSheet } from "react-native";
+import { ScrollView, View, Image, Pressable, StyleSheet, Platform } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 
@@ -11,6 +11,7 @@ import { MainButton } from "@/components/MainButton";
 import { Input } from "@/components/Input"; // Твой готовый компонент
 
 import ReturnIcon from "@/assets/icons/ReturnIcon.png";
+import { CustomRichToolbar } from "../CustomRichToolbar";
 
 export const TextEditor = () => {
   const router = useRouter();
@@ -35,6 +36,9 @@ export const TextEditor = () => {
 
   // Локальный стейт, чтобы Zustand не перерендеривался на каждый символ
   const [localText, setLocalText] = useState(initialValue);
+
+  // ТЕСТ: развернутость панели форматирования
+  const [toolbarExpanded, setToolbarExpanded] = useState(true);
 
   const handleBack = (): void => {
     router.push({
@@ -88,6 +92,8 @@ export const TextEditor = () => {
           <Typography variant="h3" color={colors.darkGray} style={styles.counter}>
             {localText.length} / 500
           </Typography>
+
+          
         </ScrollView>
 
         {/* Стандартная кнопка в самом низу экрана */}
@@ -103,6 +109,17 @@ export const TextEditor = () => {
             style={styles.saveButton}
             title="Готово"
             onPress={handleSave}
+          />
+        </View>
+      </View>
+
+      {/* ТЕСТ: панель форматирования — 90px от низа экрана, максимум 800px шириной */}
+      <View style={styles.toolbarWrapper}>
+        <View style={styles.toolbarInner}>
+          <CustomRichToolbar
+            isExpanded={toolbarExpanded}
+            onToggle={() => setToolbarExpanded((v) => !v)}
+            onDone={handleSave}
           />
         </View>
       </View>
@@ -138,5 +155,19 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     width: "100%",
-  }
+  },
+  toolbarWrapper: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 90,
+    alignItems: "center",
+    zIndex: 100,
+    // на телефоне отступы по 10px, на вебе — без них
+    paddingHorizontal: 10,
+  },
+  toolbarInner: {
+    width: "100%",
+    maxWidth: 800,
+  },
 });

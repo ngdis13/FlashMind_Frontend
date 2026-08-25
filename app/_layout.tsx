@@ -11,6 +11,8 @@ import MontserratRegular from "@/assets/fonts/Montserrat-Regular.ttf";
 import MontserratMedium from "@/assets/fonts/Montserrat-Medium.ttf";
 import MontserratSemiBold from "@/assets/fonts/Montserrat-SemiBold.ttf";
 import MontserratBold from "@/assets/fonts/Montserrat-Bold.ttf";
+import CourierPrime from "@/assets/fonts/CourierPrime-Regular.ttf";
+
 import { useUserStore } from "@/store/userStore";
 import { useAuthStore } from "@/store/auth.store";
 
@@ -95,6 +97,7 @@ export default function Layout() {
     MontserratMedium: MontserratMedium,
     MontserratSemiBold: MontserratSemiBold,
     MontserratBold: MontserratBold,
+    CourierPrime: CourierPrime,
   });
   const fetchedRef = useRef(false);
 
