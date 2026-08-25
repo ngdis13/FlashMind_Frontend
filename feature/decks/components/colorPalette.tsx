@@ -20,9 +20,14 @@ const PALETTE_COLORS = [
 interface ColorPaletteProps {
   onCancel: () => void;
   onSelectColor: (color: string) => void;
+  title?: string;
 }
 
-export const ColorPalette = ({ onCancel, onSelectColor }: ColorPaletteProps) => {
+export const ColorPalette = ({
+  onCancel,
+  onSelectColor,
+  title = "Выберите цвет колоды",
+}: ColorPaletteProps) => {
   // ИСПРАВЛЕНО: Стейт инициализируется конкретной строкой цвета (первым цветом палитры)
   const [selectedColor, setSelectedColor] = useState(PALETTE_COLORS[0][0]);
 
@@ -44,7 +49,7 @@ export const ColorPalette = ({ onCancel, onSelectColor }: ColorPaletteProps) => 
             <View style={styles.alertContainer}>
               
               <Typography variant="h2" style={styles.title}>
-                Выберите цвет колоды
+                {title}
               </Typography>
 
               {/* Сетка кружков */}

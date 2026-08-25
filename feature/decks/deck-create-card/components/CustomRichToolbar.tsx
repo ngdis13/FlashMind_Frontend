@@ -34,6 +34,7 @@ import NumericListIcon from "../assets/NumericListIcon.png";
 import PencilIcon from "../assets/PencilIcon.png";
 
 import CodeIcon from "../assets/CodeIcon.png";
+import { ColorPalette } from "../../components/colorPalette";
 
 // Высоты панели
 const EXPANDED_HEIGHT = 200;
@@ -66,6 +67,10 @@ export const CustomRichToolbar: React.FC<CustomRichToolbarProps> = ({
 
   // ВЫБРАННЫЙ ШРИФТ (radio: активен только один пункт строки)
   const [selectedFont, setSelectedFont] = useState<string | null>(null);
+
+  // ВЫБРАННЫЙ ЦВЕТ ТЕКСТА (кружок; палитра открывается при активном карандаше)
+  const [selectedColor, setSelectedColor] = useState(colors.red1);
+  const [isPaletteVisible, setIsPaletteVisible] = useState(false);
 
   // АКТИВНЫЕ КНОПКИ (toggle: вкл/выкл по клику)
   const [activeKeys, setActiveKeys] = useState<string[]>([]);
@@ -225,7 +230,18 @@ export const CustomRichToolbar: React.FC<CustomRichToolbarProps> = ({
               </Pressable>
               <View style={styles.divider} />
               <View style={[styles.segmentBtn, styles.segmentRight]}>
-                <View style={styles.colorCircle} />
+                <Pressable
+                  onPress={() => setIsPaletteVisible(true)}
+                  disabled={!isActive("pencil")}
+                  hitSlop={6}
+                >
+                  <View
+                    style={[
+                      styles.colorCircle,
+                      { backgroundColor: selectedColor },
+                    ]}
+                  />
+                </Pressable>
               </View>
             </View>
           </View>
@@ -314,6 +330,13 @@ export const CustomRichToolbar: React.FC<CustomRichToolbarProps> = ({
             </Pressable>
           </View>
         </View>
+      )}
+      {isPaletteVisible && (
+        <ColorPalette
+          title="Выберите цвет текста"
+          onCancel={() => setIsPaletteVisible(false)}
+          onSelectColor={(color) => setSelectedColor(color)}
+        />
       )}
     </Animated.View>
   );
