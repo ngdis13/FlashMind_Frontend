@@ -201,12 +201,13 @@ const styles = StyleSheet.create({
   backButton: { position: "absolute", left: -20, padding: 20 },
   // Ограничение ширины контента как во всём приложении (web)
   contentWidth: { width: "100%", maxWidth: 800, alignSelf: "center" },
-  // Панель форматирования над полем ввода
   toolbarWrapper: { width: "100%", marginBottom: 12 },
   workArea: { width: "100%", borderRadius: 20 },
   editorBox: {
-    width: "100%",
-    height: 320,
+    width: 372,
+    maxWidth: "100%",
+    alignSelf: "center",
+    height: 520,
     backgroundColor: colors.white,
     overflow: "hidden",
     borderRadius: 20

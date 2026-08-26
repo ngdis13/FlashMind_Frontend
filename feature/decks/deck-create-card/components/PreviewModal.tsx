@@ -11,6 +11,7 @@ import {
 import { Typography } from "@/styles/Typography";
 import { colors } from "@/styles/Colors";
 import { CardBlock } from "../types/cardBlocks";
+import { HtmlText } from "./HtmlText";
 
 interface PreviewModalProps {
   isVisible: boolean;
@@ -100,16 +101,18 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
   const renderBlocksContent = (blocks: CardBlock[]) => {
     return blocks.map((block) => {
       if (block.type === "term" || block.type === "text") {
-        return (
-          <Typography
+        // Рендерим HTML из редактора, чтобы форматирование было видно в превью.
+        // Цвет — тёмный (как был у Typography h2), а не серый default из HtmlText
+        return block.value ? (
+          <HtmlText
             key={block.id}
-            variant={'h2'}
-            style={[
-              !block.value && styles.placeholderText,
-            ]}
-          >
-            {block.value ||
-              (block.type === "term" ? "Пустой термин" : "Пустой текст")}
+            html={block.value}
+            fontSize={20}
+            color="#1E1F4B"
+          />
+        ) : (
+          <Typography key={block.id} variant="h2" style={styles.placeholderText}>
+            {block.type === "term" ? "Пустой термин" : "Пустой текст"}
           </Typography>
         );
       }

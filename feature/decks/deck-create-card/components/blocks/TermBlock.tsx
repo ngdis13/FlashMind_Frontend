@@ -2,6 +2,7 @@ import React from "react";
 import { View, Pressable, StyleSheet, Image } from "react-native";
 import { Typography } from "@/styles/Typography";
 import { colors } from "@/styles/Colors";
+import { HtmlText } from "../HtmlText";
 import deleteIcon from '@/assets/icons/DeleteIcon.png'
 import editIcon from '@/assets/icons/editIcon2.png'
 import { commonStyles } from "@/styles/Common";
@@ -35,14 +36,15 @@ export const TermBlock: React.FC<TermBlockProps> = ({ value, onEdit, onDelete })
         </View>
       </View>
 
-      {/* Область контента */}
+      {/* Область контента — рендерим HTML, чтобы форматирование было видно */}
       <View style={styles.content}>
-        <Typography 
-          variant="h3" 
-          style={value ? styles.text : styles.placeholder}
-        >
-          {value || "Нажмите на карандаш, чтобы редактировать..."}
-        </Typography>
+        {value ? (
+          <HtmlText html={value} />
+        ) : (
+          <Typography variant="h3" style={styles.placeholder}>
+            Нажмите на карандаш, чтобы редактировать...
+          </Typography>
+        )}
       </View>
     </View>
   );

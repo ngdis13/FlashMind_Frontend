@@ -49,7 +49,11 @@ export function Editor() {
         <div className="editor-inner">
           <RichTextPlugin
             contentEditable={<ContentEditable className="editor-input" />}
-            placeholder={<div className="editor-placeholder">Введите текст...</div>}
+            placeholder={
+              <div className="editor-placeholder">
+                {window.editorParams.placeholder ?? "Введите текст..."}
+              </div>
+            }
             ErrorBoundary={LexicalErrorBoundary}
           />
           <HistoryPlugin />

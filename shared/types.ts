@@ -24,6 +24,8 @@ export type EditorElementFormat = 'left' | 'center' | 'right' | 'justify';
 
 export type EditorParams = {
   namespace?: string;
+  /** Текст-подсказка пустого редактора */
+  placeholder?: string;
   /** Начальное состояние редактора в формате JSON Lexical */
   initialEditorState?: string;
   /** Начальное состояние редактора в формате HTML (используется FlashMind) */

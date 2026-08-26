@@ -78,6 +78,8 @@ interface DirectEditorProps {
   onChange: (html: string, textLength: number) => void;
   onSelectionState?: (state: ToolbarState) => void;
   editorRef: React.MutableRefObject<LexicalEditor | null>;
+  /** Подсказка пустого поля (по умолчанию «Введите текст...») */
+  placeholder?: string;
 }
 
 const INITIAL_TOOLBAR_STATE: ToolbarState = {
@@ -237,6 +239,7 @@ export const LexicalDirectEditor: React.FC<DirectEditorProps> = ({
   onChange,
   onSelectionState,
   editorRef,
+  placeholder = "Введите текст...",
 }) => {
   const initialConfig = {
     namespace: "FlashMindEditor",
@@ -302,7 +305,7 @@ export const LexicalDirectEditor: React.FC<DirectEditorProps> = ({
                   pointerEvents: "none",
                 }}
               >
-                Введите текст...
+                {placeholder}
               </div>
             }
             ErrorBoundary={LexicalErrorBoundary}

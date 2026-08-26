@@ -22,6 +22,8 @@ interface WebViewEditorProps {
   onSelectionState?: (state: ToolbarState) => void;
   /** Фокус редактора (мост hasFocus) — чтобы показывать тулбар вместе с клавиатурой */
   onHasFocus?: (hasFocus: boolean) => void;
+  /** Подсказка пустого поля */
+  placeholder?: string;
 }
 
 let mountCounter = 0;
@@ -31,6 +33,7 @@ export const LexicalWebViewEditor: React.FC<WebViewEditorProps> = ({
   onChange,
   onSelectionState,
   onHasFocus,
+  placeholder,
 }) => {
   // Уникальный namespace на каждый монтаж — страховка от переиспользования стейта
   const namespace = useMemo(() => `FlashMindLexical_${++mountCounter}`, []);
@@ -65,6 +68,7 @@ export const LexicalWebViewEditor: React.FC<WebViewEditorProps> = ({
   const editorParams: EditorParams = {
     namespace,
     initialHtml,
+    ...(placeholder ? { placeholder } : {}),
     enableOnChangePlugin: {
       includePlainText: true,
       includeHtmlText: true,
