@@ -10,6 +10,8 @@ export default function CreateCardLayout() {
         <Stack.Screen name="term-editor" />
         <Stack.Screen name="text-editor" />
         <Stack.Screen name="side-editor" />
+        <Stack.Screen name="image-editor" />
+        <Stack.Screen name="image-search" />
       </Stack>
     </GestureHandlerRootView>
   );
