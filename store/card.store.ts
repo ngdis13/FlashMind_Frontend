@@ -68,6 +68,7 @@ type CardState = {
   resetDraft: () => void;
   addDraftBlock: (side: "front" | "back", block: CardBlock) => void;
   removeDraftBlock: (side: "front" | "back", blockId: string) => void;
+  moveDraftBlock: (side: "front" | "back", blocks: CardBlock[]) => void;
 };
 
 export const useCardStore = create<CardState>((set, get) => {
@@ -430,6 +431,20 @@ export const useCardStore = create<CardState>((set, get) => {
       }));
 
       // 3. Записываем обновленный массив в нужную сторону черновика
+      if (side === "front") {
+        set({ draftFront: updatedBlocks });
+      } else {
+        set({ draftBack: updatedBlocks });
+      }
+    },
+
+    moveDraftBlock: (side: "front" | "back", blocks: CardBlock[]) => {
+      // Автоматически переназначаем корректные индексы позиций после перемещения
+      const updatedBlocks = blocks.map((block, index) => ({
+        ...block,
+        position: index,
+      }));
+
       if (side === "front") {
         set({ draftFront: updatedBlocks });
       } else {
