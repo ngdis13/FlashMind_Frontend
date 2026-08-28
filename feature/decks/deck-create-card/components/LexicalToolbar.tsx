@@ -31,7 +31,7 @@ import {
   faUnderline,
 } from "@fortawesome/free-solid-svg-icons";
 
-import { ColorPalette } from "../../components/colorPalette";
+import { ColorPaletteText } from "../components/ColorPaletteText";
 import { colors } from "@/styles/Colors";
 import type { ToolbarState } from "@/shared/types";
 
@@ -231,7 +231,7 @@ export const LexicalToolbar: React.FC<LexicalToolbarProps> = ({
       </ScrollView>
 
       {isPaletteVisible && (
-        <ColorPalette
+        <ColorPaletteText
           title="Выберите цвет текста"
           onCancel={() => setIsPaletteVisible(false)}
           onSelectColor={(color: string) => {

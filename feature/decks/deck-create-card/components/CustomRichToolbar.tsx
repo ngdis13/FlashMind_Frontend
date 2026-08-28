@@ -15,7 +15,7 @@ import Animated, {
 
 import { Typography } from "@/styles/Typography";
 import { colors } from "@/styles/Colors";
-import { ColorPalette } from "../../components/colorPalette";
+import { ColorPaletteText } from "./ColorPaletteText";
 
 import ArrowIcon from "../assets/ArrowIcon.png";
 import BoldTextIcon from "../assets/BoldTextIcon.png";
@@ -188,7 +188,7 @@ export const CustomRichToolbar: React.FC<CustomRichToolbarProps> = ({
         </View>
       )}
       {isPaletteVisible && (
-        <ColorPalette
+        <ColorPaletteText
           title="Выберите цвет текста"
           onCancel={() => setIsPaletteVisible(false)}
           onSelectColor={handleSelectColor}

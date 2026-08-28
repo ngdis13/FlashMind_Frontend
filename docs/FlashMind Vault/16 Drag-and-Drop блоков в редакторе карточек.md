@@ -62,8 +62,8 @@ draftBack: CardBlock[];   // Блоки обратной стороны
 ```
 SideEditor
 ├── if (Platform.OS === "web")
-│   └── <ScrollView> + <Animated.View layout={LinearTransition}>
-│       + pointer-based drag-and-drop (немедленная перестановка)
+│   └── <ScrollView> + <DraggableBlock> (useAnimatedStyle + translateY)
+│       + pointer-based drag-and-drop (блоки раздвигаются пружиной)
 └── else (iOS / Android)
     └── <MobileDraggableList> (DraggableFlatList)
 ```
@@ -115,7 +115,7 @@ SideEditor
 
 ---
 
-## 5. Веб-реализация: Pointer-based drag-and-drop с анимацией Reanimated
+## 5. Веб-реализация: Pointer Events + useAnimatedStyle (translateY-подход)
 
 ### Почему не `react-native-draggable-flatlist` на вебе?
 
@@ -124,115 +124,92 @@ SideEditor
 - Отсутствие поддержки мыши (нужен отдельный обработчик)
 - Проблемы с выделением текста
 
-Поэтому для веба реализован **собственный движок** на нативных Pointer Events + `Animated.View` с `LinearTransition` из `react-native-reanimated`.
+Поэтому для веба реализован **собственный движок** на нативных Pointer Events + `useAnimatedStyle` с `translateY` из `react-native-reanimated`.
 
-### Ключевое отличие от мобильной версии
+### Ключевая идея: массив НЕ трогаем во время драга
 
-В мобильной версии блоки анимируются **библиотекой** `DraggableFlatList`. В веб-версии анимацию обеспечивает **`LinearTransition`** из `react-native-reanimated`:
+Старый подход (перестановка массива + `LinearTransition`) давал «чехарду»: `pointermove` срабатывает ~60 раз/сек, каждый вызов пересортировывал массив, и `LinearTransition` не успевал доиграть анимацию — она прерывалась новым вызовом.
 
-```typescript
-import Animated, { LinearTransition } from "react-native-reanimated";
+Новый подход **не меняет порядок блоков** во время перетаскивания. Вместо этого каждый блок через `useAnimatedStyle` получает индивидуальный `translateY`, а пружина `withSpring` плавно раздвигает соседние блоки, освобождая место. Порядок в сторе фиксируется **один раз** — на `pointerup`.
 
-<Animated.View
-  key={block.id}
-  layout={LinearTransition.duration(250)}
->
-  <CardBlockItem ... />
-</Animated.View>
-```
-
-Свойство `layout` на `Animated.View` говорит Reanimated: **«когда позиция этого элемента в списке меняется — анимируй переход с длительностью 250ms»**. Это даёт плавное расталкивание соседних блоков без единой строки анимационного кода.
-
-### Архитектура веб-движка:
-
-```
-Состояние drag:
-  draggedIndex: number | null   // Индекс блока, который тащим (текущий, меняется в реальном времени)
-
-Глобальные слушатели (вешаются на window при начале drag):
-  pointermove → splice/splice + moveDraftBlock + обновление draggedIndex
-  pointerup   → сброс draggedIndex в null
-```
-
-**Важное упрощение:** больше нет `dragOverIndex`. В старой версии блоки **не** переставлялись физически во время движения — вместо этого `dragOverIndex` показывал пунктирную рамку, куда вставится блок, а реальная перестановка происходила только на `pointerup`. В новой версии блоки **физически перемещаются в массиве** при каждом `pointermove`, а `LinearTransition` анимирует их сдвиг.
-
-### Как это работает пошагово:
-
-#### Шаг 1: Инициализация drag
-
-Пользователь нажимает на `⋮⋮` в блоке → [`handlePointerDown(index)`](feature/decks/deck-create-card/screens/SideEditor.tsx:216):
+### Shared values (UI-поток, 60fps)
 
 ```typescript
-const handlePointerDown = useCallback((index: number) => {
-  setDraggedIndex(index);  // Запоминаем, какой блок тащим
-}, []);
+const draggedIndexSV = useSharedValue(-1);  // индекс зажатого блока (-1 = нет драга)
+const dragOffsetSV  = useSharedValue(0);    // смещение зажатого блока от старта
+const dragTargetSV  = useSharedValue(-1);   // целевая позиция для вставки
 ```
 
-Никакого `dragOverIndex` — только `draggedIndex`.
+Эти значения живут на UI-потоке Reanimated — их изменение не вызывает React-рендер, поэтому анимация стабильна даже при 60fps. JS-стейт `draggedIndex` (обычный `useState`) нужен только для того, чтобы знать, идёт ли драг, и отключать `LinearTransition` на время перетаскивания.
 
-#### Шаг 2: Pointer Events на window — немедленная перестановка
+### Архитектура веб-движка
 
-[`useEffect`](feature/decks/deck-create-card/screens/SideEditor.tsx:168) активируется, когда `draggedIndex !== null`:
+```
+Зажатие (pointerdown):
+  draggedIndexSV = index
+  dragOffsetSV = 0
+  dragTargetSV = index
+  запоминаем dragStartY и высоту карточки
+
+Движение (pointermove, ~60/сек):
+  dragOffsetSV = clientY - dragStartY          → зажатый блок летит за мышью
+  dragTargetSV = di + round(offsetY / step)    → цель = индекс сдвига
+  useAnimatedStyle: блоки между di и target получают translateY = ±cardHeight
+
+Отпускание (pointerup):
+  если target != di → splice/splice → moveDraftBlock (один раз!)
+  сброс shared values
+```
+
+### useAnimatedStyle: как блоки раздвигаются
 
 ```typescript
-useEffect(() => {
-  if (!isWeb || draggedIndex === null) return;
+const animatedStyle = useAnimatedStyle(() => {
+  const di = draggedIndexSV.value;
+  if (di < 0) return {};
 
-  const handlePointerMove = (e: PointerEvent) => {
-    e.preventDefault();
-    for (let i = 0; i < cardRefs.current.length; i++) {
-      const ref = cardRefs.current[i];
-      if (ref) {
-        const node = ref as unknown as HTMLElement;
-        const rect = node.getBoundingClientRect();
-        if (e.clientY >= rect.top && e.clientY <= rect.bottom) {
-          if (draggedIndex !== i) {
-            // НЕМЕДЛЕННАЯ перестановка в массиве
-            const newBlocks = [...blocks];
-            const [moved] = newBlocks.splice(draggedIndex, 1);
-            newBlocks.splice(i, 0, moved);
-            setDraggedIndex(i);
-            moveDraftBlock(sideKey, newBlocks);
-            // LinearTransition анимирует сдвиг соседних карточек
-          }
-          break;
-        }
-      }
-    }
-  };
+  const cardH = cardHeightRef.current + BLOCK_GAP;
+  const target = dragTargetSV.value;
 
-  const handlePointerUp = () => {
-    setDraggedIndex(null); // Просто сбрасываем — массив уже правильный
-  };
-
-  window.addEventListener("pointermove", handlePointerMove);
-  window.addEventListener("pointerup", handlePointerUp);
-
-  return () => {
-    window.removeEventListener("pointermove", handlePointerMove);
-    window.removeEventListener("pointerup", handlePointerUp);
-  };
-}, [draggedIndex, blocks, moveDraftBlock, sideKey]);
+  if (idx === di) {
+    // Зажатый блок — летит за мышью
+    return { transform: [{ translateY: dragOffsetSV.value }], zIndex: 100 };
+  }
+  if (di < idx && idx <= target) {
+    // Блоки ниже зажатого — сдвигаются вверх, освобождая место
+    return { transform: [{ translateY: withSpring(-cardH, SPRING_CONFIG) }] };
+  }
+  if (target <= idx && idx < di) {
+    // Блоки выше зажатого — сдвигаются вниз
+    return { transform: [{ translateY: withSpring(cardH, SPRING_CONFIG) }] };
+  }
+  // Остальные — плавно возвращаются на место
+  return { transform: [{ translateY: withSpring(0, SPRING_CONFIG) }] };
+});
 ```
 
-#### Шаг 3: Визуальная обратная связь
-
-Стиль `draggedCard` теперь содержит только `zIndex`:
+### Параметры пружины (можно тюнить вручную)
 
 ```typescript
-draggedCard: {
-  zIndex: 100,  // Держит перемещаемую карточку поверх остальных
-}
+const BLOCK_GAP = 16;                              // шаг между блоками
+const SPRING_CONFIG = { damping: 25, stiffness: 200 };
 ```
 
-Визуальную обратную связь (сдвиг соседних карточек) обеспечивает `LinearTransition` — не нужно ни `opacity`, ни `scale`, ни пунктирных рамок.
+| Параметр | Где | Что делает |
+|---|---|---|
+| `BLOCK_GAP` | [`SideEditor.tsx`](feature/decks/deck-create-card/screens/SideEditor.tsx:132) | Шаг перестановки; синхронизировать с `marginBottom` в CardBlockItem |
+| `stiffness` | [`SideEditor.tsx`](feature/decks/deck-create-card/screens/SideEditor.tsx:133) | Жёсткость пружины (выше = резче) |
+| `damping` | [`SideEditor.tsx`](feature/decks/deck-create-card/screens/SideEditor.tsx:133) | Затухание колебаний (выше = меньше отскока) |
+| `marginBottom: 16` | [`CardBlockItem.tsx`](feature/decks/deck-create-card/components/CardBlockItem.tsx:131) | Реальный визуальный отступ между карточками |
+| `LinearTransition.duration(300)` | [`SideEditor.tsx`](feature/decks/deck-create-card/screens/SideEditor.tsx:287) | Длительность финальной анимации при дропе |
 
-#### Шаг 4: Завершение
+### Финал: LinearTransition только на дроп
 
-При `pointerup`:
-1. Просто сбрасываем `draggedIndex` в `null`
-2. Массив уже правильный — `moveDraftBlock` уже был вызван во время `pointermove`
-3. `useEffect` автоматически снимает глобальные слушатели
+```typescript
+layout={draggedIndex !== null ? undefined : LinearTransition.duration(300)}
+```
+
+Пока идёт драг — `LinearTransition` отключён (иначе конфликт с `translateY`). При отпускании он включается и плавно анимирует финальное схлопывание блоков на новых позициях.
 
 ### Почему глобальные слушатели, а не `onPointerMove` на каждом блоке?
 
@@ -345,25 +322,28 @@ DraggableFlatList          Pointer Events (window)
 Пользователь зажимает ⋮⋮
         │
         ▼
-  [Mobile] LongPress → drag()     [Web] pointerdown → setDraggedIndex(n)
+  [Mobile] LongPress → drag()     [Web] pointerdown → init shared values
         │                                    │
         ▼                                    ▼
-  setIsDragging(true)                   useEffect активирует
-  scrollEnabled={false}                 pointermove/pointerup на window
+  setIsDragging(true)                   draggedIndexSV = index
+  scrollEnabled={false}                 dragStartY = clientY
         │                                    │
         ▼                                    ▼
-  Палец двигается →                   Мышь двигается →
-  DraggableFlatList пересчитывает      pointermove определяет
-  порядок в реальном времени           dragOverIndex через rect
+  Палец двигается →                   Мышь двигается (60/сек) →
+  DraggableFlatList пересчитывает      dragOffsetSV = clientY - dragStartY
+  порядок в реальном времени           dragTargetSV = di + round(offsetY/step)
+        │                                    │
+        ▼                                    ▼
+                                       useAnimatedStyle (UI-поток):
+                                       зажатый блок летит за мышью,
+                                       соседние раздвигаются withSpring
         │                                    │
         ▼                                    ▼
   Палец отпущен →                     Мышь отпущена →
-  onDragEnd({ data })                 pointerup: splice/splice
+  onDragEnd({ data })                 pointerup: если target != di
+        │                               splice/splice + moveDraftBlock (ОДИН раз)
         │                                    │
         └──────────────┬────────────────────┘
-                       ▼
-            moveDraftBlock(sideKey, newBlocks)
-                       │
                        ▼
             useCardStore: пересчёт position
             set({ draftFront: updatedBlocks })
