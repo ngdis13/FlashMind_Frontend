@@ -7,7 +7,9 @@ import { BOTTOM_MARGIN, commonStyles } from "@/styles/Common";
 import { Typography } from "@/styles/Typography";
 import { colors } from "@/styles/Colors";
 import { styles } from "@/feature-decks/deck-create-card/styles/CreateCard.style";
-import { CardBlock, CreateCardPayload } from "../types/cardBlocks";
+import { CardBlock } from "../types/cardBlocks";
+import { CreateCardPayload } from "@/storage/types/types";
+import { blocksToPlainText } from "@/utils/helpers/blocksToPlainText";
 
 import { MainButton } from "@/components/MainButton";
 import { Input } from "@/components/Input";
@@ -76,12 +78,17 @@ const getBlockTypeName = (block: CardBlock): string => {
 };
 
 export default function CreateCardView() {
-  const { id, templateId } = useLocalSearchParams<{
-    id: string;
-    templateId: string;
+  const { id: routeId, deckId, templateId, cardId } = useLocalSearchParams<{
+    id?: string;
+    deckId?: string; // приходит с маршрута /card/[cardId]
+    templateId?: string;
+    cardId?: string; // если есть — режим редактирования существующей карточки
   }>();
+  // На маршруте создания колода приходит как id, на /card/[cardId] — как deckId
+  const id = (routeId || deckId) as string;
+  const isEditMode = Boolean(cardId);
   const router = useRouter();
-  const { addCard } = useCards();
+  const { addCard, updateCard, getCardById } = useCards();
 
   const [useFrontAsTitle, setUseFrontAsTitle] = useState(false);
 
@@ -95,10 +102,13 @@ export default function CreateCardView() {
   const setHint1 = useCardStore((s) => s.setDraftHint1);
   const hint2 = useCardStore((s) => s.draftHint2);
   const setHint2 = useCardStore((s) => s.setDraftHint2);
+  const resetDraft = useCardStore((s) => s.resetDraft);
   const [isPreviewVisible, setIsPreviewVisible] = useState(false);
 
   // Загружаем блоки на основе выбранного шаблона
   useEffect(() => {
+    // В режиме редактирования шаблоны не загружаем
+    if (isEditMode) return;
     // Не трогаем черновик, если он уже заполнен (вернулись с редактирования)
     if (front.length > 0 || back.length > 0) return;
 
@@ -118,8 +128,34 @@ export default function CreateCardView() {
     }
   }, [templateId]);
 
+  // Режим редактирования: загружаем существующую карточку в черновик (v2.0.0)
+  useEffect(() => {
+    if (!cardId) return;
+    let cancelled = false;
+    (async () => {
+      const card = await getCardById(cardId as string);
+      if (!card || cancelled) return;
+      // Заполняем черновик только если он пуст (не перезаписываем правки,
+      // сделанные в side-editor при возврате на экран)
+      if (front.length === 0 && back.length === 0) {
+        setTitle(card.title);
+        setFront(card.front);
+        setBack(card.back);
+        setHint1(card.hint1 ?? "");
+        setHint2(card.hint2 ?? "");
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [cardId]);
+
   const handleBack = (): void => {
-    router.push(`/decks/${id}/create-card`);
+    if (isEditMode) {
+      router.push(`/decks/${id}`);
+    } else {
+      router.push(`/decks/${id}/create-card`);
+    }
   };
 
   const handleViewCard = (): void => {
@@ -134,8 +170,9 @@ export default function CreateCardView() {
     });
   };
 
-  const handleCreateCard = async (): Promise<void> => {
+  const handleSaveCard = async (): Promise<void> => {
     try {
+      // Финализируем позиции блоков (0, 1, 2...) перед отправкой
       const finalizedFront: CardBlock[] = front.map((block, index) => ({
         ...block,
         position: index,
@@ -145,29 +182,49 @@ export default function CreateCardView() {
         position: index,
       }));
 
+      // v2.0.0: title из текста первого блока (plain text, без HTML-тегов)
       const firstFront = front[0];
-      const firstFrontValue =
-        firstFront && "value" in firstFront ? firstFront.value : "";
+      const firstFrontText = blocksToPlainText(firstFront ? [firstFront] : []);
 
-      const cardPayload: CreateCardPayload = {
-        deck_id: id as string,
-        title: useFrontAsTitle ? firstFrontValue || "Без названия" : title,
-        front: finalizedFront,
-        back: finalizedBack,
-        hint1: [hint1],
-        hint2: [hint2],
-      };
+      const cardTitle = useFrontAsTitle
+        ? firstFrontText || "Без названия"
+        : title.trim() || "Без названия";
+      const hint1Value = hint1.trim() || null;
+      const hint2Value = hint2.trim() || null;
 
-      console.log("🚀 Финальный JSON для отправки на бэкенд:", cardPayload);
+      if (isEditMode && cardId) {
+        // Частичное обновление существующей карточки (v2.0.0)
+        await updateCard(cardId as string, {
+          title: cardTitle,
+          front: finalizedFront,
+          back: finalizedBack,
+          hint1: hint1Value,
+          hint2: hint2Value,
+        });
+        Toast.show({
+          type: "success",
+          text1: "Изменения сохранены!",
+          position: "bottom",
+        });
+      } else {
+        const cardPayload: CreateCardPayload = {
+          deck_id: id as string,
+          title: cardTitle,
+          front: finalizedFront,
+          back: finalizedBack,
+          hint1: hint1Value,
+          hint2: hint2Value,
+        };
+        console.log("🚀 Финальный payload для бэкенда (v2.0.0):", cardPayload);
+        await addCard(cardPayload);
+        Toast.show({
+          type: "success",
+          text1: "Карточка создана!",
+          position: "bottom",
+        });
+      }
 
-      // Пока отправляем как строку, API не трогаем
-      await addCard(id as string, JSON.stringify(cardPayload), "");
-
-      Toast.show({
-        type: "success",
-        text1: "Карточка создана!",
-        position: "bottom",
-      });
+      resetDraft(); // очищаем черновик после сохранения
       router.push(`/decks/${id}`);
     } catch (error) {
       console.error(error);
@@ -201,7 +258,9 @@ export default function CreateCardView() {
             >
               <Image source={ReturnIcon} style={{ width: 10, height: 18 }} />
             </Pressable>
-            <Typography variant="h2">Создание карточки</Typography>
+            <Typography variant="h2">
+              {isEditMode ? "Просмотр карточки" : "Создание карточки"}
+            </Typography>
             <Pressable
               onPress={handleViewCard}
               style={styles.viewCardButton}
@@ -351,8 +410,8 @@ export default function CreateCardView() {
         >
           <MainButton
             style={styles.createCardButton}
-            title="Создать карточку"
-            onPress={handleCreateCard}
+            title={isEditMode ? "Сохранить изменения" : "Создать карточку"}
+            onPress={handleSaveCard}
           />
         </View>
       </View>

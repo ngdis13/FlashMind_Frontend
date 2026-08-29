@@ -21,8 +21,9 @@ import { commonStyles } from "@/styles/Common";
 // --------------------------- Компоненты ---------------------------
 import { UserHint } from "@/components/UserHint";
 
-// --------------------------- Типы ---------------------------
-import { StudyCard } from "@/feature-decks/deck-study-process/api/api";
+// --------------------------- Типы и хелперы ---------------------------
+import { Card } from "@/storage/types/types";
+import { blocksToHtml } from "@/utils/helpers/blocksToHtml";
 
 const systemFont = "MontserratSemiBold";
 const textColor = "#282B54";
@@ -54,7 +55,7 @@ const tagsStyles = {
 };
 
 interface Props {
-  card: StudyCard | undefined;
+  card: Card | undefined;
   isFirstCard: boolean;
 }
 
@@ -70,12 +71,9 @@ export const StudyCardView = ({ card, isFirstCard }: Props) => {
   const contentWidth = Math.min(screenWidth - 80, 600);
 
   const getDifficultyLevel = (): number => {
+    // v2.0.0: difficulty — число FSRS
     if (!card?.difficulty) return 0;
-    if ((card.difficulty as unknown) === "none") return 0;
-    const parsed = Number(card.difficulty);
-    if (isNaN(parsed)) return 0;
-    const rounded = Math.round(parsed);
-    return Math.max(1, Math.min(5, rounded));
+    return Math.max(1, Math.min(5, Math.round(card.difficulty)));
   };
 
   const difficultyLevel = getDifficultyLevel();
@@ -238,7 +236,7 @@ export const StudyCardView = ({ card, isFirstCard }: Props) => {
             onClose={handleCloseHint}
             style={styles.absoluteHint}
           />
-          {renderCardContent(card?.front || "")}
+          {renderCardContent(blocksToHtml(card?.front))}
           <Animated.View style={{ opacity: hintOpacity }} />
         </Animated.View>
 
@@ -250,7 +248,7 @@ export const StudyCardView = ({ card, isFirstCard }: Props) => {
             { transform: [{ rotateY: backInterpolate }], opacity: backOpacity },
           ]}
         >
-          {renderCardContent(card?.back || "")}
+          {renderCardContent(blocksToHtml(card?.back))}
         </Animated.View>
       </Pressable>
     </View>

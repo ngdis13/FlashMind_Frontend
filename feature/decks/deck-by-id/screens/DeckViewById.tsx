@@ -45,6 +45,7 @@ import { useCards } from "@/storage/hooks/useCards";
 // --------------------------- Типы и утилиты ---------------------------
 import { StoreCard } from "@/store/card.store";
 import { useDeckStore } from "@/store/deck.store";
+import { blocksToPlainText } from "@/utils/helpers/blocksToPlainText";
 import { LogoSadStar } from "@/components/LogoSadStar";
 
 /**
@@ -827,10 +828,14 @@ export default function DeckViewById() {
    * Фильтрует и сортирует карточки по поисковому запросу и сложности
    */
   const filteredCards = useMemo(() => {
-    // Сначала фильтруем по поиску
-    const filtered = cards.filter((card) =>
-      card.front.toLowerCase().includes(search.toLowerCase()),
-    );
+    // Фильтруем по поиску: title + plain-text содержимого front (v2.0.0: front — блоки)
+    const filtered = cards.filter((card) => {
+      const query = search.toLowerCase();
+      return (
+        card.title.toLowerCase().includes(query) ||
+        blocksToPlainText(card.front).toLowerCase().includes(query)
+      );
+    });
 
     // Затем сортируем по сложности (от высокой к низкой)
     // Предполагаем, что difficulty - это число, где больше = сложнее
@@ -988,16 +993,13 @@ export default function DeckViewById() {
             ) : (
               <View style={{ gap: 16, paddingVertical: 8, width: "100%" }}>
                 {filteredCards.length > 0 ? (
-                  filteredCards.map((item, index) => (
+                  filteredCards.map((item) => (
                     <CardItem
                       key={item.id}
                       id={item.id}
-                      front={item.front}
-                      back={item.back}
+                      title={item.title}
                       deckId={id}
                       difficulty={item.difficulty}
-                      index={index}
-                      viewMode="compact"
                       onPress={handleCardPress}
                       onDelete={handleDeleteCard}
                     />

@@ -1,4 +1,7 @@
-// src/types.ts
+// Единый источник правды по блокам — конструктор карточек.
+import { CardBlock } from "@/feature/decks/deck-create-card/types/cardBlocks";
+
+export type { CardBlock };
 
 /**
  * Информация о облачной синхронизации колоды
@@ -7,7 +10,7 @@ export interface CloudInfo {
   is_approved: boolean;
   is_cloud_deck: boolean;
   needs_sync: boolean;
-  cloud_deck_id?: string; // может отсутствовать у обычных колод
+  cloud_deck_id?: string | null; // null = автор удалил колоду из облака
   cloud_type?: "PUBLIC" | "PRIVATE"; // может отсутствовать
   is_author?: boolean; // может отсутствовать
   author_id?: string; // может отсутствовать
@@ -53,14 +56,41 @@ export interface DeckSettings {
  */
 export interface Card {
   id: string;
-  front: string;
-  back?: string;
   deck_id: string;
-  created_at?: string; // опционально, если есть
-  updated_at?: string; // опционально, если есть
-  difficulty?: number; // опционально, если есть
-  stability?: number; // опционально, если есть
-  // Добавь другие поля, если они есть в реальном ответе
+  title: string; // обязателен, уникален в рамках колоды
+  front: CardBlock[];
+  back: CardBlock[];
+  hint1?: string | null; // подсказка или null
+  hint2?: string | null; // подсказка или null
+  difficulty?: number; // FSRS-параметр
+  stability?: number; // FSRS-параметр
+  in_learning: boolean; // карточка в процессе обучения
+  card_template_id?: string | null;
+  created_at?: string; // ISO 8601
+  is_suspended?: boolean; // отложенная карточка (не попадает в due-список)
+}
+
+
+/**
+ * Одна запись из истории ревью карточки (v2.0.0)
+ */
+export interface ReviewHistoryEntry {
+  review_datetime: string; // ISO 8601
+  rating: 1 | 2 | 3 | 4; // 1: Again, 2: Hard, 3: Good, 4: Easy
+  difficulty: number; // сложность после ревью
+  stability: number; // стабильность после ревью
+  review_duration_ms: number; // длительность ревью в мс
+}
+
+
+/**
+ * Расширенный ответ GET /cards/{card_id} (v2.0.0).
+ */
+export interface CardDetailResponse {
+  card: Card;
+  last_review_datetime: string | null; // null, если ревью не было
+  next_review_datetime: string | null; // null, если ревью не было
+  review_history: ReviewHistoryEntry[]; // отсортирован по дате asc; для новых карточек — []
 }
 
 export interface DeckCardsStorage {
@@ -69,7 +99,7 @@ export interface DeckCardsStorage {
 }
 
 /**
- * Колода - соответствует ответу от сервера (новое API)
+ * Колода 
  */
 export interface Deck {
   id: string;
@@ -77,11 +107,12 @@ export interface Deck {
   description: string;
   total_cards: number;
   repeat_cards: number;
-  settings: DeckSettings; // ✅ все настройки внутри settings
-  cloud_info: CloudInfo; // ✅ новая структура
-  // Дополнительные поля для UI (не приходят с сервера)
-  extraCount?: number; // для UI
-  cards?: Card[]; // для UI (кешированные карточки)
+  settings: DeckSettings;
+  cloud_info: CloudInfo;
+  cards_on_study?: Card[]; //  карточки на обучение на сегодня (user-decks, PUT decks)
+
+  extraCount?: number;
+  cards?: Card[]; 
 }
 
 /**
@@ -89,7 +120,6 @@ export interface Deck {
  */
 export interface DecksResponse {
   decks: Deck[];
-  cloud_info?: CloudInfo; // ✅ в документации есть cloud_info на верхнем уровне
 }
 
 /**
@@ -97,9 +127,6 @@ export interface DecksResponse {
  */
 export interface CardsResponse {
   cards: Card[];
-  page?: number; // если пагинация
-  per_page?: number; // если пагинация
-  total?: number; // если пагинация
 }
 
 /**
@@ -123,18 +150,29 @@ export interface UpdateDeckPayload {
 }
 
 /**
- * Payload для создания карточки (POST /api/v1/cards)
+ * Payload для создания карточки (POST /api/v1/flashmind/cards) — v2.0.0.
+ * title обязателен и уникален в рамках колоды 
  */
 export interface CreateCardPayload {
   deck_id: string;
-  front: string;
-  back: string;
+  title: string;
+  front: CardBlock[];
+  back: CardBlock[];
+  hint1?: string | null;
+  hint2?: string | null;
 }
 
+
 /**
- * Payload для обновления карточки (PUT /api/v1/cards/{card_id})
+ * Payload для частичного обновления карточки (PUT /api/v1/flashmind/cards/{card_id}) — v2.0.0.
+ * Все поля опциональны: передаются ТОЛЬКО изменяемые поля,
+ * не переданные (null/отсутствующие) остаются без изменений.
  */
 export interface UpdateCardPayload {
-  front: string;
-  back: string;
+  title?: string;
+  front?: CardBlock[];
+  back?: CardBlock[];
+  hint1?: string | null;
+  hint2?: string | null;
+  is_suspended?: boolean;
 }

@@ -5,47 +5,20 @@ import { useAuthStore } from "@/store/auth.store";
 import {
   Deck,
   Card,
+  CardDetailResponse,
+  CardsResponse,
+  DecksResponse,
+  CreateCardPayload,
+  UpdateCardPayload,
+  CreateDeckPayload,
+  UpdateDeckPayload,
   CloudDeckShareResponse,
   CloudDeckImportResponse,
 } from "../types/types";
 import { AxiosError } from "axios";
 
 // ============================================
-// 1. ТИПЫ ДЛЯ РАЗНЫХ ОТВЕТОВ
-// ============================================
-
-interface DecksResponse {
-  decks: Deck[];
-}
-
-// ✅ Тип для урезанной карточки (из списка)
-interface CardListItem {
-  id: string;
-  deck_id: string;
-  front: string;
-  difficulty?: string | null;
-  stability?: string | null;
-  // ⚠️ НЕТ back!
-}
-
-// ✅ Тип для ответа со списком карточек
-interface CardsResponse {
-  cards: CardListItem[]; // ← Урезанные карточки
-  page?: number;
-  per_page?: number;
-  total?: number;
-}
-
-interface UpdateDeckPayload {
-  name: string;
-  description: string;
-  desired_retention: number;
-  maximum_interval: number;
-  color: string;
-}
-
-// ============================================
-// 2. КОЛОДЫ
+// 1. КОЛОДЫ
 // ============================================
 
 /**
@@ -144,12 +117,6 @@ export const deleteDeckOnServer = async (deckId: string): Promise<void> => {
   }
 };
 
-interface CreateDeckPayload {
-  name: string;
-  description: string;
-  color: string;
-}
-
 export async function createNewDeck(payload: CreateDeckPayload): Promise<Deck> {
   try {
     const accessToken = useAuthStore.getState().accessToken;
@@ -173,13 +140,9 @@ export async function createNewDeck(payload: CreateDeckPayload): Promise<Deck> {
 // ============================================
 
 /**
- * Получить карточки по deck_id (УРЕЗАННЫЕ - без back)
+ * Получить карточки (v2.0.0 — полные CardResponse, без пагинации)
  */
-export const fetchCards = async (
-  deckId?: string,
-  page?: number,
-  perPage?: number,
-): Promise<CardsResponse> => {
+export const fetchCards = async (deckId?: string): Promise<CardsResponse> => {
   try {
     const accessToken = useAuthStore.getState().accessToken;
 
@@ -188,15 +151,7 @@ export const fetchCards = async (
       throw new Error("Нет токена авторизации");
     }
 
-    const params: Record<string, string | number> = {};
-    if (deckId) params.deck_id = deckId;
-    if (page) params.page = page;
-    if (perPage) params.per_page = perPage;
-
-    const queryString =
-      Object.keys(params).length > 0
-        ? "?" + new URLSearchParams(params as Record<string, string>).toString()
-        : "";
+    const queryString = deckId ? `?deck_id=${encodeURIComponent(deckId)}` : "";
 
     console.log(
       `🌐 Загружаем карточки${deckId ? ` для колоды ${deckId}` : " (все карточки)"}...`,
@@ -207,14 +162,7 @@ export const fetchCards = async (
       { headers: { Authorization: `Bearer ${accessToken}` } },
     );
 
-    console.log(
-      `✅ Загружено ${resp.data.cards.length} карточек${resp.data.total ? ` (всего: ${resp.data.total})` : ""}`,
-    );
-
-    // ⚠️ Логируем, что back отсутствует
-    if (resp.data.cards.length > 0) {
-      console.log(`⚠️ Карточки без back (урезанные):`, resp.data.cards[0]);
-    }
+    console.log(`✅ Загружено ${resp.data.cards.length} карточек (полные CardResponse)`);
 
     return resp.data;
   } catch (err) {
@@ -224,17 +172,13 @@ export const fetchCards = async (
 };
 
 /**
- * Получить урезанные карточки конкретной колоды
+ * Получить карточки конкретной колоды (v2.0.0 — полные карточки)
  */
-export const fetchDeckCards = async (
-  deckId: string,
-): Promise<CardListItem[]> => {
-  console.log(`🌐 API: Запрос урезанных карточек для колоды ${deckId}`);
+export const fetchDeckCards = async (deckId: string): Promise<Card[]> => {
+  console.log(`🌐 API: Запрос карточек для колоды ${deckId}`);
   try {
     const response = await fetchCards(deckId);
-    console.log(
-      `✅ API: Получено ${response.cards?.length || 0} урезанных карточек`,
-    );
+    console.log(`✅ API: Получено ${response.cards?.length || 0} карточек`);
     return response.cards || [];
   } catch (error) {
     console.error(`❌ API: Ошибка загрузки карточек ${deckId}:`, error);
@@ -242,10 +186,13 @@ export const fetchDeckCards = async (
   }
 };
 
+
 /**
- * Получить ПОЛНУЮ карточку по ID (с back)
+ * Получить карточку с расширенной статистикой (v2.0.0 — CardDetailResponse)
  */
-export const fetchCardById = async (cardId: string): Promise<Card> => {
+export const fetchCardById = async (
+  cardId: string,
+): Promise<CardDetailResponse> => {
   try {
     const accessToken = useAuthStore.getState().accessToken;
 
@@ -254,20 +201,20 @@ export const fetchCardById = async (cardId: string): Promise<Card> => {
       throw new Error("Нет токена авторизации");
     }
 
-    console.log(`🔍 Загружаем ПОЛНУЮ карточку ${cardId}...`);
+    console.log(`🔍 Загружаем карточку ${cardId} (CardDetailResponse)...`);
 
-    const resp = await apiClient.get<Card>(
+    const resp = await apiClient.get<CardDetailResponse>(
       getMainServiceApiUrl(`/api/v1/flashmind/cards/${cardId}`),
       { headers: { Authorization: `Bearer ${accessToken}` } },
     );
 
-    console.log(`✅ Полная карточка загружена:`, {
-      id: resp.data.id,
-      front: resp.data.front,
-      hasBack: !!resp.data.back,
-      back: resp.data.back
-        ? `${resp.data.back.substring(0, 30)}...`
-        : "отсутствует",
+    console.log(`✅ Карточка загружена:`, {
+      id: resp.data.card.id,
+      title: resp.data.card.title,
+      hasBack: resp.data.card.back?.length > 0,
+      reviewsCount: resp.data.review_history?.length ?? 0,
+      lastReview: resp.data.last_review_datetime,
+      nextReview: resp.data.next_review_datetime,
     });
 
     return resp.data;
@@ -277,14 +224,10 @@ export const fetchCardById = async (cardId: string): Promise<Card> => {
     throw err;
   }
 };
-
 /**
- * Создать карточку (полная)
+ * Создать карточку (v2.0.0 — title обязателен, front/back — блоки)
  */
-export const createCard = async (
-  deckId: string,
-  data: { front: string; back: string },
-): Promise<Card> => {
+export const createCard = async (data: CreateCardPayload): Promise<Card> => {
   try {
     const accessToken = useAuthStore.getState().accessToken;
 
@@ -293,15 +236,11 @@ export const createCard = async (
       throw new Error("Нет токена авторизации");
     }
 
-    console.log(`📝 Создание карточки в колоде ${deckId}...`);
+    console.log(`📝 Создание карточки в колоде ${data.deck_id}...`);
 
     const resp = await apiClient.post(
       getMainServiceApiUrl(`/api/v1/flashmind/cards`),
-      {
-        deck_id: deckId,
-        front: data.front,
-        back: data.back,
-      },
+      data,
       { headers: { Authorization: `Bearer ${accessToken}` } },
     );
 
@@ -317,7 +256,7 @@ export const createCard = async (
       } else if (status === 409) {
         handleApiError(
           err,
-          errorData?.message || "Карточка с таким вопросом уже существует",
+          errorData?.message || "Карточка с таким названием уже существует",
         );
       } else {
         handleApiError(err, "Не удалось создать карточку");
@@ -330,11 +269,11 @@ export const createCard = async (
 };
 
 /**
- * Обновить карточку (полная)
+ * Частично обновить карточку (v2.0.0 — передаются только переданные поля)
  */
 export const updateCardOnServer = async (
   cardId: string,
-  data: { front: string; back: string },
+  data: UpdateCardPayload,
 ): Promise<Card> => {
   try {
     const accessToken = useAuthStore.getState().accessToken;
@@ -344,14 +283,16 @@ export const updateCardOnServer = async (
       throw new Error("Нет токена авторизации");
     }
 
-    console.log(`📝 Обновляем карточку ${cardId}...`);
+    // Фильтруем undefined — не переданные поля не должны попасть в тело запроса
+    const partialPayload = Object.fromEntries(
+      Object.entries(data).filter(([, value]) => value !== undefined),
+    );
+
+    console.log(`📝 Частичное обновление карточки ${cardId}:`, partialPayload);
 
     const resp = await apiClient.put(
       getMainServiceApiUrl(`/api/v1/flashmind/cards/${cardId}`),
-      {
-        front: data.front,
-        back: data.back,
-      },
+      partialPayload,
       { headers: { Authorization: `Bearer ${accessToken}` } },
     );
 

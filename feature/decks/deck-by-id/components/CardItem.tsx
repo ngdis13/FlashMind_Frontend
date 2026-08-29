@@ -24,61 +24,34 @@ import DeleteIcon from "@/assets/icons/DeleteIcon.png";
 
 interface CardItemProps {
   id: string;
-  front: string;
-  back?: string;
+  title: string;
   deckId?: string;
-  index?: number;
   difficulty?: number;
-  viewMode?: "compact" | "expanded";
   onPress?: (id: string, deckId?: string) => void;
   onDelete: (id: string, deckId?: string) => void;
   style?: StyleProp<ViewStyle>;
 }
 
 /**
- * Убирает HTML-теги, оставляя только чистый текст (для превью в списке)
+ * Цвет рамки по сложности (v2.0.0: difficulty — число FSRS)
  */
-const stripHtml = (html: string): string => {
-  if (!html) return '';
-  return html
-    .replace(/<br\s*\/?>/gi, ' ')
-    .replace(/<\/(div|p|h[1-6])>/gi, ' ')
-    .replace(/<[^>]*>/g, '')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&/g, '&')
-    .replace(/</g, '<')
-    .replace(/>/g, '>')
-    .replace(/"/g, '"')
-    .replace(/\s+/g, ' ')
-    .trim();
+const getBorderColor = (diff: number | null | undefined): string => {
+  if (diff === null || diff === undefined) return "#DBDBDB";
+  if (diff <= 3) return "#7EE083";
+  if (diff <= 8) return "#FFC39B";
+  return "#FB8B93";
 };
 
 export const CardItem = ({
   id,
-  front,
-  back,
+  title,
   deckId,
-  index,
   difficulty,
-  viewMode = "compact",
   onPress,
   onDelete,
   style,
 }: CardItemProps) => {
   const [alertVisible, setAlertVisible] = useState<boolean>(false);
-
-  const getBorderColor = (diff: number | string | null | undefined): string => {
-    if (diff === "none" || diff === null || diff === undefined || diff === "") {
-      return "#DBDBDB";
-    }
-    const numericDiff = Number(diff);
-    if (isNaN(numericDiff)) {
-      return "#DBDBDB";
-    }
-    if (numericDiff <= 3) return "#7EE083";
-    if (numericDiff <= 8) return "#FFC39B";
-    return "#FB8B93";
-  };
 
   const handlePress = (): void => {
     onPress?.(id, deckId);
@@ -104,8 +77,8 @@ export const CardItem = ({
       style={[styles.card, { borderColor: getBorderColor(difficulty) }, style]}
     >
       <View style={styles.textContainer}>
-        <Typography variant="h2" numberOfLines={2}>
-          {stripHtml(front)}
+        <Typography variant="h2" numberOfLines={1}>
+          {title}
         </Typography>
       </View>
 
@@ -144,6 +117,7 @@ const styles = StyleSheet.create({
   },
   textContainer: {
     flex: 1,
+    gap: 4,
   },
   deleteButton: {
     padding: 4,

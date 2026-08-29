@@ -29,13 +29,3 @@ export interface ImageBlock extends BaseBlock {
 }
 
 export type CardBlock = TermBlock | TextBlock | QuizBlock | ImageBlock;
-
-export interface CreateCardPayload {
-  card_id?: string;
-  deck_id: string;
-  title: string;
-  front: CardBlock[];
-  back: CardBlock[];
-  hint1: string[];
-  hint2: string[];
-}

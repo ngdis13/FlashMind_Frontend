@@ -37,11 +37,8 @@ import { RatingButton } from "@/feature-decks/deck-study-process/components/Rati
 import ReturnIcon from "@/assets/icons/ReturnIcon.png";
 
 // --------------------------- API ---------------------------
-import {
-  getStudyCard,
-  postCardRating,
-  StudyCard,
-} from "@/feature-decks/deck-study-process/api/api";
+import { newToStudy, reviewCard } from "@/feature-decks/deck-study-process/api/api";
+import { Card } from "@/storage/types/types";
 
 // --------------------------- Хуки и хранилища ---------------------------
 import { useDecks } from "@/storage/hooks/useDecks";
@@ -94,7 +91,7 @@ export default function StudyDecksScreen() {
   }>();
   const count = parseInt(addCount || "0", 10);
 
-  const [cards, setCards] = useState<StudyCard[]>([]);
+  const [cards, setCards] = useState<Card[]>([]);
   const [totalToStudy, setTotalToStudy] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -131,11 +128,12 @@ export default function StudyDecksScreen() {
     const startStudy = async (): Promise<void> => {
       if (!id) return;
       try {
-        const data = await getStudyCard(id, count);
-        if (data && data.cards) {
-          setCards(data.cards);
-          setTotalToStudy(data.cards.length);
-          useDeckStore.getState().updateDeckReviewCount(id, data.cards.length);
+        // v2.0.0: POST /study возвращает только новые карточки (без total)
+        const data = await newToStudy(id, count);
+        if (data) {
+          setCards(data);
+          setTotalToStudy(data.length);
+          useDeckStore.getState().updateDeckReviewCount(id, data.length);
         }
       } catch (e) {
         console.error("Ошибка загрузки:", e);
@@ -180,16 +178,25 @@ export default function StudyDecksScreen() {
           await incrementDailyReviews();
           console.log("📊 Статистика профиля обновлена после успешного ответа");
 
-          const response = await postCardRating(
+          // v2.0.0: всегда 200 + { card, success } (204 больше не используется)
+          const response = await reviewCard(
             currentCard.id,
-            rating,
+            rating as 1 | 2 | 3 | 4,
             durationMs,
           );
 
-          if (response?.status === 200) {
-            const updatedCard = response.data;
-            setCards((prev) => [...prev.slice(1), updatedCard]);
+          if (response?.success) {
+            // Карточка прошла повтор на сегодня — уходит из очереди
+            setCards((prev) => prev.slice(1));
+            setFinishedCount((prev) => prev + 1);
+            if (id) {
+              useDeckStore.getState().updateDeckReviewCount(id, "decrement");
+            }
+          } else if (response) {
+            // success=false — карточку нужно показать снова сегодня
+            setCards((prev) => [...prev.slice(1), response.card]);
           } else {
+            // Ошибка запроса — убираем карточку из очереди
             setCards((prev) => prev.slice(1));
             setFinishedCount((prev) => prev + 1);
             if (id) {

@@ -11,10 +11,6 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { styles } from "@/feature-decks/deck-study/styles/StudyDecks.styles";
 import { MainButton } from "@/components/MainButton";
 import { useEffect, useState } from "react";
-import {
-  getStudyInfo,
-  StudyResponse,
-} from "@/feature-decks/deck-study/api/api";
 import { Animated } from "react-native";
 import { colors } from "@/styles/Colors";
 
@@ -26,11 +22,12 @@ export default function StudyDecksScreen() {
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
   const fadeAnim = useState(new Animated.Value(0))[0]; // Начальная прозрачность 0
 
-  const [studyData, setStudyData] = useState<StudyResponse | null>(null);
   const [addCount, setAddCount] = useState(0);
-  const newCard = studyData
-    ? Math.max(0, studyData.total - studyData.learned - studyData.in_learning)
-    : 0;
+
+  // v2.0.0: GET /study удалён — счётчики считаем из данных колоды
+  const total = deck?.total_cards ?? 0;
+  const inLearning = deck?.cards_on_study?.length ?? 0;
+  const newCard = Math.max(0, total - inLearning);
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -51,20 +48,10 @@ export default function StudyDecksScreen() {
     });
   };
 
+  // Дефолтное количество новых карточек к добавлению (как раньше — до 5)
   useEffect(() => {
-    if (id) {
-      getStudyInfo(id as string).then((data) => {
-        setStudyData(data);
-
-        // Вычисляем, сколько новых карточек доступно
-        const availableNew = data.total - data.learned - data.in_learning;
-
-        const defaultToLearn = Math.max(0, Math.min(availableNew, 5));
-
-        setAddCount(defaultToLearn);
-      });
-    }
-  }, [id]);
+    setAddCount(Math.min(5, newCard));
+  }, [newCard]);
 
   return (
     <View
@@ -98,19 +85,15 @@ export default function StudyDecksScreen() {
             <View style={[commonStyles.mainBox, { gap: 24 }, styles.infoBox]}>
               <View style={styles.infoLine}>
                 <Typography variant="h2">Всего карточек</Typography>
-                <Typography variant="h2">{studyData?.total}</Typography>
+                <Typography variant="h2">{total}</Typography>
               </View>
               <View style={styles.infoLine}>
                 <Typography variant="h2">Новые</Typography>
                 <Typography variant="h2">{newCard}</Typography>
               </View>
               <View style={styles.infoLine}>
-                <Typography variant="h2">Изучено</Typography>
-                <Typography variant="h2">{studyData?.learned}</Typography>
-              </View>
-              <View style={styles.infoLine}>
-                <Typography variant="h2">На изучении</Typography>
-                <Typography variant="h2">{studyData?.in_learning}</Typography>
+                <Typography variant="h2">В обучении</Typography>
+                <Typography variant="h2">{inLearning}</Typography>
               </View>
               <View style={[styles.infoLine, { paddingEnd: 0 }]}>
                 <View style={styles.infoContent}>
@@ -196,7 +179,7 @@ export default function StudyDecksScreen() {
           }}
         >
           <Typography variant="h2">
-            К повторению сегодня: {(studyData?.learning_today ?? 0) + addCount}
+            К повторению сегодня: {(deck?.repeat_cards ?? 0) + addCount}
           </Typography>
         </View>
       </View>
@@ -205,9 +188,7 @@ export default function StudyDecksScreen() {
           style={{ width: "100%" }}
           title="Старт"
           onPress={handleStartStudy}
-          disabled={
-            !studyData || (studyData.learning_today ?? 0) + addCount === 0
-          }
+          disabled={!deck || (deck?.repeat_cards ?? 0) + addCount === 0}
         />
       </View>
     </View>

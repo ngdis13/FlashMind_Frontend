@@ -8,6 +8,7 @@ import {
   DecksStorageState,
   loadDecks,
   saveDecks,
+  STORAGE_VERSION,
 } from "@/storage/service/decksStorage";
 import { Deck, DeckSettings, UpdateDeckPayload } from "@/storage/types/types";
 import { calculateExpiryTime } from "@/utils/helpers/calculateExpiryTime";
@@ -45,6 +46,9 @@ type DeckState = {
   // Точечная установка needs_sync=true при мутации карточек автором облачной колоды
   markDeckNeedsSync: (deckId: string) => void;
   markDeckSynced: (deckId: string) => void;
+
+  // после успешного ревью (success=true) карточка уходит из cards_on_study
+  removeCardFromStudy: (deckId: string, cardId: string) => void;
 };
 
 export const useDeckStore = create<DeckState>((set, get) => {
@@ -142,6 +146,7 @@ export const useDeckStore = create<DeckState>((set, get) => {
         const serverDecks = await fetchUserDecks();
 
         const freshState: DecksStorageState = {
+          version: STORAGE_VERSION, // v2.0.0: версия формата кэша
           isActual: true,
           expiresAt: calculateExpiryTime(), // Рассчитываем точку "4 утра следующего дня"
           decks: serverDecks,
@@ -197,6 +202,7 @@ export const useDeckStore = create<DeckState>((set, get) => {
         });
 
         const currentRecord = get().decksState || {
+          version: STORAGE_VERSION, // v2.0.0: версия формата кэша
           isActual: true,
           expiresAt: calculateExpiryTime(),
           decks: [],
@@ -220,6 +226,7 @@ export const useDeckStore = create<DeckState>((set, get) => {
             is_cloud_deck: false,
             needs_sync: false,
           },
+          cards_on_study: [], // v2.0.0: карточки на обучение на сегодня
         };
 
         const updatedState: DecksStorageState = {
@@ -478,6 +485,38 @@ export const useDeckStore = create<DeckState>((set, get) => {
           : d,
       );
       get().setDecksState({ ...currentRecord, decks: updatedDecks });
+    },
+
+    // 11. v2.0.0: после успешного ревью (success=true) карточка уходит из cards_on_study
+    removeCardFromStudy: (deckId: string, cardId: string) => {
+      const currentRecord = get().decksState;
+      if (!currentRecord) return;
+
+      const deck = currentRecord.decks.find((d) => d.id === deckId);
+      if (!deck?.cards_on_study?.length) return;
+
+      const wasThere = deck.cards_on_study.some((c) => c.id === cardId);
+      if (!wasThere) return;
+
+      console.log(
+        `🔄 removeCardFromStudy: карточка ${cardId} уходит из cards_on_study колоды ${deckId}`,
+      );
+
+      const updatedDecks = currentRecord.decks.map((d) => {
+        if (d.id === deckId) {
+          return {
+            ...d,
+            cards_on_study: d.cards_on_study!.filter((c) => c.id !== cardId),
+            repeat_cards: Math.max(0, (d.repeat_cards || 0) - 1),
+          };
+        }
+        return d;
+      });
+
+      get().setDecksState({
+        ...currentRecord,
+        decks: updatedDecks,
+      });
     },
   };
 });

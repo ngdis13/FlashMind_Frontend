@@ -6,26 +6,27 @@ import {
   deleteCard,
   fetchCardById,
 } from "@/storage/api/api";
-import { loadDeckCards, saveDeckCards } from "@/storage/service/decksStorage";
-import { Card } from "@/storage/types/types";
+import {
+  loadDeckCards,
+  saveDeckCards,
+  DeckCardsStorage,
+  STORAGE_VERSION,
+} from "@/storage/service/decksStorage";
+import {
+  Card,
+  CreateCardPayload,
+  UpdateCardPayload,
+} from "@/storage/types/types";
 import { useDeckStore } from "@/store/deck.store";
 import { CardBlock } from "@/feature/decks/deck-create-card/types/cardBlocks";
 
-interface StoreCardListItem {
-  id: string;
-  deck_id: string;
-  front: string;
-  difficulty?: string | null;
-  stability?: string | null;
-  back?: never;
-}
-
-export type StoreCard = StoreCardListItem | Card;
-
-interface DeckCardsStorage {
-  isActual: boolean;
-  cards: StoreCard[];
-}
+/**
+ * Единая модель карточки (v2.0.0).
+ * Раньше был union StoreCardListItem | Card (урезанные карточки без back) —
+ * теперь бэкенд всегда возвращает полные CardResponse.
+ * Алиас StoreCard оставлен для совместимости существующих импортов.
+ */
+export type StoreCard = Card;
 
 type CardState = {
   cards: Record<string, DeckCardsStorage>;
@@ -44,15 +45,17 @@ type CardState = {
   invalidateCards: (deckId: string) => void;
   invalidateAllCards: () => Promise<void>;
   getCardById: (cardId: string) => Promise<Card | null>;
-  createCard: (data: {
-    deck_id: string;
-    front: string;
-    back: string;
-  }) => Promise<Card>;
-  updateCard: (id: string, data: Partial<Card>) => Promise<Card>;
+  createCard: (data: CreateCardPayload) => Promise<Card>;
+  updateCard: (id: string, data: UpdateCardPayload) => Promise<Card>;
   deleteCard: (id: string, deckId: string) => Promise<void>;
+  /**
+   * Точечная замена карточки в кэше (v2.0.0, п.14 спеки).
+   * Используется после ревью: PATCH /study возвращает обновлённую карточку —
+   * заменяем её по ID вместо сброса всего кэша колоды.
+   */
+  replaceCard: (deckId: string, updatedCard: Card) => void;
   clearCards: (deckId?: string) => void;
-  // Добавляем прямой метод ручного обновления стора (пригодится хуку)
+  // Прямой метод ручного обновления стора (пригодится хуку)
   setDeckCardsState: (deckId: string, newState: DeckCardsStorage) => void;
 
   setDraftTitle: (title: string) => void;
@@ -109,8 +112,6 @@ export const useCardStore = create<CardState>((set, get) => {
       }));
     },
 
-    // Внутри useCardStore в файле card.store.ts:
-
     getCards: async (deckId: string): Promise<StoreCard[]> => {
       const currentRecord = get().cards[deckId];
 
@@ -127,9 +128,9 @@ export const useCardStore = create<CardState>((set, get) => {
 
       // 2. Если в памяти нет — проверяем диск
       if (!currentRecord) {
-        const diskData = await loadDeckCards(deckId); // Тут уже прилетает { isActual, cards } или null
+        const diskData = await loadDeckCards(deckId); // { isActual, cards } или null
         if (diskData) {
-          validateFormat(deckId, diskData); // Проверяем на жесткое соответствие
+          validateFormat(deckId, diskData); // Проверка на жесткое соответствие
 
           set((state) => ({
             cards: { ...state.cards, [deckId]: diskData },
@@ -161,8 +162,9 @@ export const useCardStore = create<CardState>((set, get) => {
           const serverCards = await fetchDeckCards(deckId);
 
           const freshState: DeckCardsStorage = {
+            version: STORAGE_VERSION, // v2.0.0: версия формата кэша
             isActual: true,
-            cards: serverCards as StoreCard[],
+            cards: serverCards,
           };
 
           set((state) => ({
@@ -173,7 +175,7 @@ export const useCardStore = create<CardState>((set, get) => {
 
           await saveDeckCards(deckId, freshState);
 
-          return serverCards as StoreCard[];
+          return serverCards;
         } catch (error) {
           set((state) => ({
             error: error instanceof Error ? error.message : "Ошибка загрузки",
@@ -234,18 +236,24 @@ export const useCardStore = create<CardState>((set, get) => {
       );
     },
 
+    /**
+     * v2.0.0: все карточки в кэше полные — просто ищем по ID.
+     * Сервер нужен только если карточки нет в кэше.
+     * (review_history для экрана /card/[cardId] берётся напрямую из fetchCardById)
+     */
     getCardById: async (cardId: string): Promise<Card | null> => {
       const allCards = Object.values(get().cards)
         .map((record) => record.cards)
         .flat();
       const found = allCards.find((c) => c.id === cardId);
-
-      if (found && "back" in found && found.back) {
-        return found as Card;
-      }
+      if (found) return found;
 
       try {
-        const fullCard = await fetchCardById(cardId);
+        // CardDetailResponse — распаковываем card
+        const detail = await fetchCardById(cardId);
+        const fullCard = detail.card;
+
+        // Находим колоду, в кэше которой лежит эта карточка, и обновляем её
         let deckId = "";
         for (const [key, record] of Object.entries(get().cards)) {
           if (record.cards.some((c) => c.id === cardId)) {
@@ -255,13 +263,11 @@ export const useCardStore = create<CardState>((set, get) => {
         }
 
         if (deckId) {
-          const updatedCards = get().cards[deckId].cards.map((c) =>
-            c.id === cardId ? (fullCard as StoreCard) : c,
-          );
-
           const updatedState: DeckCardsStorage = {
             ...get().cards[deckId],
-            cards: updatedCards,
+            cards: get().cards[deckId].cards.map((c) =>
+              c.id === cardId ? fullCard : c,
+            ),
           };
 
           set((state) => ({
@@ -276,22 +282,21 @@ export const useCardStore = create<CardState>((set, get) => {
       }
     },
 
-    // ОПТИМИЗИРОВАНО: Добавление НЕ сбрасывает кэш
+    // ОПТИМИЗИРОВАНО: Добавление НЕ сбрасывает кэш (v2.0.0: title + блоки + hints)
     createCard: async (data) => {
       const currentRecord = get().cards[data.deck_id] || {
+        version: STORAGE_VERSION,
         isActual: true,
         cards: [],
       };
       validateFormat(data.deck_id, currentRecord);
 
-      const newCard = await createCard(data.deck_id, {
-        front: data.front,
-        back: data.back,
-      });
+      const newCard = await createCard(data);
 
       const updatedState: DeckCardsStorage = {
+        version: STORAGE_VERSION, // v2.0.0: версия формата кэша
         isActual: true, // Локальный массив обновлен, повторный GET не нужен!
-        cards: [...currentRecord.cards, newCard as StoreCard],
+        cards: [...currentRecord.cards, newCard],
       };
 
       set((state) => ({
@@ -304,12 +309,9 @@ export const useCardStore = create<CardState>((set, get) => {
       return newCard;
     },
 
-    // ОПТИМИЗИРОВАНО: Редактирование НЕ сбрасывает кэш
+    // ОПТИМИЗИРОВАНО: Частичное редактирование НЕ сбрасывает кэш (v2.0.0)
     updateCard: async (id, data) => {
-      const updated = await updateCardOnServer(
-        id,
-        data as { front: string; back: string },
-      );
+      const updated = await updateCardOnServer(id, data);
 
       let deckId = "";
       for (const [key, record] of Object.entries(get().cards)) {
@@ -321,9 +323,10 @@ export const useCardStore = create<CardState>((set, get) => {
 
       if (deckId) {
         const updatedState: DeckCardsStorage = {
+          version: STORAGE_VERSION, // v2.0.0: версия формата кэша
           isActual: true, // Обновили локально, данные свежие!
           cards: get().cards[deckId].cards.map((card) =>
-            card.id === id ? (updated as StoreCard) : card,
+            card.id === id ? updated : card,
           ),
         };
 
@@ -345,6 +348,7 @@ export const useCardStore = create<CardState>((set, get) => {
       const currentRecord = get().cards[deckId];
       if (currentRecord) {
         const updatedState: DeckCardsStorage = {
+          version: STORAGE_VERSION, // v2.0.0: версия формата кэша
           isActual: true, // Локально удалили, синхронизация с сервером сохранена
           cards: currentRecord.cards.filter((card) => card.id !== id),
         };
@@ -359,6 +363,36 @@ export const useCardStore = create<CardState>((set, get) => {
       }
     },
 
+    /**
+     * v2.0.0 (п.14 спеки): после ревью PATCH /study возвращает обновлённую карточку
+     * с актуальными FSRS-параметрами. Заменяем её по ID вместо сброса кэша —
+     * мгновенное обновление UI без лишнего GET /cards.
+     */
+    replaceCard: (deckId, updatedCard) => {
+      const record = get().cards[deckId];
+      if (!record) {
+        console.log(`⚠️ replaceCard: кэш колоды ${deckId} пуст, заменять нечего`);
+        return;
+      }
+
+      const exists = record.cards.some((c) => c.id === updatedCard.id);
+      const updatedState: DeckCardsStorage = {
+        version: STORAGE_VERSION, // v2.0.0: версия формата кэша
+        isActual: true, // Данные свежие — сеть не трогаем
+        cards: exists
+          ? record.cards.map((c) => (c.id === updatedCard.id ? updatedCard : c))
+          : [...record.cards, updatedCard],
+      };
+
+      set((state) => ({
+        cards: { ...state.cards, [deckId]: updatedState },
+      }));
+      saveDeckCards(deckId, updatedState);
+      console.log(
+        `🔄 replaceCard: карточка ${updatedCard.id} заменена в кэше колоды ${deckId}`,
+      );
+    },
+
     clearCards: (deckId?: string) => {
       if (deckId) {
         set((state) => {
@@ -366,7 +400,11 @@ export const useCardStore = create<CardState>((set, get) => {
           return {
             cards: {
               ...state.cards,
-              [deckId]: { isActual: false, cards: [] as StoreCard[] },
+              [deckId]: {
+                version: STORAGE_VERSION,
+                isActual: false,
+                cards: [] as StoreCard[],
+              },
             },
             lastFetched: remainingFetched,
           };
