@@ -179,7 +179,7 @@ export default function StudyDecksScreen() {
           }}
         >
           <Typography variant="h2">
-            К повторению сегодня: {(deck?.repeat_cards ?? 0) + addCount}
+            К повторению сегодня: {deck?.repeat_cards ?? 0}
           </Typography>
         </View>
       </View>

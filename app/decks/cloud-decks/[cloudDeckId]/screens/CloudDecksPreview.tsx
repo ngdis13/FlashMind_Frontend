@@ -1,7 +1,8 @@
  import { useLocalSearchParams, useRouter } from "expo-router";
 import { Pressable, View, Image, FlatList } from "react-native";
 import { fetchCloudDeckPreview, deleteCloudDeck } from "../../api/api";
-import { CloudDeckPreviewResponse } from "../../types/types";
+import { CloudDeckPreviewResponse, CloudPreviewCard } from "../../types/types";
+import { blocksToPlainText } from "@/utils/helpers/blocksToPlainText";
 import { Typography } from "@/styles/Typography";
 import { commonStyles } from "@/styles/Common";
 import { colors } from "@/styles/Colors";
@@ -22,21 +23,6 @@ import { useDecks } from "@/storage/hooks/useDecks";
 import { useAuthStore } from "@/store/auth.store";
 import { getUserIdFromToken } from "@/utils/helpers/getUserIdFromToken";
 import { SyncDeckModal } from "@/feature/decks/components/SyncDeckModal";
-
-const stripHtml = (html: string): string => {
-  if (!html) return "";
-  return html
-    .replace(/<br\s*\/?>/gi, " ")
-    .replace(/<\/(div|p|h[1-6])>/gi, " ")
-    .replace(/<[^>]*>/g, "")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&/g, "&")
-    .replace(/</g, "<")
-    .replace(/>/g, ">")
-    .replace(/"/g, '"')
-    .replace(/\s+/g, " ")
-    .trim();
-};
 
 export default function CloudDecksPreview() {
   const router = useRouter();
@@ -223,23 +209,20 @@ export default function CloudDecksPreview() {
   const hasAuthorBio = Boolean(deckPreview?.author?.bio);
 
   const filteredCards =
-    deckPreview?.cards?.filter((card) =>
-      card.front.toLowerCase().includes(search.toLowerCase()),
-    ) || [];
+    deckPreview?.cards?.filter((card) => {
+      const haystack = `${card.title ?? ""} ${blocksToPlainText(card.front)}`;
+      return haystack.toLowerCase().includes(search.toLowerCase());
+    }) || [];
 
   const handleCardPress = (cardId: string) => {
     router.push(`/decks/cloud-decks/card/${cardId}?cloudDeckId=${cloudDeckId}`);
   };
 
-  const renderCardItem = ({
-    item,
-  }: {
-    item: { id: string; front: string };
-  }) => (
+  const renderCardItem = ({ item }: { item: CloudPreviewCard }) => (
     <Pressable onPress={() => handleCardPress(item.id)}>
       <View style={[commonStyles.mainBox, styles.cardItem]}>
         <Typography variant="h2" style={styles.cardText} numberOfLines={3}>
-          {stripHtml(item.front)}
+          {item.title || blocksToPlainText(item.front)}
         </Typography>
       </View>
     </Pressable>

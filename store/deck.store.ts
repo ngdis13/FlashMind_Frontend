@@ -10,7 +10,7 @@ import {
   saveDecks,
   STORAGE_VERSION,
 } from "@/storage/service/decksStorage";
-import { Deck, DeckSettings, UpdateDeckPayload } from "@/storage/types/types";
+import { Card, Deck, DeckSettings, UpdateDeckPayload } from "@/storage/types/types";
 import { calculateExpiryTime } from "@/utils/helpers/calculateExpiryTime";
 import { colors } from "@/styles/Colors";
 
@@ -49,6 +49,9 @@ type DeckState = {
 
   // после успешного ревью (success=true) карточка уходит из cards_on_study
   removeCardFromStudy: (deckId: string, cardId: string) => void;
+
+  // v2.0.0: после POST /study новые карточки попадают в cards_on_study
+  addCardsToStudy: (deckId: string, cards: Card[]) => void;
 };
 
 export const useDeckStore = create<DeckState>((set, get) => {
@@ -517,6 +520,33 @@ export const useDeckStore = create<DeckState>((set, get) => {
         ...currentRecord,
         decks: updatedDecks,
       });
+    },
+
+    // 12. v2.0.0: после POST /study новые карточки попадают в cards_on_study
+    addCardsToStudy: (deckId: string, cards: Card[]) => {
+      if (cards.length === 0) return;
+      const currentRecord = get().decksState;
+      if (!currentRecord) return;
+
+      console.log(
+        `🔄 addCardsToStudy: +${cards.length} новых карточек в cards_on_study колоды ${deckId}`,
+      );
+
+      const updatedDecks = currentRecord.decks.map((d) => {
+        if (d.id === deckId) {
+          const existing = d.cards_on_study ?? [];
+          const existingIds = new Set(existing.map((c) => c.id));
+          const toAdd = cards.filter((c) => !existingIds.has(c.id));
+          return {
+            ...d,
+            cards_on_study: [...existing, ...toAdd],
+            repeat_cards: (d.repeat_cards || 0) + toAdd.length,
+          };
+        }
+        return d;
+      });
+
+      get().setDecksState({ ...currentRecord, decks: updatedDecks });
     },
   };
 });

@@ -38,14 +38,14 @@ const textColor = "#282B54";
  */
 const tagsStyles = {
   body: {
-    fontFamily: "Montserrat",
+    fontFamily: "MontserratRegular", // имя из useFonts (было "Montserrat" — незарегистрированное)
     fontWeight: "400" as const,
     fontSize: 16,
     color: textColor,
     textAlign: "center" as const,
   },
-  b: { fontWeight: "700" as const },
-  strong: { fontWeight: "700" as const },
+  b: { fontFamily: "MontserratBold" }, // кастомные шрифты не синтезируют вес — нужен явный fontFamily
+  strong: { fontFamily: "MontserratBold" },
   i: { fontStyle: "italic" as const },
   em: { fontStyle: "italic" as const },
   u: { textDecorationLine: "underline" as const },
@@ -209,7 +209,7 @@ export const StudyCardView = ({ card, isFirstCard }: Props) => {
           contentWidth={contentWidth}
           source={{ html }}
           tagsStyles={tagsStyles}
-          systemFonts={[systemFont, "Montserrat"]}
+          systemFonts={[systemFont, "MontserratRegular"]}
         />
       ) : null}
     </ScrollView>

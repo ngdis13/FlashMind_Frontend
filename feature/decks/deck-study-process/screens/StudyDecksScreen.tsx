@@ -37,13 +37,17 @@ import { RatingButton } from "@/feature-decks/deck-study-process/components/Rati
 import ReturnIcon from "@/assets/icons/ReturnIcon.png";
 
 // --------------------------- API ---------------------------
-import { newToStudy, reviewCard } from "@/feature-decks/deck-study-process/api/api";
+import {
+  newToStudy,
+  reviewCard,
+} from "@/feature-decks/deck-study-process/api/api";
 import { Card } from "@/storage/types/types";
 
 // --------------------------- Хуки и хранилища ---------------------------
 import { useDecks } from "@/storage/hooks/useDecks";
 import { useCards } from "@/storage/hooks/useCards";
 import { useDeckStore } from "@/store/deck.store";
+import { useCardStore } from "@/store/card.store";
 
 // --------------------------- Вспомогательные функции ---------------------------
 /**
@@ -128,12 +132,26 @@ export default function StudyDecksScreen() {
     const startStudy = async (): Promise<void> => {
       if (!id) return;
       try {
-        // v2.0.0: POST /study возвращает только новые карточки (без total)
-        const data = await newToStudy(id, count);
-        if (data) {
-          setCards(data);
-          setTotalToStudy(data.length);
-          useDeckStore.getState().updateDeckReviewCount(id, data.length);
+        // v2.0.0: due-карточки на сегодня — из cards_on_study колоды
+        const currentDeck = useDeckStore
+          .getState()
+          .decksState?.decks.find((d) => d.id === id);
+        const dueCards = currentDeck?.cards_on_study ?? [];
+
+        // v2.0.0: POST /study возвращает только НОВЫЕ карточки
+        let newCards: Card[] = [];
+        if (count > 0) {
+          newCards = await newToStudy(id, count);
+        }
+
+        // Очередь сессии: сначала карточки к повторению, потом новые
+        const queue = [...dueCards, ...newCards];
+        setCards(queue);
+        setTotalToStudy(queue.length);
+
+        // Новые карточки теперь в обучении — фиксируем в сторе колоды
+        if (newCards.length > 0) {
+          useDeckStore.getState().addCardsToStudy(id, newCards);
         }
       } catch (e) {
         console.error("Ошибка загрузки:", e);
@@ -185,22 +203,26 @@ export default function StudyDecksScreen() {
             durationMs,
           );
 
-          if (response?.success) {
-            // Карточка прошла повтор на сегодня — уходит из очереди
+          if (response.success) {
+            // v2.0.0: карточка прошла повтор — уходит из очереди сессии
             setCards((prev) => prev.slice(1));
             setFinishedCount((prev) => prev + 1);
             if (id) {
-              useDeckStore.getState().updateDeckReviewCount(id, "decrement");
+              // Убираем карточку из cards_on_study колоды.
+              // Внутри уже декрементится repeat_cards, поэтому отдельный
+              // updateDeckReviewCount("decrement") больше не нужен
+              useDeckStore.getState().removeCardFromStudy(id, currentCard.id);
+              // П.14 спецификации: обновляем карточку в кэше по ID,
+              // кэш НЕ инвалидируем
+              useCardStore.getState().replaceCard(id, response.card);
             }
-          } else if (response) {
+          } else {
             // success=false — карточку нужно показать снова сегодня
             setCards((prev) => [...prev.slice(1), response.card]);
-          } else {
-            // Ошибка запроса — убираем карточку из очереди
-            setCards((prev) => prev.slice(1));
-            setFinishedCount((prev) => prev + 1);
             if (id) {
-              useDeckStore.getState().updateDeckReviewCount(id, "decrement");
+              // П.14: карточка остаётся в обучении, но её SRS-данные
+              // (difficulty/stability) обновились — синхронизируем кэш
+              useCardStore.getState().replaceCard(id, response.card);
             }
           }
         } catch (error) {
@@ -244,21 +266,27 @@ export default function StudyDecksScreen() {
   const keyboardStateRef = useRef({ cards, isSubmitting, handleRate });
   keyboardStateRef.current = { cards, isSubmitting, handleRate };
 
-
   useEffect(() => {
-    if (Platform.OS !== 'web') return;
+    if (Platform.OS !== "web") return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-
       const target = e.target as HTMLElement;
-      if (target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA' || target?.isContentEditable) {
+      if (
+        target?.tagName === "INPUT" ||
+        target?.tagName === "TEXTAREA" ||
+        target?.isContentEditable
+      ) {
         return;
       }
 
-      const { cards: currentCards, isSubmitting: currentSubmitting, handleRate: currentHandleRate } = keyboardStateRef.current;
+      const {
+        cards: currentCards,
+        isSubmitting: currentSubmitting,
+        handleRate: currentHandleRate,
+      } = keyboardStateRef.current;
       if (currentCards.length === 0 || currentSubmitting) return;
 
-      const rates: Record<string, number> = { '1': 1, '2': 2, '3': 3, '4': 4 };
+      const rates: Record<string, number> = { "1": 1, "2": 2, "3": 3, "4": 4 };
       const rate = rates[e.key];
 
       if (rate) {
@@ -267,14 +295,13 @@ export default function StudyDecksScreen() {
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []); 
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const currentIndex = useMemo(() => {
     return Math.min(finishedCount + 1, totalToStudy);
   }, [finishedCount, totalToStudy]);
-
 
   // --------------------------- Отрисовка ---------------------------
   return (
@@ -288,7 +315,7 @@ export default function StudyDecksScreen() {
             width: "100%",
             paddingHorizontal: 10,
             paddingTop: 20,
-            maxHeight: 800
+            maxHeight: 800,
           }}
         >
           <View style={styles.header}>

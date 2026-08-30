@@ -1,3 +1,5 @@
+import { CardBlock } from "@/feature/decks/deck-create-card/types/cardBlocks";
+
 export interface CloudAuthor {
   avatar_url: string;
   bio: string;
@@ -7,8 +9,10 @@ export interface CloudAuthor {
 }
 
 export interface CloudPreviewCard {
-  front: string;
   id: string;
+  title: string;
+  front: CardBlock[];
+  back: CardBlock[];
 }
 
 export interface CloudDeckPreviewResponse {

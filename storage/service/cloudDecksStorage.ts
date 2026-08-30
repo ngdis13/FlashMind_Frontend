@@ -5,10 +5,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
  * Аналог DecksStorageState, но для отдельной облачной колоды.
  * Использует ту же модель: isActual + expiresAt.
  */
-export interface CloudDeckPreviewCache {
-  isActual: boolean; 
-  expiresAt: number; 
-  data: unknown; 
+export interface CloudDeckPreviewCache<T = unknown> {
+  isActual: boolean;
+  expiresAt: number;
+  data: T;
 }
 
 const STORAGE_PREFIX = '@flashcards/cloud_deck_preview';
@@ -35,9 +35,9 @@ export const saveCloudDeckPreview = async (
 /**
  * Загрузить превью облачной колоды из AsyncStorage
  */
-export const loadCloudDeckPreview = async (
+export const loadCloudDeckPreview = async <T = unknown>(
   cloudDeckId: string,
-): Promise<CloudDeckPreviewCache | null> => {
+): Promise<CloudDeckPreviewCache<T> | null> => {
   try {
     const json = await AsyncStorage.getItem(getKey(cloudDeckId));
     if (!json) return null;
@@ -56,7 +56,7 @@ export const loadCloudDeckPreview = async (
       return null;
     }
 
-    return data as CloudDeckPreviewCache;
+    return data as CloudDeckPreviewCache<T>;
   } catch (error) {
     console.error('Ошибка загрузки превью облачной колоды:', error);
     return null;

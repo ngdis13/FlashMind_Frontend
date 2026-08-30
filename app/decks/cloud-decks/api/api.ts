@@ -1,7 +1,10 @@
 import apiClient from "@/api/client";
 import { getMainServiceApiUrl } from "@/api/getMainServiceApiUrl";
 import { useAuthStore } from "@/store/auth.store";
-import { FetchCloudDecksResponse } from "../types/types";
+import {
+  CloudDeckPreviewResponse,
+  FetchCloudDecksResponse,
+} from "../types/types";
 import {
   saveCloudDeckPreview,
   loadCloudDeckPreview,
@@ -19,10 +22,14 @@ let cloudDecksListCache: {
   expiresAt: number;
 } | null = null;
 
-export const fetchCloudDeckPreview = async (cloudDeckId: string) => {
+export const fetchCloudDeckPreview = async (
+  cloudDeckId: string,
+): Promise<CloudDeckPreviewResponse> => {
   try {
     // Шаг 1: проверяем кэш в AsyncStorage (как deck.store проверяет isActual + expiresAt)
-    const cached = await loadCloudDeckPreview(cloudDeckId);
+    const cached = await loadCloudDeckPreview<CloudDeckPreviewResponse>(
+      cloudDeckId,
+    );
     const now = Date.now();
 
     if (cached && cached.isActual && now < cached.expiresAt) {
@@ -59,31 +66,6 @@ export const fetchCloudDeckPreview = async (cloudDeckId: string) => {
     return response.data;
   } catch (error) {
     console.error("Ошибка при получении превью облачной колоды:", error);
-    throw error;
-  }
-};
-
-/**
- * @returns Шаблон карточки облачной колоды
- */
-export const fetchCloudDeckCard = async (cloudCardId: string) => {
-  try {
-    const accessToken = useAuthStore.getState().accessToken;
-    const headers: Record<string, string> = {};
-    if (accessToken) {
-      headers.Authorization = `Bearer ${accessToken}`;
-    }
-
-    const response = await apiClient.get(
-      getMainServiceApiUrl(
-        `/api/v1/flashmind/cloud_decks/cards/${cloudCardId}`,
-      ),
-      { headers },
-    );
-
-    return response.data;
-  } catch (error) {
-    console.error("Ошибка при получении карточки облачной колоды:", error);
     throw error;
   }
 };

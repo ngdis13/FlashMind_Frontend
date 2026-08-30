@@ -1,5 +1,5 @@
 // app/decks/cloud-decks/card/[cloudCardId].tsx
-import { Typography} from "@/styles/Typography";
+import { Typography } from "@/styles/Typography";
 import { ScrollView, View, Image, Pressable } from "react-native";
 import ReturnIcon from "@/assets/icons/ReturnIcon.png";
 import { commonStyles } from "@/styles/Common";
@@ -8,7 +8,10 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState, useEffect } from "react";
 import { colors } from "@/styles/Colors";
 import Toast from "react-native-toast-message";
-import { fetchCloudDeckCard } from "../../api/api";
+import { fetchCloudDeckPreview } from "../../api/api";
+import { CloudPreviewCard } from "../../types/types";
+import { blocksToHtml } from "@/utils/helpers/blocksToHtml";
+import { HtmlText } from "@/feature/decks/deck-create-card/components/HtmlText";
 
 export default function CloudCardView() {
   const { cloudCardId, cloudDeckId } = useLocalSearchParams<{
@@ -17,21 +20,29 @@ export default function CloudCardView() {
   }>();
   const router = useRouter();
 
-  const [front, setFront] = useState("");
-  const [back, setBack] = useState("");
+  const [card, setCard] = useState<CloudPreviewCard | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const loadCard = async () => {
-      if (!cloudCardId) return;
+      if (!cloudCardId || !cloudDeckId) return;
 
       try {
         setIsLoading(true);
-        const cardData = await fetchCloudDeckCard(cloudCardId);
-        console.log("Данные карточки:", cardData);
+        // v2.0.0: GET /cloud-cards/{id} удалён — карточка берётся из превью колоды
+        // (fetchCloudDeckPreview сначала смотрит в кэш, куда превью уже сохранено)
+        const preview = await fetchCloudDeckPreview(cloudDeckId);
+        const found = preview.cards?.find((c) => c.id === cloudCardId) ?? null;
+        setCard(found);
 
-        setFront(cardData.front || "Нет данных");
-        setBack(cardData.back || "Нет данных");
+        if (!found) {
+          Toast.show({
+            type: "error",
+            text1: "Карточка не найдена",
+            text2: "Не удалось найти карточку в превью колоды",
+            position: "bottom",
+          });
+        }
       } catch (error) {
         console.error("Ошибка загрузки карточки:", error);
         Toast.show({
@@ -46,7 +57,7 @@ export default function CloudCardView() {
     };
 
     loadCard();
-  }, [cloudCardId]);
+  }, [cloudCardId, cloudDeckId]);
 
   const handleBack = () => {
     router.push(`/decks/cloud-decks/${cloudDeckId}`);
@@ -64,6 +75,9 @@ export default function CloudCardView() {
       />
     );
   }
+
+  const frontHtml = blocksToHtml(card?.front);
+  const backHtml = blocksToHtml(card?.back);
 
   return (
     <View
@@ -95,36 +109,53 @@ export default function CloudCardView() {
             </Typography>
           </View>
 
-              {/* Контент карточки */}
-              <View
-                style={[
-                  commonStyles.infoBox,
-                  { flexDirection: "column", width: "100%" },
-                ]}
-              >
-                {/* ТЕРМИН */}
-                <View style={styles.inputWrapper}>
-                  <Typography variant="h3" style={styles.firstHeader}>
-                    термин
-                  </Typography>
-                  <View style={styles.valueContainer}>
-                    <Typography variant="h2" >
-                      {front}
-                    </Typography>
-                  </View>
-                </View>
-
-                <View style={styles.inputWrapper}>
-                  <Typography variant="h3" style={styles.firstHeader}>
-                    определение
-                  </Typography>
-                  <View style={styles.valueContainer}>
-                    <Typography variant="h2" >
-                      {back}
-                    </Typography>
-                  </View>
+          {/* Контент карточки */}
+          <View
+            style={[
+              commonStyles.infoBox,
+              { flexDirection: "column", width: "100%" },
+            ]}
+          >
+            {/* НАЗВАНИЕ */}
+            {card?.title ? (
+              <View style={styles.inputWrapper}>
+                <Typography variant="h3" style={styles.firstHeader}>
+                  название
+                </Typography>
+                <View style={styles.valueContainer}>
+                  <Typography variant="h2">{card.title}</Typography>
                 </View>
               </View>
+            ) : null}
+
+            {/* ТЕРМИН */}
+            <View style={styles.inputWrapper}>
+              <Typography variant="h3" style={styles.firstHeader}>
+                термин
+              </Typography>
+              <View style={styles.valueContainer}>
+                {frontHtml ? (
+                  <HtmlText html={frontHtml} fontSize={18} />
+                ) : (
+                  <Typography variant="h2">Нет данных</Typography>
+                )}
+              </View>
+            </View>
+
+            {/* ОПРЕДЕЛЕНИЕ */}
+            <View style={styles.inputWrapper}>
+              <Typography variant="h3" style={styles.firstHeader}>
+                определение
+              </Typography>
+              <View style={styles.valueContainer}>
+                {backHtml ? (
+                  <HtmlText html={backHtml} fontSize={18} />
+                ) : (
+                  <Typography variant="h2">Нет данных</Typography>
+                )}
+              </View>
+            </View>
+          </View>
         </ScrollView>
       </View>
     </View>
