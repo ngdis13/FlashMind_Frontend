@@ -1,3 +1,4 @@
+// feature-decks/deck-create-card/components/AddBlockBottomSheet.tsx
 import React, { useMemo, useState } from "react";
 import {
   Modal,
@@ -13,7 +14,7 @@ import {
 import { Typography } from "@/styles/Typography";
 import { colors } from "@/styles/Colors";
 import searchButton from "@/feature-decks/assets/searchButton.png";
-import { CardBlockType } from "../types/cardBlocks";
+import { CardBlock, CardBlockType } from "../types/cardBlocks";
 import { Input } from "@/components/Input";
 import viewCardIcon2 from "@/feature-decks/assets/ViewCardIcon2.png";
 import ImageIcon from "@/feature-decks/assets/ImageIcon.png";
@@ -24,14 +25,16 @@ interface AddBlockBottomSheetProps {
   isVisible: boolean;
   onClose: () => void;
   onSelectBlockType: (type: CardBlockType) => void;
+  allowedTypes?: CardBlock["type"][]; // Пропс, определяющий доступные типы блоков
 }
 
 export const AddBlockBottomSheet: React.FC<AddBlockBottomSheetProps> = ({
   isVisible,
   onClose,
   onSelectBlockType,
+  allowedTypes = ["term", "text", "image"], // Дефолтные значения
 }) => {
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(""); //
 
   const blockTypes = useMemo(() => {
     const allBlocks: {
@@ -44,36 +47,42 @@ export const AddBlockBottomSheet: React.FC<AddBlockBottomSheetProps> = ({
         type: "term",
         title: "Термин",
         icon: TermIcon,
-        description: "Главный элемент карточки для терминов и слов",
+        description: "Главный element карточки для терминов и слов", //
       },
       {
         type: "text",
         title: "Текст",
         icon: TextIcon,
         description:
-          "Универсальное текстовое поле для заметок, комментариев или любых ваших данных",
+          "Универсальное текстовое поле для заметок, комментариев или любых ваших данных", //
       },
       {
         type: "image",
         title: "Изображение",
         icon: ImageIcon,
-        description: "Визуальный образ на любой стороне для ассоциативной памяти",
+        description:
+          "Визуальный образ на любой стороне для ассоциативной памяти", //
       },
-      
     ];
 
-    if (!search.trim()) return allBlocks;
+    const filteredBySide = allBlocks.filter((block) =>
+      allowedTypes.includes(block.type),
+    );
 
-    return allBlocks.filter(
+    // Если поисковая строка пустая — отдаем отфильтрованные по стороне блоки
+    if (!search.trim()) return filteredBySide;
+
+    // Иначе дополнительно фильтруем по поиску
+    return filteredBySide.filter(
       (block) =>
         block.title.toLowerCase().includes(search.toLowerCase()) ||
         block.description.toLowerCase().includes(search.toLowerCase()),
     );
-  }, [search]);
+  }, [search, allowedTypes]); // Добавили allowedTypes в массив зависимостей useMemo
 
   const handleSelectBlock = (type: CardBlockType) => {
-    onSelectBlockType(type);
-    setSearch("");
+    onSelectBlockType(type); //
+    setSearch(""); //
   };
 
   return (
@@ -81,7 +90,7 @@ export const AddBlockBottomSheet: React.FC<AddBlockBottomSheetProps> = ({
       visible={isVisible}
       transparent
       animationType="slide"
-      onRequestClose={onClose}
+      onRequestClose={onClose} //
     >
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.overlay}>
@@ -97,7 +106,7 @@ export const AddBlockBottomSheet: React.FC<AddBlockBottomSheetProps> = ({
                   style={{ textAlign: "left" }}
                   placeholder={"Поиск"}
                   value={search}
-                  onChangeText={setSearch}
+                  onChangeText={setSearch} //
                 />
                 <Pressable style={styles.searchButton}>
                   <Image
@@ -110,7 +119,7 @@ export const AddBlockBottomSheet: React.FC<AddBlockBottomSheetProps> = ({
               <ScrollView
                 style={{ width: "100%", flex: 1 }}
                 showsVerticalScrollIndicator={false}
-                keyboardShouldPersistTaps="handled"
+                keyboardShouldPersistTaps="handled" //
               >
                 {blockTypes.length === 0 ? (
                   <Typography
@@ -128,7 +137,7 @@ export const AddBlockBottomSheet: React.FC<AddBlockBottomSheetProps> = ({
                         styles.blockCard,
                         pressed && styles.cardPressed,
                       ]}
-                      onPress={() => handleSelectBlock(block.type)}
+                      onPress={() => handleSelectBlock(block.type)} //
                     >
                       <View style={styles.cardHeader}>
                         <View style={styles.cardHeaderLeft}>
@@ -168,7 +177,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "flex-end",
     backgroundColor: "rgba(0,0,0,0.4)",
-  },
+  }, //
   sheet: {
     width: "97%",
     maxWidth: 800,
@@ -182,28 +191,23 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 20,
     alignItems: "center",
-  },
+  }, //
   handle: {
     width: 40,
     height: 5,
     borderRadius: 2.5,
     backgroundColor: "#E5E5EA",
     marginBottom: 12,
-  },
-  modalTitle: {
-    marginBottom: 12,
-  },
-  searchButton: {
-    position: "absolute",
-    marginRight: 12,
-  },
+  }, //
+  modalTitle: { marginBottom: 12 }, //
+  searchButton: { position: "absolute", marginRight: 12 }, //
   searchBox: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "flex-end",
     marginBottom: 16,
     width: "100%",
-  },
+  }, //
   blockCard: {
     width: "100%",
     borderWidth: 2,
@@ -212,10 +216,8 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     marginBottom: 16,
     backgroundColor: colors.white,
-  },
-  cardPressed: {
-    opacity: 0.7,
-  },
+  }, //
+  cardPressed: { opacity: 0.7 }, //
   cardHeader: {
     flexDirection: "row",
     alignItems: "center",
@@ -223,17 +225,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.mainColor,
     paddingHorizontal: 12,
     paddingVertical: 10,
-  },
-  cardHeaderLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  cardBody: {
-    padding: 14,
-  },
-  cardDescription: {
-    color: colors.darkGray,
-    lineHeight: 18,
-  },
+  }, //
+  cardHeaderLeft: { flexDirection: "row", alignItems: "center", gap: 8 }, //
+  cardBody: { padding: 14 }, //
+  cardDescription: { color: colors.darkGray, lineHeight: 18 }, //
 });

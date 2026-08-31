@@ -377,6 +377,11 @@ export const SideEditor = () => {
         isVisible={isBottomSheetVisible}
         onClose={() => setIsBottomSheetVisible(false)}
         onSelectBlockType={handleSelectBlockType}
+        allowedTypes={
+          sideKey === "front" 
+            ? ["term", "text", "image"] 
+            : ["text", "image"]
+        }
       />
 
       {/* Модальное окно полноэкранного интерактивного превью создаваемой карточки */}
