@@ -1,5 +1,12 @@
 import { useState, useEffect } from "react";
-import { ScrollView, View, Image, Pressable, Platform } from "react-native";
+import {
+  ScrollView,
+  View,
+  Image,
+  Pressable,
+  Platform,
+  Alert,
+} from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import Toast from "react-native-toast-message";
 
@@ -78,7 +85,12 @@ const getBlockTypeName = (block: CardBlock): string => {
 };
 
 export default function CreateCardView() {
-  const { id: routeId, deckId, templateId, cardId } = useLocalSearchParams<{
+  const {
+    id: routeId,
+    deckId,
+    templateId,
+    cardId,
+  } = useLocalSearchParams<{
     id?: string;
     deckId?: string; // приходит с маршрута /card/[cardId]
     templateId?: string;
@@ -104,6 +116,23 @@ export default function CreateCardView() {
   const setHint2 = useCardStore((s) => s.setDraftHint2);
   const resetDraft = useCardStore((s) => s.resetDraft);
   const [isPreviewVisible, setIsPreviewVisible] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+
+  const hasUnsavedChanges = (): boolean => {
+    if (isEditMode) return false;
+
+    // Проверяем наличие вообще любого блока на лицевой или обратной стороне
+    const hasAnyBlocks = front.length > 0 || back.length > 0;
+
+    // Считаем изменения: инпуты, подсказки или наличие блоков в ленте
+    return (
+      title.trim().length > 0 ||
+      hint1.trim().length > 0 ||
+      hint2.trim().length > 0 ||
+      hasAnyBlocks
+    );
+  };
+
 
   // Загружаем блоки на основе выбранного шаблона
   useEffect(() => {
@@ -153,9 +182,22 @@ export default function CreateCardView() {
   const handleBack = (): void => {
     if (isEditMode) {
       router.push(`/decks/${id}`);
-    } else {
-      router.push(`/decks/${id}/create-card`);
+      return;
     }
+
+    // Если поля заполнены — срабатывает usePreventRemove, мы просто триггерим Тост и блокируем переход
+    if (hasUnsavedChanges()) {
+      Toast.show({
+        type: "error",
+        text1: "Карточка не создана",
+        text2: "Сохраните карточку, прежде чем выйти",
+        position: "bottom",
+      });
+      return;
+    }
+
+    resetDraft();
+    router.push(`/decks/${id}/create-card`);
   };
 
   const handleViewCard = (): void => {
@@ -423,8 +465,11 @@ export default function CreateCardView() {
         frontBlocks={front}
         backBlocks={back}
         // Магия: если зашли с экрана "обратной стороны", поп-ап автоматически откроется изнанкой (ОТВЕТОМ) вперед
-        initialSide={ "front" }
+        initialSide={"front"}
       />
     </View>
   );
+}
+function usePreventRemove(arg0: boolean, arg1: () => void) {
+  throw new Error("Function not implemented.");
 }
