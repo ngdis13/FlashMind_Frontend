@@ -29,8 +29,6 @@ export default function CloudCardView() {
 
       try {
         setIsLoading(true);
-        // v2.0.0: GET /cloud-cards/{id} удалён — карточка берётся из превью колоды
-        // (fetchCloudDeckPreview сначала смотрит в кэш, куда превью уже сохранено)
         const preview = await fetchCloudDeckPreview(cloudDeckId);
         const found = preview.cards?.find((c) => c.id === cloudCardId) ?? null;
         setCard(found);
@@ -135,7 +133,7 @@ export default function CloudCardView() {
               </Typography>
               <View style={styles.valueContainer}>
                 {frontHtml ? (
-                  <HtmlText html={frontHtml} fontSize={18} />
+                  <HtmlText html={frontHtml} />
                 ) : (
                   <Typography variant="h2">Нет данных</Typography>
                 )}
@@ -149,7 +147,7 @@ export default function CloudCardView() {
               </Typography>
               <View style={styles.valueContainer}>
                 {backHtml ? (
-                  <HtmlText html={backHtml} fontSize={18} />
+                  <HtmlText html={backHtml} />
                 ) : (
                   <Typography variant="h2">Нет данных</Typography>
                 )}

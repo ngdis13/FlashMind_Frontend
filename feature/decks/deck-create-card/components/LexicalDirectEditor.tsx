@@ -44,15 +44,15 @@ import type {
 // Селекторы ограничены корнем редактора, чтобы стили не утекали на весь сайт
 const EDITOR_THEME_CSS = `
 #lexical-direct-editor-root p { margin: 0; padding: 0; }
-.editor-text-bold { font-weight: bold; }
+.editor-text-bold { font-family: "MontserratBold", sans-serif; font-weight: 400; }
 .editor-text-italic { font-style: italic; }
 .editor-text-underline { text-decoration: underline; }
 .editor-text-strikethrough { text-decoration: line-through; }
 .editor-text-underlineStrikethrough { text-decoration: underline line-through; }
 .editor-text-code { font-family: 'CourierPrime', monospace; background: #f4f4f9; padding: 1px 4px; border-radius: 4px; font-size: 16px; }
-.editor-heading-h1 { font-size: 24px; font-weight: bold; margin: 12px 0; color: #1E1F4B; }
-.editor-heading-h2 { font-size: 20px; font-weight: bold; margin: 10px 0; color: #1E1F4B; }
-.editor-heading-h3 { font-size: 18px; font-weight: 600; margin: 8px 0; color: #1E1F4B; }
+.editor-heading-h1 { font-size: 24px; font-weight: 400; font-family: "MontserratBold", sans-serif; margin: 12px 0; color: #1E1F4B; }
+.editor-heading-h2 { font-size: 20px; font-weight: 400; font-family: "MontserratBold", sans-serif; margin: 10px 0; color: #1E1F4B; }
+.editor-heading-h3 { font-size: 18px; font-weight: 400; font-family: "MontserratSemiBold", sans-serif; margin: 8px 0; color: #1E1F4B; }
 .editor-list-ul { list-style-type: disc; padding-left: 22px; margin: 8px 0; }
 .editor-list-ol { list-style-type: decimal; padding-left: 22px; margin: 8px 0; }
 .editor-listitem { margin: 2px 0; }
@@ -290,7 +290,7 @@ export const LexicalDirectEditor: React.FC<DirectEditorProps> = ({
                   fontSize: 18,
                   lineHeight: 1.6,
                   color: "#1E1F4B",
-                  fontFamily: "MontserratMedium, Montserrat, sans-serif",
+                  fontFamily: "MontserratRegular, Montserrat, sans-serif",
                   boxSizing: "border-box",
                 }}
               />

@@ -97,7 +97,11 @@ const MobileDraggableList: React.FC<MobileListProps> = ({
 
 export const SideEditor = () => {
   const router = useRouter();
-  const { id, side } = useLocalSearchParams<{ id: string; side: string }>();
+  const { id, side, cardId } = useLocalSearchParams<{
+    id: string;
+    side: string;
+    cardId?: string;
+  }>();
   const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
 
   const front = useCardStore((s) => s.draftFront);
@@ -133,7 +137,12 @@ export const SideEditor = () => {
   const SPRING_CONFIG = { damping: 30, stiffness: 150 };
 
   const handleBack = (): void => {
-    router.push(`/decks/${id}/create-card/create`);
+    // Возвращаемся в тот режим, из которого пришли: edit (cardId есть) или create
+    router.push(
+      cardId
+        ? `/decks/${id}/create-card/edit?cardId=${cardId}`
+        : `/decks/${id}/create-card/create`,
+    );
   };
 
   const handleViewCard = (): void => {
@@ -148,7 +157,10 @@ export const SideEditor = () => {
 
     router.push({
       pathname: `/decks/${id}/create-card/${route}`,
-      params: { side, blockId: block.id },
+      // cardId пробрасываем, чтобы после правки блока вернуться в режим редактирования
+      params: cardId
+        ? { side, blockId: block.id, cardId }
+        : { side, blockId: block.id },
     });
   };
 
@@ -378,9 +390,7 @@ export const SideEditor = () => {
         onClose={() => setIsBottomSheetVisible(false)}
         onSelectBlockType={handleSelectBlockType}
         allowedTypes={
-          sideKey === "front" 
-            ? ["term", "text", "image"] 
-            : ["text", "image"]
+          sideKey === "front" ? ["term", "text", "image"] : ["text", "image"]
         }
       />
 

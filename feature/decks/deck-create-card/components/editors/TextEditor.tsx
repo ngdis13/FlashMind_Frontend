@@ -48,10 +48,11 @@ if (Platform.OS === "web") {
 
 export const TextEditor = () => {
   const router = useRouter();
-  const { id, side, blockId } = useLocalSearchParams<{
+  const { id, side, blockId, cardId } = useLocalSearchParams<{
     id: string;
     side: string;
     blockId: string;
+    cardId?: string;
   }>();
 
   const front = useCardStore((s) => s.draftFront);
@@ -93,7 +94,7 @@ export const TextEditor = () => {
   const handleBack = (): void => {
     router.push({
       pathname: `/decks/${id}/create-card/side-editor`,
-      params: { side },
+      params: cardId ? { side, cardId } : { side },
     });
   };
 
@@ -118,12 +119,14 @@ export const TextEditor = () => {
     updateDraftBlockValue(sideKey, blockId, localHtml.trim());
     router.push({
       pathname: `/decks/${id}/create-card/side-editor`,
-      params: { side },
+      params: cardId ? { side, cardId } : { side },
     });
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}>
+    <View
+      style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}
+    >
       <View style={[commonStyles.container, { flex: 1 }]}>
         <ScrollView
           style={{ width: "100%" }}
@@ -139,7 +142,11 @@ export const TextEditor = () => {
         >
           {/* Шапка — как на экране термина */}
           <View style={[styles.header, styles.contentWidth]}>
-            <Pressable onPress={handleBack} style={styles.backButton} hitSlop={20}>
+            <Pressable
+              onPress={handleBack}
+              style={styles.backButton}
+              hitSlop={20}
+            >
               <Image source={ReturnIcon} style={{ width: 10, height: 18 }} />
             </Pressable>
             <Typography variant="h2">Текст</Typography>
@@ -173,7 +180,11 @@ export const TextEditor = () => {
             </View>
 
             {/* Счетчик символов */}
-            <Typography variant="h3" color={colors.darkGray} style={styles.counter}>
+            <Typography
+              variant="h3"
+              color={colors.darkGray}
+              style={styles.counter}
+            >
               {textLength} / 500
             </Typography>
           </View>
@@ -181,7 +192,11 @@ export const TextEditor = () => {
 
         {/* Стандартная кнопка в самом низу экрана — как на экране термина */}
         <View style={[styles.saveButtonWrapper, styles.contentWidth]}>
-          <MainButton style={styles.saveButton} title="Готово" onPress={handleSave} />
+          <MainButton
+            style={styles.saveButton}
+            title="Готово"
+            onPress={handleSave}
+          />
         </View>
       </View>
     </View>
@@ -210,7 +225,7 @@ const styles = StyleSheet.create({
     height: 520,
     backgroundColor: colors.white,
     overflow: "hidden",
-    borderRadius: 20
+    borderRadius: 20,
   },
   counter: { alignSelf: "flex-end", marginTop: 8 },
   saveButtonWrapper: {

@@ -1,8 +1,7 @@
 // Универсальный рендер HTML-содержимого блока (термин/текст).
-// Значения блоков сохраняются как HTML из Lexical-редактора
-// (https://github.com/seranking-planable/react-native-lexical),
-// поэтому везде, где блок показывается пользователю (превью, карточка),
-// его нужно рендерить через этот компонент, а не как plain text.
+// Значения блоков — HTML из Lexical-редактора, а этот компонент —
+// зеркало Editor.css: что видно при редактировании, то и на рендере
+// (обучение, превью, облачная карточка — везде через этот компонент).
 import React from "react";
 import { useWindowDimensions } from "react-native";
 import RenderHtml from "react-native-render-html";
@@ -11,7 +10,7 @@ import { colors } from "@/styles/Colors";
 
 interface HtmlTextProps {
   html: string;
-  /** Базовый размер шрифта (заголовки считаются относительно него) */
+  /** Базовый размер шрифта (по умолчанию 18 — как в редакторе) */
   fontSize?: number;
   color?: string;
   align?: "left" | "center";
@@ -26,10 +25,13 @@ const SYSTEM_FONTS = [
   "CourierPrime",
 ];
 
+// Цвет текста в редакторе (.editor-input из Editor.css)
+const EDITOR_TEXT_COLOR = "#1E1F4B";
+
 export const HtmlText: React.FC<HtmlTextProps> = ({
   html,
-  fontSize = 16,
-  color = colors.darkGray,
+  fontSize = 18, // было 16 — в редакторе 18px
+  color = EDITOR_TEXT_COLOR, // был серый darkGray
   align = "left",
 }) => {
   const { width } = useWindowDimensions();
@@ -39,36 +41,60 @@ export const HtmlText: React.FC<HtmlTextProps> = ({
       contentWidth={width}
       source={{ html }}
       systemFonts={SYSTEM_FONTS}
+      // База = .editor-input: Montserrat 18px, line-height 1.6, #1E1F4B
       baseStyle={{
-        fontFamily: "MontserratMedium",
+        fontFamily: "MontserratRegular", // был MontserratMedium
         fontSize,
+        lineHeight: Math.round(fontSize * 1.6),
         color,
         textAlign: align,
       }}
+      // Зеркало классов .editor-* из Editor.css.
+      // ВАЖНО: шрифты зарегистрированы отдельными семействами — вес
+      // задаём ТОЛЬКО через fontFamily, fontWeight не сработает!
       tagsStyles={{
-        p: { margin: 0 },
+        p: { margin: 0, padding: 0 },
+        b: { fontFamily: "MontserratBold" },
+        strong: { fontFamily: "MontserratBold" },
+        i: { fontStyle: "italic" },
+        em: { fontStyle: "italic" },
+        u: { textDecorationLine: "underline" },
+        s: { textDecorationLine: "line-through" },
+        strike: { textDecorationLine: "line-through" },
+        code: {
+          fontFamily: "CourierPrime",
+          backgroundColor: "#F4F4F9",
+          fontSize: 16,
+          borderRadius: 4,
+        },
         h1: {
-          fontSize: fontSize + 8,
-          fontWeight: "700",
+          fontFamily: "MontserratBold",
+          fontSize: 24,
           color: "#1E1F4B",
-          marginVertical: 6,
+          marginVertical: 12,
         },
         h2: {
-          fontSize: fontSize + 4,
-          fontWeight: "700",
+          fontFamily: "MontserratBold",
+          fontSize: 20,
           color: "#1E1F4B",
-          marginVertical: 5,
+          marginVertical: 10,
         },
         h3: {
-          fontSize: fontSize + 2,
-          fontWeight: "600",
+          fontFamily: "MontserratSemiBold",
+          fontSize: 18,
           color: "#1E1F4B",
-          marginVertical: 4,
+          marginVertical: 8,
         },
-        ul: { paddingHorizontal: 20, marginVertical: 4 },
-        ol: { paddingHorizontal: 20, marginVertical: 4 },
-        li: { marginBottom: 2 },
-        code: { fontFamily: "CourierPrime", backgroundColor: "#F4F4F9" },
+        ul: { paddingLeft: 22, marginVertical: 8 },
+        ol: { paddingLeft: 22, marginVertical: 8 },
+        li: { marginVertical: 2 },
+        blockquote: {
+          borderLeftWidth: 4,
+          borderColor: "#DDDDDD",
+          paddingLeft: 12,
+          marginVertical: 8,
+          color: "#55556E",
+        },
         a: { color: colors.mainColor },
       }}
     />

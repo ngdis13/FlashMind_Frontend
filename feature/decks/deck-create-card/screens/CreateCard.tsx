@@ -181,7 +181,8 @@ export default function CreateCardView() {
 
   const handleBack = (): void => {
     if (isEditMode) {
-      router.push(`/decks/${id}`);
+      // Возврат к странице карточки («Просмотр карточки»)
+      router.push(`/card/${cardId}?deckId=${id}`);
       return;
     }
 
@@ -208,7 +209,8 @@ export default function CreateCardView() {
   const handleEditSideBlocks = (side: "front" | "back") => {
     router.push({
       pathname: `/decks/${id}/create-card/side-editor`,
-      params: { side },
+      // cardId пробрасываем, чтобы SideEditor вернул нас в режим редактирования
+      params: isEditMode ? { side, cardId } : { side },
     });
   };
 
@@ -267,7 +269,11 @@ export default function CreateCardView() {
       }
 
       resetDraft(); // очищаем черновик после сохранения
-      router.push(`/decks/${id}`);
+      // После редактирования возвращаемся к «Просмотру карточки»,
+      // после создания — к странице колоды
+      router.push(
+        isEditMode && cardId ? `/card/${cardId}?deckId=${id}` : `/decks/${id}`,
+      );
     } catch (error) {
       console.error(error);
     }
@@ -301,7 +307,7 @@ export default function CreateCardView() {
               <Image source={ReturnIcon} style={{ width: 10, height: 18 }} />
             </Pressable>
             <Typography variant="h2">
-              {isEditMode ? "Просмотр карточки" : "Создание карточки"}
+              {isEditMode ? "Редактирование карточки" : "Создание карточки"}
             </Typography>
             <Pressable
               onPress={handleViewCard}
@@ -469,7 +475,4 @@ export default function CreateCardView() {
       />
     </View>
   );
-}
-function usePreventRemove(arg0: boolean, arg1: () => void) {
-  throw new Error("Function not implemented.");
 }

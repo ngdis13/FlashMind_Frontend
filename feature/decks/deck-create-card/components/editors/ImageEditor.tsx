@@ -15,10 +15,11 @@ import ReturnIcon from "@/assets/icons/ReturnIcon.png";
 
 export const ImageEditor = () => {
   const router = useRouter();
-  const { id, side, blockId } = useLocalSearchParams<{
+  const { id, side, blockId, cardId } = useLocalSearchParams<{
     id: string;
     side: string;
     blockId: string;
+    cardId?: string;
   }>();
 
   const front = useCardStore((s) => s.draftFront);
@@ -43,10 +44,7 @@ export const ImageEditor = () => {
           setImageAspectRatio(width / height);
         },
         (err) =>
-          console.error(
-            "Ошибка чтения размеров сохраненного превью",
-            err,
-          ),
+          console.error("Ошибка чтения размеров сохраненного превью", err),
       );
     }
   }, [currentImageUrl]);
@@ -54,7 +52,7 @@ export const ImageEditor = () => {
   const handleBack = (): void => {
     router.push({
       pathname: `/decks/${id}/create-card/side-editor`,
-      params: { side },
+      params: cardId ? { side, cardId } : { side },
     });
   };
 

@@ -46,10 +46,11 @@ if (Platform.OS === "web") {
 
 export const TermEditor = () => {
   const router = useRouter();
-  const { id, side, blockId } = useLocalSearchParams<{
+  const { id, side, blockId, cardId } = useLocalSearchParams<{
     id: string;
     side: string;
     blockId: string;
+    cardId?: string;
   }>();
 
   const front = useCardStore((s) => s.draftFront);
@@ -93,7 +94,7 @@ export const TermEditor = () => {
   const handleBack = (): void => {
     router.push({
       pathname: `/decks/${id}/create-card/side-editor`,
-      params: { side },
+      params: cardId ? { side, cardId } : { side },
     });
   };
 
@@ -119,7 +120,7 @@ export const TermEditor = () => {
     updateDraftBlockValue(sideKey, blockId, localHtml.trim());
     router.push({
       pathname: `/decks/${id}/create-card/side-editor`,
-      params: { side },
+      params: cardId ? { side, cardId } : { side },
     });
   };
 

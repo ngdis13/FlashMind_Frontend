@@ -1,4 +1,5 @@
-import CreateCardView from "@/feature-decks/deck-create-card/screens/CreateCard";
+
+import CardPreview from "@/feature/decks/deck-create-card/screens/CardPreview";
 
 /**
  * Просмотр/редактирование карточки (v2.0.0).
@@ -7,5 +8,5 @@ import CreateCardView from "@/feature-decks/deck-create-card/screens/CreateCard"
  * Маршрут: /card/[cardId]?deckId=[deckId]
  */
 export default function CardView() {
-  return <CreateCardView />;
+  return <CardPreview />;
 }

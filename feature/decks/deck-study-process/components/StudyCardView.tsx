@@ -8,51 +8,19 @@ import {
   ScrollView,
   View,
   Animated,
-  useWindowDimensions,
   Platform,
 } from "react-native";
-
-// --------------------------- Сторонние библиотеки ---------------------------
-import RenderHtml from "react-native-render-html";
 
 // --------------------------- Стили ---------------------------
 import { commonStyles } from "@/styles/Common";
 
 // --------------------------- Компоненты ---------------------------
 import { UserHint } from "@/components/UserHint";
+import { HtmlText } from "@/feature-decks/deck-create-card/components/HtmlText";
 
 // --------------------------- Типы и хелперы ---------------------------
 import { Card } from "@/storage/types/types";
 import { blocksToHtml } from "@/utils/helpers/blocksToHtml";
-
-const systemFont = "MontserratSemiBold";
-const textColor = "#282B54";
-
-/**
- * Стили HTML — соответствуют редактору:
- * - body: Regular (400) по умолчанию, по центру
- * - <b>/<strong>: Bold (700)
- * - <i>/<em>: курсив
- * - <u>: подчёркнутый
- * - списки: отступы, текст слева
- */
-const tagsStyles = {
-  body: {
-    fontFamily: "MontserratRegular", // имя из useFonts (было "Montserrat" — незарегистрированное)
-    fontWeight: "400" as const,
-    fontSize: 16,
-    color: textColor,
-    textAlign: "center" as const,
-  },
-  b: { fontFamily: "MontserratBold" }, // кастомные шрифты не синтезируют вес — нужен явный fontFamily
-  strong: { fontFamily: "MontserratBold" },
-  i: { fontStyle: "italic" as const },
-  em: { fontStyle: "italic" as const },
-  u: { textDecorationLine: "underline" as const },
-  ul: { textAlign: "left" as const, paddingLeft: 24, marginVertical: 4 },
-  ol: { textAlign: "left" as const, paddingLeft: 24, marginVertical: 4 },
-  li: { marginVertical: 2 },
-};
 
 interface Props {
   card: Card | undefined;
@@ -67,8 +35,6 @@ export const StudyCardView = ({ card, isFirstCard }: Props) => {
   const flipAnim = useRef(new Animated.Value(0)).current;
   const hintOpacity = useRef(new Animated.Value(0)).current;
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const { width: screenWidth } = useWindowDimensions();
-  const contentWidth = Math.min(screenWidth - 80, 600);
 
   const getDifficultyLevel = (): number => {
     // v2.0.0: difficulty — число FSRS
@@ -204,14 +170,7 @@ export const StudyCardView = ({ card, isFirstCard }: Props) => {
       contentContainerStyle={styles.scrollContent}
       showsVerticalScrollIndicator={false}
     >
-      {html ? (
-        <RenderHtml
-          contentWidth={contentWidth}
-          source={{ html }}
-          tagsStyles={tagsStyles}
-          systemFonts={[systemFont, "MontserratRegular"]}
-        />
-      ) : null}
+      {html ? <HtmlText html={html} /> : null}
     </ScrollView>
   );
 

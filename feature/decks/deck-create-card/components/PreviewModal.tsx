@@ -101,15 +101,9 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
   const renderBlocksContent = (blocks: CardBlock[]) => {
     return blocks.map((block) => {
       if (block.type === "term" || block.type === "text") {
-        // Рендерим HTML из редактора, чтобы форматирование было видно в превью.
-        // Цвет — тёмный (как был у Typography h2), а не серый default из HtmlText
+        // Рендерим HTML из редактора через эталонный HtmlText (зеркало Editor.css)
         return block.value ? (
-          <HtmlText
-            key={block.id}
-            html={block.value}
-            fontSize={20}
-            color="#1E1F4B"
-          />
+          <HtmlText key={block.id} html={block.value} />
         ) : (
           <Typography key={block.id} variant="h2" style={styles.placeholderText}>
             {block.type === "term" ? "Пустой термин" : "Пустой текст"}
@@ -239,8 +233,9 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    alignItems: "center",
-    justifyContent: "center",
+    // Блоки на всю ширину — контент слева, ровно как в редакторе
+    alignItems: "stretch",
+    justifyContent: "flex-start",
     gap: 16,
     paddingVertical: 10,
   },
