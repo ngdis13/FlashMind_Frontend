@@ -61,11 +61,9 @@ export const ImageSearchEditor = () => {
   };
 
   const handleConfirmCroppedImage = (croppedUri: string) => {
-    // Сохраняем готовую вырезанную фотку в стор приложения
     updateDraftBlockValue(sideKey, blockId, croppedUri);
     setIsCropModalVisible(false);
     setTempUrl("");
-    // Возвращаемся назад на экран предпросмотра, где картинка мгновенно обновится
     router.back();
   };
 
@@ -80,7 +78,7 @@ export const ImageSearchEditor = () => {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Шапка: Измененный заголовок "Добавить изображение" */}
+          {/* Шапка  */}
           <View style={styles.header}>
             <Pressable
               onPress={handleBack}

@@ -54,8 +54,8 @@ export const HtmlText: React.FC<HtmlTextProps> = ({
       // задаём ТОЛЬКО через fontFamily, fontWeight не сработает!
       tagsStyles={{
         p: { margin: 0, padding: 0 },
-        b: { fontFamily: "MontserratBold" },
-        strong: { fontFamily: "MontserratBold" },
+        b: { fontFamily: "MontserratBold", fontWeight: "400" },
+        strong: { fontFamily: "MontserratBold", fontWeight: "400" },
         i: { fontStyle: "italic" },
         em: { fontStyle: "italic" },
         u: { textDecorationLine: "underline" },
@@ -69,18 +69,21 @@ export const HtmlText: React.FC<HtmlTextProps> = ({
         },
         h1: {
           fontFamily: "MontserratBold",
+          fontWeight: "400",
           fontSize: 24,
           color: "#1E1F4B",
           marginVertical: 12,
         },
         h2: {
           fontFamily: "MontserratBold",
+          fontWeight: "400",
           fontSize: 20,
           color: "#1E1F4B",
           marginVertical: 10,
         },
         h3: {
           fontFamily: "MontserratSemiBold",
+          fontWeight: "400",
           fontSize: 18,
           color: "#1E1F4B",
           marginVertical: 8,

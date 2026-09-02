@@ -10,7 +10,6 @@ import { commonStyles } from "@/styles/Common";
 
 import deleteIcon from "@/assets/icons/DeleteIcon.png";
 import editIcon from "@/assets/icons/editIcon2.png";
-import { TermBlock } from "./blocks/TermBlock";
 import { TextBlock } from "./blocks/TextBlock";
 import { ImageBlock } from "./blocks/ImageBlock";
 import type { CardBlock } from "../types/cardBlocks";
@@ -95,7 +94,6 @@ export const CardBlockItem: React.FC<CardBlockItemProps> = React.memo(
               </Pressable>
             )}
             <Typography variant="h2" color={colors.white}>
-              {item.type === "term" && "Термин"}
               {item.type === "text" && "Текст"}
               {item.type === "image" && "Изображение"}
             </Typography>
@@ -112,7 +110,6 @@ export const CardBlockItem: React.FC<CardBlockItemProps> = React.memo(
         </View>
 
         <View style={styles.body}>
-          {item.type === "term" && <TermBlock value={item.value} />}
           {item.type === "text" && <TextBlock value={item.value} />}
           {item.type === "image" && <ImageBlock url={item.url} />}
         </View>

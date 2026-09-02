@@ -152,7 +152,6 @@ export const SideEditor = () => {
 
   const handleEditBlock = (block: CardBlock): void => {
     let route = "text-editor";
-    if (block.type === "term") route = "term-editor";
     if (block.type === "image") route = "image-editor";
 
     router.push({
@@ -390,7 +389,7 @@ export const SideEditor = () => {
         onClose={() => setIsBottomSheetVisible(false)}
         onSelectBlockType={handleSelectBlockType}
         allowedTypes={
-          sideKey === "front" ? ["term", "text", "image"] : ["text", "image"]
+          sideKey === "front" ? [ "text", "image"] : ["text", "image"]
         }
       />
 
