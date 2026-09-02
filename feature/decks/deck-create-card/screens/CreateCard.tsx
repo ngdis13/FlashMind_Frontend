@@ -1,4 +1,7 @@
-import { useState, useEffect } from "react";
+// ============================================================
+// ИМПОРТЫ
+// ============================================================
+import React, { useState, useEffect } from "react";
 import {
   ScrollView,
   View,
@@ -9,6 +12,12 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import Toast from "react-native-toast-message";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSequence,
+  withTiming,
+} from "react-native-reanimated";
 
 import { BOTTOM_MARGIN, commonStyles } from "@/styles/Common";
 import { Typography } from "@/styles/Typography";
@@ -28,6 +37,10 @@ import editCardIcon from "@/feature-decks/assets/editCardIcon.png";
 import iconInfo from "@/assets/icons/IconInfo.png";
 import { useCardStore } from "@/store/card.store";
 import { PreviewModal } from "../components/PreviewModal";
+
+// ============================================================
+// КОНСТАНТЫ
+// ============================================================
 
 // Моки с первого экрана, переписанные под точную структуру карточки
 const MOCK_RECENT_TEMPLATES: {
@@ -71,6 +84,11 @@ const MOCK_RECENT_TEMPLATES: {
   },
 ];
 
+// ============================================================
+// ХЕЛПЕРЫ И ПОДКОМПОНЕНТЫ
+// ============================================================
+
+// Тип блока по-русски — подпись над превью блока в ленте конструктора
 const getBlockTypeName = (block: CardBlock): string => {
   switch (block.type) {
     case "term":
@@ -84,7 +102,74 @@ const getBlockTypeName = (block: CardBlock): string => {
   }
 };
 
+// Пустой блок: term/text без текста, image без url, quiz без вариантов
+const isBlockEmpty = (block: CardBlock): boolean => {
+  if (block.type === "image") return !block.url;
+  if (block.type === "quiz") {
+    return !block.variants || block.variants.every((v) => !v.trim());
+  }
+  return blocksToPlainText([block]).trim() === "";
+};
+
+// Текст первого текстового блока (term/text с непустым содержимым);
+// картинки и пустые блоки пропускаются. Если таких нет — ""
+const getFirstFrontText = (blocks: CardBlock[]): string => {
+  const sorted = [...blocks].sort((a, b) => a.position - b.position);
+  for (const block of sorted) {
+    if (block.type !== "term" && block.type !== "text") continue;
+    const text = blocksToPlainText([block]).trim();
+    if (text) return text;
+  }
+  return "";
+};
+
+// Обёртка блока в ленте конструктора: красная рамка (errorColor), пока блок
+// пуст, и тряска при каждой попытке сохранения с пустым блоком.
+// ВАЖНО: объявлен на уровне модуля — внутри CreateCardView компонент
+// пересоздавался бы на каждом рендере, и анимация ломалась перемонтированием.
+const ShakeableBlock: React.FC<{
+  isInvalid: boolean;
+  shakeKey: number;
+  children: React.ReactNode;
+}> = ({ isInvalid, shakeKey, children }) => {
+  const translateX = useSharedValue(0);
+
+  useEffect(() => {
+    if (!isInvalid || shakeKey === 0) return;
+    translateX.value = withSequence(
+      withTiming(-10, { duration: 50 }),
+      withTiming(10, { duration: 70 }),
+      withTiming(-7, { duration: 60 }),
+      withTiming(7, { duration: 60 }),
+      withTiming(0, { duration: 50 }),
+    );
+  }, [shakeKey, isInvalid, translateX]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+  }));
+
+  return (
+    <Animated.View style={animatedStyle}>
+      <View
+        style={[
+          styles.blockItem,
+          isInvalid && { borderColor: colors.errorColor },
+        ]}
+      >
+        {children}
+      </View>
+    </Animated.View>
+  );
+};
+
+// ============================================================
+// ЭКРАН: КОНСТРУКТОР КАРТОЧКИ (создание + редактирование)
+// ============================================================
 export default function CreateCardView() {
+  // ----------------------------------------------------------
+  // Параметры маршрута и глобальное состояние
+  // ----------------------------------------------------------
   const {
     id: routeId,
     deckId,
@@ -102,8 +187,7 @@ export default function CreateCardView() {
   const router = useRouter();
   const { addCard, updateCard, getCardById } = useCards();
 
-  const [useFrontAsTitle, setUseFrontAsTitle] = useState(false);
-
+  // Черновик карточки живёт в сторе — переживает переходы на side-editor
   const title = useCardStore((s) => s.draftTitle);
   const setTitle = useCardStore((s) => s.setDraftTitle);
   const front = useCardStore((s) => s.draftFront);
@@ -115,9 +199,32 @@ export default function CreateCardView() {
   const hint2 = useCardStore((s) => s.draftHint2);
   const setHint2 = useCardStore((s) => s.setDraftHint2);
   const resetDraft = useCardStore((s) => s.resetDraft);
+
+  // ----------------------------------------------------------
+  // Состояния
+  // ----------------------------------------------------------
+  // «Название из лицевой стороны» — часть черновика в сторе:
+  // переживает уход в side-editor и возвращение назад
+  const useFrontAsTitle = useCardStore((s) => s.draftUseFrontAsTitle);
+  const setUseFrontAsTitle = useCardStore((s) => s.setDraftUseFrontAsTitle);
   const [isPreviewVisible, setIsPreviewVisible] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  // id блоков, подсвеченных красным как пустые
+  const [invalidBlockIds, setInvalidBlockIds] = useState<string[]>([]);
+  // счётчик попыток сохранения — триггерит тряску
+  const [shakeKey, setShakeKey] = useState(0);
 
+  // ----------------------------------------------------------
+  // Производные значения
+  // ----------------------------------------------------------
+  // Живое значение: пересчитывается при каждом изменении лицевой стороны
+  const firstFrontText = getFirstFrontText(front);
+
+  // ----------------------------------------------------------
+  // Функции-обработчики
+  // ----------------------------------------------------------
+
+  // Есть ли что терять при выходе в режиме создания (для блокировки назад)
   const hasUnsavedChanges = (): boolean => {
     if (isEditMode) return false;
 
@@ -133,6 +240,173 @@ export default function CreateCardView() {
     );
   };
 
+  // Клик «назад»: из редактирования — к «Просмотру карточки»,
+  // из создания — к списку шаблонов (с защитой черновика)
+  const handleBack = (): void => {
+    if (isEditMode) {
+      router.push(`/card/${cardId}?deckId=${id}`);
+      return;
+    }
+
+    // Если поля заполнены — срабатывает usePreventRemove, мы просто триггерим Тост и блокируем переход
+    if (hasUnsavedChanges()) {
+      Toast.show({
+        type: "error",
+        text1: "Карточка не создана",
+        text2: "Сохраните карточку, прежде чем выйти",
+        position: "bottom",
+      });
+      return;
+    }
+
+    resetDraft();
+    router.push(`/decks/${id}/create-card`);
+  };
+
+  // Глазик в шапке — поп-ап предпросмотра с переворотом
+  const handleViewCard = (): void => {
+    setIsPreviewVisible(true);
+  };
+
+  // Клик на карандаш стороны — переход к редактированию её блоков
+  const handleEditSideBlocks = (side: "front" | "back") => {
+    router.push({
+      pathname: `/decks/${id}/create-card/side-editor`,
+      // cardId пробрасываем, чтобы SideEditor вернул нас в режим редактирования
+      params: isEditMode ? { side, cardId } : { side },
+    });
+  };
+
+  // Включение/выключение «названия из лицевой стороны»
+  const handleToggleFrontAsTitle = (): void => {
+    if (useFrontAsTitle) {
+      // Выключаем: показанный текст остаётся самостоятельным названием
+      setUseFrontAsTitle(false);
+      if (firstFrontText) setTitle(firstFrontText);
+      return;
+    }
+    // Включить можно только если на лицевой стороне реально есть текст
+    if (!firstFrontText) {
+      Toast.show({
+        type: "error",
+        text1: "На лицевой стороне нет текста",
+        text2: "Добавьте текст или термин — или введите название вручную",
+        position: "bottom",
+      });
+      return;
+    }
+    setUseFrontAsTitle(true);
+  };
+
+  // Сохранение: создание новой карточки или частичное обновление существующей
+  const handleSaveCard = async (): Promise<void> => {
+    // Название: из лицевой стороны (там должен быть текст) или вручную
+    if (useFrontAsTitle && !firstFrontText) {
+      Toast.show({
+        type: "error",
+        text1: "На лицевой стороне нет текста",
+        text2: "Заполните её или снимите галочку и введите название",
+        position: "bottom",
+      });
+      return;
+    }
+    if (!useFrontAsTitle && !title.trim()) {
+      Toast.show({
+        type: "error",
+        text1: "Заполните название",
+        position: "bottom",
+      });
+      return;
+    }
+
+    // Пустые блоки — подсвечиваем красным (errorColor) и трясём
+    const emptyIds = [...front, ...back].filter(isBlockEmpty).map((b) => b.id);
+    if (emptyIds.length > 0) {
+      setInvalidBlockIds(emptyIds);
+      setShakeKey((k) => k + 1);
+      Toast.show({
+        type: "error",
+        text1: "Заполните пустые блоки",
+        position: "bottom",
+      });
+      return;
+    }
+    setInvalidBlockIds([]);
+
+    try {
+      // Финализируем позиции блоков (0, 1, 2...) перед отправкой
+      const finalizedFront: CardBlock[] = front.map((block, index) => ({
+        ...block,
+        position: index,
+      }));
+      const finalizedBack: CardBlock[] = back.map((block, index) => ({
+        ...block,
+        position: index,
+      }));
+
+      // Название: из первого текстового блока лицевой стороны или вручную
+      const cardTitle = useFrontAsTitle
+        ? firstFrontText || "Без названия"
+        : title.trim() || "Без названия";
+      const hint1Value = hint1.trim() || null;
+      const hint2Value = hint2.trim() || null;
+
+      if (isEditMode && cardId) {
+        // Частичное обновление существующей карточки (v2.0.0)
+        await updateCard(cardId as string, {
+          title: cardTitle,
+          front: finalizedFront,
+          back: finalizedBack,
+          hint1: hint1Value,
+          hint2: hint2Value,
+        });
+        Toast.show({
+          type: "success",
+          text1: "Изменения сохранены!",
+          position: "bottom",
+        });
+      } else {
+        const cardPayload: CreateCardPayload = {
+          deck_id: id as string,
+          title: cardTitle,
+          front: finalizedFront,
+          back: finalizedBack,
+          hint1: hint1Value,
+          hint2: hint2Value,
+        };
+        console.log("🚀 Финальный payload для бэкенда (v2.0.0):", cardPayload);
+        await addCard(cardPayload);
+        Toast.show({
+          type: "success",
+          text1: "Карточка создана!",
+          position: "bottom",
+        });
+      }
+
+      resetDraft();
+      // После редактирования возвращаемся к «Просмотру карточки»,
+      // после создания — к странице колоды
+      router.push(
+        isEditMode && cardId ? `/card/${cardId}?deckId=${id}` : `/decks/${id}`,
+      );
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  // ----------------------------------------------------------
+  // Эффекты
+  // ----------------------------------------------------------
+
+  // Как только пустой блок заполнили — красная рамка снимается сама
+  useEffect(() => {
+    setInvalidBlockIds((prev) => {
+      if (prev.length === 0) return prev;
+      return [...front, ...back]
+        .filter((b) => prev.includes(b.id) && isBlockEmpty(b))
+        .map((b) => b.id);
+    });
+  }, [front, back]);
 
   // Загружаем блоки на основе выбранного шаблона
   useEffect(() => {
@@ -172,6 +446,12 @@ export default function CreateCardView() {
         setBack(card.back);
         setHint1(card.hint1 ?? "");
         setHint2(card.hint2 ?? "");
+        // Галочка «название из лицевой» восстанавливается, если сохранённое
+        // название совпадает с текстом первого текстового блока
+        const savedFrontText = getFirstFrontText(card.front ?? []);
+        setUseFrontAsTitle(
+          savedFrontText !== "" && card.title === savedFrontText,
+        );
       }
     })();
     return () => {
@@ -179,106 +459,9 @@ export default function CreateCardView() {
     };
   }, [cardId]);
 
-  const handleBack = (): void => {
-    if (isEditMode) {
-      // Возврат к странице карточки («Просмотр карточки»)
-      router.push(`/card/${cardId}?deckId=${id}`);
-      return;
-    }
-
-    // Если поля заполнены — срабатывает usePreventRemove, мы просто триггерим Тост и блокируем переход
-    if (hasUnsavedChanges()) {
-      Toast.show({
-        type: "error",
-        text1: "Карточка не создана",
-        text2: "Сохраните карточку, прежде чем выйти",
-        position: "bottom",
-      });
-      return;
-    }
-
-    resetDraft();
-    router.push(`/decks/${id}/create-card`);
-  };
-
-  const handleViewCard = (): void => {
-    setIsPreviewVisible(true);
-  };
-
-  // Функция клика на карандаш
-  const handleEditSideBlocks = (side: "front" | "back") => {
-    router.push({
-      pathname: `/decks/${id}/create-card/side-editor`,
-      // cardId пробрасываем, чтобы SideEditor вернул нас в режим редактирования
-      params: isEditMode ? { side, cardId } : { side },
-    });
-  };
-
-  const handleSaveCard = async (): Promise<void> => {
-    try {
-      // Финализируем позиции блоков (0, 1, 2...) перед отправкой
-      const finalizedFront: CardBlock[] = front.map((block, index) => ({
-        ...block,
-        position: index,
-      }));
-      const finalizedBack: CardBlock[] = back.map((block, index) => ({
-        ...block,
-        position: index,
-      }));
-
-      // v2.0.0: title из текста первого блока (plain text, без HTML-тегов)
-      const firstFront = front[0];
-      const firstFrontText = blocksToPlainText(firstFront ? [firstFront] : []);
-
-      const cardTitle = useFrontAsTitle
-        ? firstFrontText || "Без названия"
-        : title.trim() || "Без названия";
-      const hint1Value = hint1.trim() || null;
-      const hint2Value = hint2.trim() || null;
-
-      if (isEditMode && cardId) {
-        // Частичное обновление существующей карточки (v2.0.0)
-        await updateCard(cardId as string, {
-          title: cardTitle,
-          front: finalizedFront,
-          back: finalizedBack,
-          hint1: hint1Value,
-          hint2: hint2Value,
-        });
-        Toast.show({
-          type: "success",
-          text1: "Изменения сохранены!",
-          position: "bottom",
-        });
-      } else {
-        const cardPayload: CreateCardPayload = {
-          deck_id: id as string,
-          title: cardTitle,
-          front: finalizedFront,
-          back: finalizedBack,
-          hint1: hint1Value,
-          hint2: hint2Value,
-        };
-        console.log("🚀 Финальный payload для бэкенда (v2.0.0):", cardPayload);
-        await addCard(cardPayload);
-        Toast.show({
-          type: "success",
-          text1: "Карточка создана!",
-          position: "bottom",
-        });
-      }
-
-      resetDraft(); // очищаем черновик после сохранения
-      // После редактирования возвращаемся к «Просмотру карточки»,
-      // после создания — к странице колоды
-      router.push(
-        isEditMode && cardId ? `/card/${cardId}?deckId=${id}` : `/decks/${id}`,
-      );
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
+  // ----------------------------------------------------------
+  // Рендер
+  // ----------------------------------------------------------
   return (
     <View
       style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}
@@ -323,14 +506,15 @@ export default function CreateCardView() {
             <Input
               style={{ textAlign: "left" }}
               placeholder={"Название"}
-              value={title}
+              // При включённой галочке поле показывает живой текст лицевой стороны
+              value={useFrontAsTitle ? firstFrontText : title}
               onChangeText={setTitle}
               editable={!useFrontAsTitle}
             />
 
             <Pressable
               style={styles.checkboxContainer}
-              onPress={() => setUseFrontAsTitle(!useFrontAsTitle)}
+              onPress={handleToggleFrontAsTitle}
               hitSlop={15}
             >
               <View
@@ -378,11 +562,15 @@ export default function CreateCardView() {
                 {[...front]
                   .sort((a, b) => a.position - b.position)
                   .map((block) => (
-                    <View key={block.id} style={styles.blockItem}>
+                    <ShakeableBlock
+                      key={block.id}
+                      isInvalid={invalidBlockIds.includes(block.id)}
+                      shakeKey={shakeKey}
+                    >
                       <Typography variant="span" color={colors.darkGray}>
                         {getBlockTypeName(block)}
                       </Typography>
-                    </View>
+                    </ShakeableBlock>
                   ))}
               </View>
             )}
@@ -415,11 +603,15 @@ export default function CreateCardView() {
                 {[...back]
                   .sort((a, b) => a.position - b.position)
                   .map((block) => (
-                    <View key={block.id} style={styles.blockItem}>
+                    <ShakeableBlock
+                      key={block.id}
+                      isInvalid={invalidBlockIds.includes(block.id)}
+                      shakeKey={shakeKey}
+                    >
                       <Typography variant="span" color={colors.darkGray}>
                         {getBlockTypeName(block)}
                       </Typography>
-                    </View>
+                    </ShakeableBlock>
                   ))}
               </View>
             )}

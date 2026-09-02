@@ -40,6 +40,7 @@ type CardState = {
   draftBack: CardBlock[];
   draftHint1: string;
   draftHint2: string;
+  draftUseFrontAsTitle: boolean;
 
   getCards: (deckId: string) => Promise<StoreCard[]>;
   invalidateCards: (deckId: string) => void;
@@ -49,13 +50,13 @@ type CardState = {
   updateCard: (id: string, data: UpdateCardPayload) => Promise<Card>;
   deleteCard: (id: string, deckId: string) => Promise<void>;
   /**
-   * Точечная замена карточки в кэше (v2.0.0, п.14 спеки).
+   * Точечная замена карточки в кэше 
    * Используется после ревью: PATCH /study возвращает обновлённую карточку —
    * заменяем её по ID вместо сброса всего кэша колоды.
    */
   replaceCard: (deckId: string, updatedCard: Card) => void;
   clearCards: (deckId?: string) => void;
-  // Прямой метод ручного обновления стора (пригодится хуку)
+  // Прямой метод ручного обновления стора 
   setDeckCardsState: (deckId: string, newState: DeckCardsStorage) => void;
 
   setDraftTitle: (title: string) => void;
@@ -63,6 +64,7 @@ type CardState = {
   setDraftBack: (blocks: CardBlock[]) => void;
   setDraftHint1: (hint: string) => void;
   setDraftHint2: (hint: string) => void;
+  setDraftUseFrontAsTitle: (value: boolean) => void;
   updateDraftBlockValue: (
     side: "front" | "back",
     blockId: string,
@@ -104,6 +106,7 @@ export const useCardStore = create<CardState>((set, get) => {
     draftBack: [],
     draftHint1: "",
     draftHint2: "",
+    draftUseFrontAsTitle: false,
 
     setDeckCardsState: (deckId, newState) => {
       validateFormat(deckId, newState);
@@ -419,6 +422,7 @@ export const useCardStore = create<CardState>((set, get) => {
     setDraftBack: (blocks) => set({ draftBack: blocks }),
     setDraftHint1: (hint) => set({ draftHint1: hint }),
     setDraftHint2: (hint) => set({ draftHint2: hint }),
+    setDraftUseFrontAsTitle: (value) => set({ draftUseFrontAsTitle: value }),
     updateDraftBlockValue: (side, blockId, value) =>
       set((state) => {
         const updateBlocks = (blocks: CardBlock[]) =>
@@ -442,6 +446,7 @@ export const useCardStore = create<CardState>((set, get) => {
         draftBack: [],
         draftHint1: "",
         draftHint2: "",
+        draftUseFrontAsTitle: false,
       }),
 
     addDraftBlock: (side: "front" | "back", block: CardBlock) => {
