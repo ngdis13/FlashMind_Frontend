@@ -1,9 +1,7 @@
-// feature-decks/deck-create-card/components/CardBlockItem.tsx
+
 import React from "react";
 import { View, StyleSheet, Pressable, Image, Platform } from "react-native";
 import * as Haptics from "expo-haptics";
-import type { ViewStyle } from "react-native";
-
 import { colors } from "@/styles/Colors";
 import { Typography } from "@/styles/Typography";
 import { commonStyles } from "@/styles/Common";
@@ -59,6 +57,36 @@ export const CardBlockItem: React.FC<CardBlockItemProps> = React.memo(
       drag?.();
     };
 
+    // Содержимое шапки — общее для веба и мобильных
+    const headerInner = (
+      <>
+        <View style={styles.headerLeft}>
+          <Typography variant="h2" color={colors.white}>
+            ⋮⋮
+          </Typography>
+          <Typography variant="h2" color={colors.white}>
+            {item.type === "text" && "Текст"}
+            {item.type === "image" && "Изображение"}
+          </Typography>
+        </View>
+
+        {/* Кнопки правки/удаления не должны запускать перетаскивание:
+            на вебе глушим всплытие pointerdown, на мобилках вложенные
+            Pressable и так перехватывают нажатие */}
+        <View
+          style={styles.headerActions}
+          onPointerDown={isWeb ? (e) => e.stopPropagation() : undefined}
+        >
+          <Pressable onPress={onEdit} hitSlop={10}>
+            <Image source={editIcon} style={{ width: 27, height: 18 }} />
+          </Pressable>
+          <Pressable onPress={onDelete} hitSlop={10}>
+            <Image source={deleteIcon} style={{ width: 18, height: 18 }} />
+          </Pressable>
+        </View>
+      </>
+    );
+
     return (
       <View
         style={[
@@ -68,46 +96,27 @@ export const CardBlockItem: React.FC<CardBlockItemProps> = React.memo(
           webCardStyle,
         ]}
       >
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            {isWeb ? (
-              <View
-                onPointerDown={(e) => {
-                  e.preventDefault?.();
-                  onPointerDown?.();
-                }}
-                style={[styles.dragHandleWeb, { outline: "none" } as ViewStyle]}
-              >
-                <Typography variant="h2" color={colors.white}>
-                  ⋮⋮
-                </Typography>
-              </View>
-            ) : (
-              <Pressable
-                onLongPress={handleDragActivate}
-                delayLongPress={140}
-                hitSlop={12}
-              >
-                <Typography variant="h2" color={colors.white}>
-                  ⋮⋮
-                </Typography>
-              </Pressable>
-            )}
-            <Typography variant="h2" color={colors.white}>
-              {item.type === "text" && "Текст"}
-              {item.type === "image" && "Изображение"}
-            </Typography>
+        {isWeb ? (
+          // WEB: вся шапка ловит pointerdown для кастомного drag-and-drop
+          <View
+            style={[styles.header, styles.headerWeb]}
+            onPointerDown={(e) => {
+              e.preventDefault?.();
+              onPointerDown?.();
+            }}
+          >
+            {headerInner}
           </View>
-
-          <View style={styles.headerActions}>
-            <Pressable onPress={onEdit} hitSlop={10}>
-              <Image source={editIcon} style={{ width: 27, height: 18 }} />
-            </Pressable>
-            <Pressable onPress={onDelete} hitSlop={10}>
-              <Image source={deleteIcon} style={{ width: 18, height: 18 }} />
-            </Pressable>
-          </View>
-        </View>
+        ) : (
+          // МОБИЛЬНЫЕ: вся шапка запускает drag долгим нажатием
+          <Pressable
+            style={styles.header}
+            onLongPress={handleDragActivate}
+            delayLongPress={140}
+          >
+            {headerInner}
+          </Pressable>
+        )}
 
         <View style={styles.body}>
           {item.type === "text" && <TextBlock value={item.value} />}
@@ -150,10 +159,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 4,
   },
-  dragHandleWeb: {
-    paddingHorizontal: 4,
-    cursor: "grab",
-  } as Record<string, unknown>,
+  headerWeb: { cursor: "grab" } as Record<string, unknown>,
   headerActions: {
     flexDirection: "row",
     alignItems: "center",

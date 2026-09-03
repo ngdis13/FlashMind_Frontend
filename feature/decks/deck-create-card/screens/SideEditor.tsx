@@ -416,8 +416,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     width: "100%",
   },
-  backButton: { position: "absolute", left: -10, top: 0, padding: 10 },
-  viewCardButton: { position: "absolute", right: -10, top: 0, padding: 10 },
+  backButton: { position: "absolute", left: -20, padding: 20 },
+  viewCardButton: { position: "absolute", right: -20, padding: 20 },
   viewCardButtonDisabled: { opacity: 0.4 },
   listContent: { paddingHorizontal: 10, paddingTop: 10, paddingBottom: 30 },
   draggedCard: {
