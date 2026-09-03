@@ -24,6 +24,7 @@ import Reanimated, {
 import { Typography } from "@/styles/Typography";
 import { colors } from "@/styles/Colors";
 import DeleteIconTrash from "@/assets/icons/DeleteIconTrash.png";
+import viewCardIcon from "@/feature-decks/assets/viewCardIcon.png";
 import { CustomAlert } from "@/components/CustomAlert";
 import { LogoSadStar } from "@/components/LogoSadStar";
 
@@ -34,6 +35,7 @@ interface CardItemProps {
   difficulty?: number;
   onPress?: (id: string, deckId?: string) => void;
   onDelete?: (id: string, deckId?: string) => void;
+  onPreview?: (id: string, deckId?: string) => void;
   style?: StyleProp<ViewStyle>;
 }
 
@@ -90,6 +92,7 @@ export const CardItem = ({
   difficulty,
   onPress,
   onDelete,
+  onPreview,
   style,
 }: CardItemProps) => {
   // Поп-ап подтверждения удаления
@@ -99,6 +102,11 @@ export const CardItem = ({
 
   const handlePress = (): void => {
     onPress?.(id, deckId);
+  };
+
+  // Тап по глазику: открываем поп-ап предпросмотра карточки
+  const handlePreviewPress = (): void => {
+    onPreview?.(id, deckId);
   };
 
   // Тап по красной кнопке: закрываем свайп и открываем подтверждение
@@ -142,6 +150,13 @@ export const CardItem = ({
               {title}
             </Typography>
           </View>
+          <Pressable
+            onPress={handlePreviewPress}
+            hitSlop={8}
+            style={styles.previewButton}
+          >
+            <Image source={viewCardIcon} style={{ width: 28, height: 28 }} />
+          </Pressable>
         </TouchableOpacity>
       </ReanimatedSwipeable>
 
@@ -195,5 +210,8 @@ const styles = StyleSheet.create({
   textContainer: {
     flex: 1,
     gap: 4,
+  },
+  previewButton: {
+    marginLeft: 8,
   },
 });

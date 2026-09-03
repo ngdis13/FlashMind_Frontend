@@ -22,6 +22,7 @@ import { styles } from "@/feature-decks/deck-by-id/styles/DeckViewById.style";
 import { Input } from "@/components/Input";
 import { Logo } from "@/components/Logo";
 import { CardItem } from "@/feature-decks/deck-by-id/components/CardItem";
+import { PreviewModal } from "@/feature-decks/deck-create-card/components/PreviewModal";
 import { ShareDeckModal } from "@/feature-decks/deck-by-id/components/ShareDeckModal";
 import { SyncDeckModal } from "@/feature-decks/components/SyncDeckModal";
 import { CustomAlertCloud } from "@/feature-decks/deck-by-id/components/CustomAlertCloud";
@@ -85,6 +86,8 @@ export default function DeckViewById() {
   const [search, setSearch] = useState<string>("");
   const [cards, setCards] = useState<StoreCard[]>([]);
   const [addedCardsCount, setAddedCardsCount] = useState<number>(0);
+  // Карточка, открытая в поп-апе предпросмотра (глазик на карточке)
+  const [previewCard, setPreviewCard] = useState<StoreCard | null>(null);
 
   // Флаг для предотвращения дублирующихся загрузок
   const isLoadingRef = useRef<boolean>(false);
@@ -1002,6 +1005,10 @@ export default function DeckViewById() {
                       difficulty={item.difficulty}
                       onPress={handleCardPress}
                       onDelete={handleDeleteCard}
+                      onPreview={(cardId) => {
+                        const card = cards.find((c) => c.id === cardId);
+                        if (card) setPreviewCard(card);
+                      }}
                     />
                   ))
                 ) : (
@@ -1014,6 +1021,14 @@ export default function DeckViewById() {
           </View>
         </ScrollView>
       </View>
+
+      {/* Поп-ап предпросмотра карточки по глазику в списке */}
+      <PreviewModal
+        isVisible={previewCard !== null}
+        onClose={() => setPreviewCard(null)}
+        frontBlocks={previewCard?.front ?? []}
+        backBlocks={previewCard?.back ?? []}
+      />
 
       <SyncDeckModal
         visible={isSyncModalVisible}
