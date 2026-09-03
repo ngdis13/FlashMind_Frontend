@@ -1001,6 +1001,7 @@ export default function DeckViewById() {
                       deckId={id}
                       difficulty={item.difficulty}
                       onPress={handleCardPress}
+                      onDelete={handleDeleteCard}
                     />
                   ))
                 ) : (
