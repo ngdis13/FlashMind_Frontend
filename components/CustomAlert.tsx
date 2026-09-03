@@ -5,10 +5,12 @@ import { Typography } from "@/styles/Typography";
 import { MainButton } from "@/components/MainButton";
 import { SecondButton } from "@/components/SecondButton";
 import { InfoModalLayout } from "@/components/InfoModal";
+import { colors } from "@/styles/Colors";
 
 interface CustomAlertProps {
   visible: boolean;
   message: string;
+  description?: string;
   confirmText?: string; // Текст для главной кнопки
   cancelText?: string; // Текст для кнопки отмены
   onConfirm: () => void;
@@ -49,6 +51,7 @@ interface CustomAlertProps {
 export const CustomAlert = ({
   visible,
   message,
+  description,
   confirmText = "Подтвердить", // Дефолтный текст
   cancelText = "Отмена", // Дефолтный текст
   onConfirm,
@@ -59,7 +62,7 @@ export const CustomAlert = ({
     <InfoModalLayout
       visible={visible}
       onClose={onCancel}
-      containerStyle={{ padding: 24 }}
+      containerStyle={{ padding: 20 }}
     >
       {/* Рендерим иконку только если она передана */}
       {icon && <View style={styles.iconContainer}>{icon}</View>}
@@ -70,6 +73,17 @@ export const CustomAlert = ({
       >
         {message}
       </Typography>
+
+      {/* Второй текст: рендерится только если передан */}
+      {description && (
+        <Typography
+          variant="h3"
+          color={colors.darkGray}
+          style={styles.description}
+        >
+          {description}
+        </Typography>
+      )}
 
       <View style={styles.buttonContainer}>
         {/* Используем динамический текст из пропсов */}
@@ -85,8 +99,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 8,
   },
+  message: {
+    textAlign: "center",
+    marginBottom: 12,
+  },
+  description: {
+    textAlign: "center",
+    marginBottom: 12,
+  },
   buttonContainer: {
     justifyContent: "space-between",
     gap: 12,
+    width: "100%"
   },
 });

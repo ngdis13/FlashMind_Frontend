@@ -37,6 +37,8 @@ import editCardIcon from "@/feature-decks/assets/editCardIcon.png";
 import iconInfo from "@/assets/icons/IconInfo.png";
 import { useCardStore } from "@/store/card.store";
 import { PreviewModal } from "../components/PreviewModal";
+import { CustomAlert } from "@/components/CustomAlert";
+import { LogoSadStar } from "@/components/LogoSadStar";
 
 // ============================================================
 // КОНСТАНТЫ
@@ -213,6 +215,8 @@ export default function CreateCardView() {
   const [invalidBlockIds, setInvalidBlockIds] = useState<string[]>([]);
   // счётчик попыток сохранения — триггерит тряску
   const [shakeKey, setShakeKey] = useState(0);
+  //управление модалкой при выходе
+  const [isExitAlertVisible, setIsExitAlertVisible] = useState(false);
 
   // ----------------------------------------------------------
   // Производные значения
@@ -248,19 +252,24 @@ export default function CreateCardView() {
       return;
     }
 
-    // Если поля заполнены — срабатывает usePreventRemove, мы просто триггерим Тост и блокируем переход
+    //если поля не сохранены, но пользователь хочет выйти
     if (hasUnsavedChanges()) {
-      Toast.show({
-        type: "error",
-        text1: "Карточка не создана",
-        text2: "Сохраните карточку, прежде чем выйти",
-        position: "bottom",
-      });
+      setIsExitAlertVisible(true);
       return;
     }
 
     resetDraft();
     router.push(`/decks/${id}/create-card`);
+  };
+
+  const handleConfirmExit = (): void => {
+    setIsExitAlertVisible(false);
+    resetDraft();
+    router.push(`/decks/${id}/create-card`);
+  };
+
+  const handleCancelExit = (): void => {
+    setIsExitAlertVisible(false);
   };
 
   // Глазик в шапке — поп-ап предпросмотра с переворотом
@@ -664,6 +673,17 @@ export default function CreateCardView() {
         backBlocks={back}
         // Магия: если зашли с экрана "обратной стороны", поп-ап автоматически откроется изнанкой (ОТВЕТОМ) вперед
         initialSide={"front"}
+      />
+
+      <CustomAlert
+        visible={isExitAlertVisible}
+        message="Выйти без сохранения?"
+        description="Изменения не запишутся, и создаваемая карточка будет удалена"
+        confirmText="Выйти"
+        cancelText="Вернуться к редактированию"
+        onConfirm={handleConfirmExit}
+        onCancel={handleCancelExit}
+        icon={<LogoSadStar size={160} />}
       />
     </View>
   );
