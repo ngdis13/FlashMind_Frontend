@@ -1,5 +1,5 @@
 // --------------------------- React ---------------------------
-import React, { useState } from "react";
+import React from "react";
 
 // --------------------------- React Native ---------------------------
 import {
@@ -8,19 +8,10 @@ import {
   StyleSheet,
   StyleProp,
   ViewStyle,
-  Image,
-  Pressable,
 } from "react-native";
 
 // --------------------------- Стили ---------------------------
 import { Typography } from "@/styles/Typography";
-
-// --------------------------- Компоненты ---------------------------
-import { CustomAlert } from "@/components/CustomAlert";
-import { LogoSadStar } from "@/components/LogoSadStar";
-
-// --------------------------- Ассеты ---------------------------
-import DeleteIcon from "@/assets/icons/DeleteIcon.png";
 
 interface CardItemProps {
   id: string;
@@ -28,7 +19,6 @@ interface CardItemProps {
   deckId?: string;
   difficulty?: number;
   onPress?: (id: string, deckId?: string) => void;
-  onDelete: (id: string, deckId?: string) => void;
   style?: StyleProp<ViewStyle>;
 }
 
@@ -48,26 +38,10 @@ export const CardItem = ({
   deckId,
   difficulty,
   onPress,
-  onDelete,
   style,
 }: CardItemProps) => {
-  const [alertVisible, setAlertVisible] = useState<boolean>(false);
-
   const handlePress = (): void => {
     onPress?.(id, deckId);
-  };
-
-  const handleDeletePress = (): void => {
-    setAlertVisible(true);
-  };
-
-  const handleConfirmDelete = (): void => {
-    setAlertVisible(false);
-    onDelete?.(id, deckId);
-  };
-
-  const handleCancelDelete = (): void => {
-    setAlertVisible(false);
   };
 
   return (
@@ -81,24 +55,6 @@ export const CardItem = ({
           {title}
         </Typography>
       </View>
-
-      <Pressable
-        onPress={handleDeletePress}
-        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        style={styles.deleteButton}
-      >
-        <Image source={DeleteIcon} style={styles.deleteIcon} />
-      </Pressable>
-
-      <CustomAlert
-        visible={alertVisible}
-        message="Ты действительно хочешь удалить карточку?"
-        confirmText="Удалить"
-        cancelText="Вернуться к карточкам"
-        onConfirm={handleConfirmDelete}
-        onCancel={handleCancelDelete}
-        icon={<LogoSadStar size={128} />}
-      />
     </TouchableOpacity>
   );
 };
@@ -118,12 +74,5 @@ const styles = StyleSheet.create({
   textContainer: {
     flex: 1,
     gap: 4,
-  },
-  deleteButton: {
-    padding: 4,
-  },
-  deleteIcon: {
-    width: 24,
-    height: 24,
   },
 });

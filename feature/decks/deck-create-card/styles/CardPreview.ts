@@ -42,7 +42,7 @@ export const styles = StyleSheet.create({
   },
   metricsBox: {
     marginBottom: 16,
-    gap: 12
+    gap: 12,
   },
   metricsGrid: {
     flexDirection: "row",
@@ -64,11 +64,14 @@ export const styles = StyleSheet.create({
   metricIconBox: {
     width: 20,
     height: 20,
-    alignItems: "center", 
+    alignItems: "center",
     justifyContent: "center",
   },
   metricIcon: {
-    width: "100%", 
+    width: "100%",
     height: "100%",
-  }
+  },
+  deleteButton: {
+    borderColor: colors.errorColor,
+  },
 });

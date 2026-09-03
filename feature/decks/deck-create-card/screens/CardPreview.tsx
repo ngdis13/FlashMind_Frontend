@@ -1,10 +1,18 @@
 import { useState, useEffect } from "react";
-import { ScrollView, View, Image, Pressable, Platform, useWindowDimensions } from "react-native";
+import {
+  ScrollView,
+  View,
+  Image,
+  Pressable,
+  Platform,
+  useWindowDimensions,
+} from "react-native";
 
 import { commonStyles } from "@/styles/Common";
 import { Typography } from "@/styles/Typography";
 import { colors } from "@/styles/Colors";
 import { styles } from "@/feature-decks/deck-create-card/styles/CardPreview";
+import deleteIcon from "@/feature-decks/assets/deleteIcon.png";
 
 import ReturnIcon from "@/assets/icons/ReturnIcon.png";
 import viewCardIcon from "@/assets/icons/viewCardIcon.png";
@@ -21,6 +29,9 @@ import IconTimeMetrics from "@/assets/icons/cardPreview/IconTimeMetrics.png";
 import IconChartMetrics from "@/assets/icons/cardPreview/IconChartMetrics.png";
 import IconRepeatsMetrics from "@/assets/icons/cardPreview/IconRepeatsMetrics.png";
 import IconDifficultyMetrics from "@/assets/icons/cardPreview/IconDifficultyMetrics.png";
+import { CustomAlert } from "@/components/CustomAlert";
+import Toast from "react-native-toast-message";
+import { LogoSadStar } from "@/components/LogoSadStar";
 
 // ДД.ММ из ISO-строки (без Intl — одинаково на Hermes и web)
 const formatDate = (iso: string): string => {
@@ -48,7 +59,7 @@ export default function CardPreview() {
     cardId?: string;
   }>();
 
-  const { getCardById, updateCard } = useCards();
+  const { getCardById, updateCard, removeCard } = useCards();
   const cardId = (paramCardId || routeId) as string;
   // Колода прилетает как deckId
   const id = deckId as string;
@@ -62,6 +73,12 @@ export default function CardPreview() {
   const [isPutOff, setIsPutOff] = useState(false);
   // поп-ап предпросмотра (тот же, что в конструкторе)
   const [isPreviewVisible, setIsPreviewVisible] = useState(false);
+
+  // поп-ап подтверждения удаления карточки
+const [isDeleteAlertVisible, setIsDeleteAlertVisible] = useState(false);
+// true, пока запрос удаления в процессе (защита от двойного тапа)
+const [isDeleting, setIsDeleting] = useState(false);
+
 
   const { width } = useWindowDimensions();
   // Мобилка: 2 колонки (2×2), широкий экран (≥768px): все 4 в ряд
@@ -125,6 +142,35 @@ export default function CardPreview() {
       }
     })();
   }, [cardId]);
+
+  const handlePressDeleteButton = (): void => {
+    setIsDeleteAlertVisible(true);
+  };
+
+  const handleCancelDelete = (): void => {
+    setIsDeleteAlertVisible(false);
+  };
+
+  const handleConfirmDelete = async (): Promise<void> => {
+    if (!cardId || !id || isDeleting) return;
+    setIsDeleteAlertVisible(false);
+    setIsDeleting(true);
+    try {
+      await removeCard(cardId, id);
+      // После удаления возвращаемся к списку карточек колоды
+      router.push(`/decks/${id}`);
+    } catch (error) {
+      console.error(error);
+      Toast.show({
+        type: "error",
+        text1: "Не удалось удалить карточку",
+        text2: "Проверьте соединение и попробуйте ещё раз",
+        position: "bottom",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   // Плитки метрик
   const metrics = [
@@ -259,13 +305,41 @@ export default function CardPreview() {
                         resizeMode="contain"
                       />
                     </View>
-                    <Typography variant="span" style={{fontSize: 13, fontWeight: "700"}} color={"#645E88"}>{m.title}</Typography>
+                    <Typography
+                      variant="span"
+                      style={{ fontSize: 13, fontWeight: "700" }}
+                      color={"#645E88"}
+                    >
+                      {m.title}
+                    </Typography>
                   </View>
-                  <Typography variant="h3" color={"#645E88"}>{m.value}</Typography>
+                  <Typography variant="h3" color={"#645E88"}>
+                    {m.value}
+                  </Typography>
                 </View>
               ))}
             </View>
           </View>
+          {/* Удаление карточки */}
+          <Pressable
+            style={[
+              commonStyles.mainBox,
+              commonStyles.greyButton,
+              styles.deleteButton,
+            ]}
+            onPress={handlePressDeleteButton}
+          >
+            <Image
+              source={deleteIcon}
+              style={[
+                { width: 20, height: 20, shadowColor: colors.errorColor },
+              ]}
+              resizeMode="contain"
+            />
+            <Typography variant="h2" color={colors.errorColor}>
+              Удалить карточку
+            </Typography>
+          </Pressable>
         </ScrollView>
       </View>
       {/* Поп-ап предпросмотра — тот же, что в режиме редактирования */}
@@ -275,6 +349,17 @@ export default function CardPreview() {
         frontBlocks={card?.front ?? []}
         backBlocks={card?.back ?? []}
         initialSide="front"
+      />
+
+      {/* Подтверждение удаления карточки */}
+      <CustomAlert
+        visible={isDeleteAlertVisible}
+        message="Ты действительно хочешь удалить карточку?"
+        confirmText="Удалить"
+        cancelText="Вернуться к карточке"
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+        icon={<LogoSadStar size={160} />}
       />
     </View>
   );

@@ -591,7 +591,10 @@ export default function DeckViewById() {
    * @returns true, если ошибка обработана
    */
   const handleCloudDeckNotExistError = (error: unknown): boolean => {
-    const axiosError = error as AxiosError<{ error_code?: string; message?: string }>;
+    const axiosError = error as AxiosError<{
+      error_code?: string;
+      message?: string;
+    }>;
     if (
       axiosError?.response?.data?.error_code === "CLOUD_DECK_NOT_EXIST" ||
       axiosError?.response?.status === 410
@@ -921,10 +924,7 @@ export default function DeckViewById() {
                 </Pressable>
               )}
 
-              <Pressable
-                onPress={handleSharePress}
-                disabled={isGenerating}
-              >
+              <Pressable onPress={handleSharePress} disabled={isGenerating}>
                 <Image source={ImportButton} style={styles.importButton} />
               </Pressable>
             </View>
@@ -1001,7 +1001,6 @@ export default function DeckViewById() {
                       deckId={id}
                       difficulty={item.difficulty}
                       onPress={handleCardPress}
-                      onDelete={handleDeleteCard}
                     />
                   ))
                 ) : (
@@ -1075,8 +1074,7 @@ export default function DeckViewById() {
         confirmText="Понятно"
         onConfirm={() => setIsDeckDeletedModalVisible(false)}
         showLine={true}
-        iconComponent={<LogoSadStar size={140}/>}
-  
+        iconComponent={<LogoSadStar size={140} />}
       />
     </View>
   );
