@@ -41,52 +41,6 @@ import { CustomAlert } from "@/components/CustomAlert";
 import { LogoSadStar } from "@/components/LogoSadStar";
 
 // ============================================================
-// КОНСТАНТЫ
-// ============================================================
-
-// Моки с первого экрана, переписанные под точную структуру карточки
-const MOCK_RECENT_TEMPLATES: {
-  id: string;
-  title: string;
-  front: CardBlock[];
-  back: CardBlock[];
-}[] = [
-  {
-    id: "template_1",
-    title: "Немецкие глаголы",
-    front: [{ id: "f1", type: "term", value: "", position: 0 }],
-    back: [
-      { id: "b1", type: "text", value: "", position: 0 },
-      { id: "b2", type: "text", value: "", position: 1 },
-    ],
-  },
-  {
-    id: "template_2",
-    title: "Столицы (квиз)",
-    front: [
-      { id: "f2", type: "term", value: "", position: 0 },
-      {
-        id: "f3",
-        type: "quiz",
-        variants: ["Берлин", "Мюнхен", "Франкфурт", "Гамбург"],
-        correctIndex: 0,
-        position: 1,
-      },
-    ],
-    back: [{ id: "b3", type: "text", value: "", position: 0 }],
-  },
-  {
-    id: "template_3",
-    title: "Анатомия: Мышцы",
-    front: [
-      { id: "f4", type: "term", value: "", position: 0 },
-      { id: "f5", type: "image", url: "", position: 1 },
-    ],
-    back: [{ id: "b4", type: "text", value: "", position: 0 }],
-  },
-];
-
-// ============================================================
 // ХЕЛПЕРЫ И ПОДКОМПОНЕНТЫ
 // ============================================================
 
@@ -113,6 +67,23 @@ const isBlockEmpty = (block: CardBlock): boolean => {
   return blocksToPlainText([block]).trim() === "";
 };
 
+// Шаблон копирует только структуру: содержимое блоков очищается
+// (текст/термин → пустое значение, картинка → без url, квиз → пустые варианты)
+const emptyBlockContent = (block: CardBlock): CardBlock => {
+  switch (block.type) {
+    case "image":
+      return { ...block, url: "" };
+    case "quiz":
+      return {
+        ...block,
+        variants: block.variants.map(() => ""),
+        correctIndex: 0,
+      };
+    default:
+      return { ...block, value: "" };
+  }
+};
+
 // Текст первого текстового блока (term/text с непустым содержимым);
 // картинки и пустые блоки пропускаются. Если таких нет — ""
 const getFirstFrontText = (blocks: CardBlock[]): string => {
@@ -127,8 +98,6 @@ const getFirstFrontText = (blocks: CardBlock[]): string => {
 
 // Обёртка блока в ленте конструктора: красная рамка (errorColor), пока блок
 // пуст, и тряска при каждой попытке сохранения с пустым блоком.
-// ВАЖНО: объявлен на уровне модуля — внутри CreateCardView компонент
-// пересоздавался бы на каждом рендере, и анимация ломалась перемонтированием.
 const ShakeableBlock: React.FC<{
   isInvalid: boolean;
   shakeKey: number;
@@ -383,7 +352,7 @@ export default function CreateCardView() {
           hint1: hint1Value,
           hint2: hint2Value,
         };
-        console.log("🚀 Финальный payload для бэкенда (v2.0.0):", cardPayload);
+        console.log("🚀 Финальный payload для бэкенда:", cardPayload);
         await addCard(cardPayload);
         Toast.show({
           type: "success",
@@ -400,6 +369,17 @@ export default function CreateCardView() {
       );
     } catch (error) {
       console.error(error);
+      // Показываем пользователю ошибку от сервера (например,
+      // «Карточка с таким определением уже существует в этой колоде»)
+      Toast.show({
+        type: "error",
+        text1: "Ошибка сохранения",
+        text2:
+          error instanceof Error
+            ? error.message
+            : "Не удалось сохранить карточку. Попробуйте ещё раз",
+        position: "bottom",
+      });
     }
   };
 
@@ -428,16 +408,21 @@ export default function CreateCardView() {
       setFront([]);
       setBack([]);
       setTitle("");
-    } else {
-      const foundTemplate = MOCK_RECENT_TEMPLATES.find(
-        (t) => t.id === templateId,
-      );
-      if (foundTemplate) {
-        setFront(foundTemplate.front);
-        setBack(foundTemplate.back);
-        setTitle(foundTemplate.title);
-      }
+      return;
     }
+
+    // templateId — id реальной карточки из этой колоды («недавно созданные»)
+    const sourceCard = useCardStore
+      .getState()
+      .cards[id]?.cards.find((c) => c.id === templateId);
+    if (!sourceCard) return;
+
+    // Копируем только структуру блоков (типы, количество, порядок),
+    // содержимое очищаем: это заготовка для новой карточки
+    setFront(sourceCard.front.map(emptyBlockContent));
+    setBack(sourceCard.back.map(emptyBlockContent));
+    // Название источника не копируем: title уникален в рамках колоды
+    setTitle("");
   }, [templateId]);
 
   // Режим редактирования: загружаем существующую карточку в черновик (v2.0.0)

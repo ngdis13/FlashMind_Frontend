@@ -1,7 +1,6 @@
-// Твой обновленный файл TemplateSelectScreen.tsx
 import { ScrollView, View, Image, Pressable } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { BOTTOM_MARGIN, commonStyles } from "@/styles/Common";
 import { Typography } from "@/styles/Typography";
@@ -15,50 +14,42 @@ import { AppEmojis } from "@/assets/emoji/emoji";
 import { MainButton } from "@/components/MainButton";
 import { useCardStore } from "@/store/card.store";
 
-// ИМПОРТИРУЕМ НАШ НОВЫЙ КОМПОНЕНТ И ТИП
-import { TemplateItem, TemplateCardMock } from "../components/TemplateItem";
 
-// Создаем 3 фейковые последние карточки для верстки
-const MOCK_RECENT_TEMPLATES: TemplateCardMock[] = [
-  {
-    id: "template_1",
-    title: "Немецкие глаголы",
-    front: [{ id: "f1", type: "term", value: "", position: 0 }],
-    back: [
-      { id: "b1", type: "text", value: "", position: 0 },
-      { id: "b2", type: "text", value: "", position: 1 },
-    ],
-  },
-  {
-    id: "template_2",
-    title: "Столицы (квиз)",
-    front: [
-      { id: "f2", type: "term", value: "", position: 0 },
-      {
-        id: "f3",
-        type: "quiz",
-        variants: ["Берлин", "Мюнхен", "Франкфурт", "Гамбург"],
-        correctIndex: 0,
-        position: 1,
-      },
-    ],
-    back: [{ id: "b3", type: "text", value: "", position: 0 }],
-  },
-  {
-    id: "template_3",
-    title: "Анатомия: Мышцы",
-    front: [
-      { id: "f4", type: "term", value: "", position: 0 },
-      { id: "f5", type: "image", url: "", position: 1 },
-    ],
-    back: [{ id: "b4", type: "text", value: "", position: 0 }],
-  },
-];
+import { TemplateItem, TemplateCardMock } from "../components/TemplateItem";
+import { useCards } from "@/storage/hooks/useCards";
 
 export const TemplateSelectScreen = () => {
   const router = useRouter();
   const [search, setSearch] = useState<string>("");
   const { id } = useLocalSearchParams<{ id: string }>();
+
+  const deckCards = useCardStore((s) => s.cards[id]?.cards);
+  const { getDeckCards } = useCards();
+
+  useEffect(() => {
+    if (!deckCards) {
+      getDeckCards(id);
+    }
+  }, [deckCards, getDeckCards, id]);
+
+  //Последние три созданные пользователм карточки
+  const recentTemplates = useMemo<TemplateCardMock[]>(() => {
+    if (!deckCards) return [];
+    return [...deckCards]
+      .sort((a, b) => {
+        // Сортируем по дате создания (новые сверху), без даты — в конец
+        const ta = a.created_at ? Date.parse(a.created_at) : 0;
+        const tb = b.created_at ? Date.parse(b.created_at) : 0;
+        return tb - ta;
+      })
+      .slice(0, 3)
+      .map((card) => ({
+        id: card.id,
+        title: card.title,
+        front: card.front,
+        back: card.back,
+      }));
+  }, [deckCards]);
 
   const handleBack = (): void => {
     router.push(`/decks/${id}`);
@@ -69,7 +60,7 @@ export const TemplateSelectScreen = () => {
     useCardStore.getState().resetDraft();
     router.push({
       pathname: `/decks/${id}/create-card/create`,
-      params: { templateId }, // Передаем ID шаблона в параметрах
+      params: { templateId },
     });
   };
 
@@ -82,7 +73,7 @@ export const TemplateSelectScreen = () => {
     });
   };
 
-  const filteredTemplates = MOCK_RECENT_TEMPLATES.filter((t) =>
+  const filteredTemplates = recentTemplates.filter((t) =>
     t.title.toLowerCase().includes(search.toLowerCase()),
   );
 
@@ -128,10 +119,14 @@ export const TemplateSelectScreen = () => {
 
           <View style={styles.templateBox}>
             <Typography variant="h2" style={styles.headerName}>
-              <Image source={AppEmojis.star} style={styles.inlineEmoji} resizeMode="contain" /> {""}
+              <Image
+                source={AppEmojis.star}
+                style={styles.inlineEmoji}
+                resizeMode="contain"
+              />{" "}
+              {""}
               Недавно созданные
             </Typography>
-
             <View style={{ width: "100%" }}>
               {filteredTemplates.map((template) => (
                 <TemplateItem
@@ -140,8 +135,15 @@ export const TemplateSelectScreen = () => {
                   onPress={handleSelectTemplate}
                 />
               ))}
-
-              {filteredTemplates.length === 0 && (
+              {recentTemplates.length === 0 && (
+                <Typography
+                  variant="h3"
+                  style={{ color: colors.darkGray, textAlign: "center" }}
+                >
+                  Здесь появятся последние созданные шаблоны карточек
+                </Typography>
+              )}
+              {recentTemplates.length > 0 && filteredTemplates.length === 0 && (
                 <Typography
                   variant="h3"
                   style={{ color: colors.darkGray, textAlign: "center" }}
