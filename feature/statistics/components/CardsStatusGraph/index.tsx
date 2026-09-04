@@ -42,12 +42,10 @@ export default function CardsStatusGraph({
   const strokeWidth = 14; // Изящная толщина кольца из дизайна
   const circumference = 2 * Math.PI * radius; // Длина окружности (~301.6)
 
-  // Переводим толщину линии в радианы/градусы, чтобы узнать точный размер скругленного "капюшона"
-  // Это компенсирует наложение strokeLinecap="round"
   const capLength = strokeWidth / 2;
   const capPercent = capLength / circumference;
 
-  // ПОРЯДОК ДЛЯ ЛЕГЕНДЫ: строго как на дизайне (сверху вниз)
+  // ПОРЯДОК ДЛЯ ЛЕГЕНДЫ
   const legendOrder = ["learned", "in_learning", "suspended", "new"];
   const legendSegments = legendOrder
     .map((type) => cardTypes.find((item) => item.card_type === type))

@@ -32,6 +32,7 @@ import IconDifficultyMetrics from "@/assets/icons/cardPreview/IconDifficultyMetr
 import { CustomAlert } from "@/components/CustomAlert";
 import Toast from "react-native-toast-message";
 import { LogoSadStar } from "@/components/LogoSadStar";
+import MarksGraph from "../components/graphics/MarksGraph";
 
 // ДД.ММ из ISO-строки (без Intl — одинаково на Hermes и web)
 const formatDate = (iso: string): string => {
@@ -75,10 +76,9 @@ export default function CardPreview() {
   const [isPreviewVisible, setIsPreviewVisible] = useState(false);
 
   // поп-ап подтверждения удаления карточки
-const [isDeleteAlertVisible, setIsDeleteAlertVisible] = useState(false);
-// true, пока запрос удаления в процессе (защита от двойного тапа)
-const [isDeleting, setIsDeleting] = useState(false);
-
+  const [isDeleteAlertVisible, setIsDeleteAlertVisible] = useState(false);
+  // true, пока запрос удаления в процессе (защита от двойного тапа)
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const { width } = useWindowDimensions();
   // Мобилка: 2 колонки (2×2), широкий экран (≥768px): все 4 в ряд
@@ -319,6 +319,7 @@ const [isDeleting, setIsDeleting] = useState(false);
                 </View>
               ))}
             </View>
+            <MarksGraph reviewHistory={detail?.review_history ?? []} />
           </View>
           {/* Удаление карточки */}
           <Pressable

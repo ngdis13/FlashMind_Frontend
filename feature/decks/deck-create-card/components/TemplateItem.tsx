@@ -49,13 +49,23 @@ export const TemplateItem: React.FC<TemplateItemProps> = ({ item, onPress }) => 
           resizeMode="contain"
         />
         <View style={styles.itemInfo}>
-          <Typography variant="span" style={styles.title}>
+          <Typography variant="span" style={styles.title} numberOfLines={1}>
             {item.title}
           </Typography>
-          <Typography variant="h3" style={styles.subtitle} color={colors.darkGray}>
+          <Typography
+            variant="h3"
+            style={styles.subtitle}
+            color={colors.darkGray}
+            numberOfLines={1}
+          >
             Лицевая: {frontStructure || "пустая"}
           </Typography>
-          <Typography variant="h3" style={styles.subtitle} color={colors.darkGray}>
+          <Typography
+            variant="h3"
+            style={styles.subtitle}
+            color={colors.darkGray}
+            numberOfLines={1}
+          >
             Обратная: {backStructure || "пустая"}
           </Typography>
         </View>
@@ -99,5 +109,7 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
   },
-  itemInfo: {},
+  itemInfo: {
+    flex: 1,
+  },
 });
