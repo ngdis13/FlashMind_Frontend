@@ -15,6 +15,7 @@ import {
   Pressable,
   StyleSheet,
   Platform,
+  useWindowDimensions,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useRef, useState } from "react";
@@ -22,6 +23,7 @@ import { useCallback, useRef, useState } from "react";
 import { BOTTOM_MARGIN, commonStyles } from "@/styles/Common";
 import { Typography } from "@/styles/Typography";
 import { colors } from "@/styles/Colors";
+import { CARD_DISPLAY } from "@/styles/CardDisplay";
 import { useCardStore } from "@/store/card.store";
 import { MainButton } from "@/components/MainButton";
 
@@ -80,6 +82,10 @@ export const TextEditor = () => {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const lexicalEditorRef = useRef<any>(null);
+
+  const { width: windowWidth } = useWindowDimensions();
+  // На десктопе бокс редактора крупнее — на всю ширину контентной зоны
+  const isWide = windowWidth >= CARD_DISPLAY.WIDE_SCREEN_MIN_WIDTH;
 
   const handleEditorChange = useCallback((html: string, length: number) => {
     setLocalHtml(html);
@@ -162,7 +168,16 @@ export const TextEditor = () => {
 
           {/* Инпут-бокс */}
           <View style={[styles.workArea, styles.contentWidth]}>
-            <View style={styles.editorBox}>
+            <View
+              style={[
+                styles.editorBox,
+                isWide && {
+                  width: CARD_DISPLAY.desktopMaxWidth,
+                  maxWidth: "100%",
+                  height: CARD_DISPLAY.desktopHeight,
+                },
+              ]}
+            >
               {Platform.OS === "web" ? (
                 <LexicalDirectEditor
                   initialHtml={localHtml}
@@ -219,13 +234,13 @@ const styles = StyleSheet.create({
   toolbarWrapper: { width: "100%", marginBottom: 12 },
   workArea: { width: "100%", borderRadius: 20 },
   editorBox: {
-    width: 372,
+    width: CARD_DISPLAY.width,
     maxWidth: "100%",
     alignSelf: "center",
-    height: 520,
+    height: CARD_DISPLAY.height,
     backgroundColor: colors.white,
     overflow: "hidden",
-    borderRadius: 20,
+    borderRadius: CARD_DISPLAY.radius,
   },
   counter: { alignSelf: "flex-end", marginTop: 8 },
   saveButtonWrapper: {

@@ -7,9 +7,11 @@ import {
   Image,
   ScrollView,
   Animated,
+  useWindowDimensions,
 } from "react-native";
 import { Typography } from "@/styles/Typography";
 import { colors } from "@/styles/Colors";
+import { CARD_DISPLAY } from "@/styles/CardDisplay";
 import { CardBlock } from "../types/cardBlocks";
 import { HtmlText } from "./HtmlText";
 
@@ -31,6 +33,9 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
   initialSide = "front",
   allowFlip = true,
 }) => {
+  const { width: windowWidth } = useWindowDimensions();
+  // На десктопе модалка крупнее — по ширине как карточка обучения
+  const isWide = windowWidth >= CARD_DISPLAY.WIDE_SCREEN_MIN_WIDTH;
   // Переворот доступен только если он разрешён И есть обе стороны
   const isTwoSided = allowFlip && backBlocks.length > 0;
 
@@ -105,7 +110,11 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
         return block.value ? (
           <HtmlText key={block.id} html={block.value} />
         ) : (
-          <Typography key={block.id} variant="h2" style={styles.placeholderText}>
+          <Typography
+            key={block.id}
+            variant="h2"
+            style={styles.placeholderText}
+          >
             {block.type === "term" ? "Пустой термин" : "Пустой текст"}
           </Typography>
         );
@@ -143,10 +152,16 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
       <Pressable style={styles.overlay} onPress={onClose}>
         {/* Белая карточка перехватывает нажатие для переворота */}
         <Pressable
-          style={styles.cardContainer}
+          style={[
+            styles.cardContainer,
+            isWide && {
+              width: "95%",
+              maxWidth: CARD_DISPLAY.desktopMaxWidth,
+              height: CARD_DISPLAY.desktopHeight,
+            },
+          ]}
           onPress={handleCardPress}
         >
-
           {/* СЛОЙ ЛИЦЕВОЙ СТОРОНЫ */}
           <Animated.View
             style={[styles.cardFace, frontAnimatedStyle]}
@@ -164,11 +179,7 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
           {/* СЛОЙ ОБРАТНОЙ СТОРОНЫ */}
           {showBackLayer && (
             <Animated.View
-              style={[
-                styles.cardFace,
-                styles.cardBack,
-                backAnimatedStyle,
-              ]}
+              style={[styles.cardFace, styles.cardBack, backAnimatedStyle]}
               pointerEvents={isFlipped ? "auto" : "none"}
             >
               <ScrollView
@@ -194,8 +205,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   cardContainer: {
-    width: 372,
-    height: 520,
+    width: CARD_DISPLAY.width,
+    height: CARD_DISPLAY.height,
     position: "relative",
   },
   topSideIndicator: {
@@ -215,8 +226,8 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: "#FFFFFF",
-    borderRadius: 24,
-    padding: 16,
+    borderRadius: CARD_DISPLAY.radius,
+    // Паддинг убран — точные паддинги редактора (.editor-input) заданы в scrollContent
     backfaceVisibility: "hidden",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
@@ -233,11 +244,14 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    // Блоки на всю ширину — контент слева, ровно как в редакторе
+    // Блоки на всю ширину — контент слева, по центру вертикали — как в обучении
     alignItems: "stretch",
-    justifyContent: "flex-start",
-    gap: 16,
-    paddingVertical: 10,
+    justifyContent: "center",
+    gap: CARD_DISPLAY.blockGap,
+    // Паддинги — зеркало .editor-input { padding: 16px 14px }
+    paddingTop: CARD_DISPLAY.paddingTop,
+    paddingBottom: CARD_DISPLAY.paddingBottom,
+    paddingHorizontal: CARD_DISPLAY.paddingHorizontal,
   },
   termText: {
     textAlign: "center",

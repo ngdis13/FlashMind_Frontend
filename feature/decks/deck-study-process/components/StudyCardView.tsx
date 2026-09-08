@@ -9,10 +9,12 @@ import {
   View,
   Animated,
   Platform,
+  useWindowDimensions,
 } from "react-native";
 
 // --------------------------- Стили ---------------------------
 import { commonStyles } from "@/styles/Common";
+import { CARD_DISPLAY } from "@/styles/CardDisplay";
 
 // --------------------------- Компоненты ---------------------------
 import { UserHint } from "@/components/UserHint";
@@ -28,6 +30,10 @@ interface Props {
 }
 
 export const StudyCardView = ({ card, isFirstCard }: Props) => {
+  const { width: windowWidth } = useWindowDimensions();
+  // Десктоп (≥768px): прежний «большой» вид карточки (95% ширины, flex-высота).
+  // Мобильные: фикс 372×520, как в редакторе/превью
+  const isWide = windowWidth >= CARD_DISPLAY.WIDE_SCREEN_MIN_WIDTH;
   const [isFlipped, setIsFlipped] = useState<boolean>(false);
   const [wasFlipped, setWasFlipped] = useState<boolean>(false);
   const [showUserHint, setShowUserHint] = useState<boolean>(false);
@@ -175,7 +181,20 @@ export const StudyCardView = ({ card, isFirstCard }: Props) => {
   );
 
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        isWide
+          ? {
+              
+              width: CARD_DISPLAY.desktopMaxWidth,
+              maxWidth: "100%",
+              height: CARD_DISPLAY.desktopHeight,
+              maxHeight: "100%",
+            }
+          : { width: CARD_DISPLAY.width, height: CARD_DISPLAY.height },
+      ]}
+    >
       <Pressable style={styles.touchArea} onPress={handleFlip}>
         <Animated.View
           style={[
@@ -216,18 +235,17 @@ export const StudyCardView = ({ card, isFirstCard }: Props) => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     marginBottom: 24,
-    width: "95%",
-    minWidth: 370,
+    maxWidth: "100%",
     alignSelf: "center",
   },
   touchArea: { flex: 1, width: "100%" },
   card: {
     flex: 1,
     backfaceVisibility: "hidden",
-    paddingBottom: 20,
     width: "100%",
+    padding: 0,
+    borderWidth: 0,
   },
   cardFront: {
     backgroundColor: "#FFFFFF",
@@ -246,8 +264,12 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
+    // Контент по центру вертикали карточки
     justifyContent: "center",
-    padding: 20,
+    // Паддинги — зеркало .editor-input { padding: 16px 14px }
+    paddingTop: CARD_DISPLAY.paddingTop,
+    paddingBottom: CARD_DISPLAY.paddingBottom,
+    paddingHorizontal: CARD_DISPLAY.paddingHorizontal,
     width: "100%",
   },
   dotsPressArea: {

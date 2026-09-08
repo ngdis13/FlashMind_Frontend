@@ -12,7 +12,7 @@ export const styles = StyleSheet.create({
   counter: {
     alignItems: "center",
     width: "100%", 
-    marginBottom: 12,
+    marginBottom: 24,
   },
   buttonBox: {
     flexDirection: "row",
@@ -20,6 +20,7 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
     maxWidth: 500, 
     alignSelf: "center",
+    marginTop: 12
   },
 
   redButton: {

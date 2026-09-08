@@ -340,7 +340,7 @@ export default function StudyDecksScreen() {
                 opacity: fadeAnim,
                 transform: [{ translateY: slideAnim }],
                 width: "100%",
-                paddingHorizontal: 120,
+                justifyContent: "center",
               }}
             >
               <StudyCardView
