@@ -5,17 +5,7 @@ import React, { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { Image, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 // --------------------------- SVG ---------------------------
-import Svg, {
-  Circle,
-  Defs,
-  Line,
-  LinearGradient,
-  Path,
-  Polygon,
-  Polyline,
-  Rect,
-  Stop,
-} from "react-native-svg";
+import Svg, { Circle, Line, Path, Polygon, Rect } from "react-native-svg";
 
 // --------------------------- Стили / компоненты ---------------------------
 import { Typography } from "@/styles/Typography";
@@ -102,6 +92,7 @@ const formatTime = (sec: number): string => {
 const formatDelta = (delta: number, digits = 0): string =>
   `(${delta > 0 ? "+" : ""}${delta.toFixed(digits)})`;
 
+
 /** Path прямоугольника со скруглёнными ТОЛЬКО верхними углами */
 const topRoundedRect = (
   x: number,
@@ -176,40 +167,6 @@ export const buildRepetitionDays = (
       };
     });
 };
-
-// ==================== МОК-ДАННЫЕ (только для тестов вида) ====================
-// TODO: удалить после подключения реальных данных
-export const MOCK_REVIEW_HISTORY: ReviewHistoryEntry[] = (() => {
-  const DAY_MS = 24 * 60 * 60 * 1000;
-  const list: ReviewHistoryEntry[] = [];
-  for (let day = 0; day < 21; day++) {
-    const reviewsInDay = 2 + (day % 3); // 2..4 ревью в день
-    for (let r = 0; r < reviewsInDay; r++) {
-      const seed = day * 10 + r;
-      // Реалистичная кривая обучения:
-      // - первые 5 дней высокая сложность 6–9 (красная зона)
-      // - дни 6–12 средняя сложность 4–7 (переход в сиреневую зону)
-      // - дни 13–20 низкая сложность 1.5–4 (зелёная зона)
-      const baseDifficulty =
-        day < 5
-          ? 7.5 + ((seed * 11) % 15) * 0.15 // 7.5..9.7
-          : day < 12
-            ? 5.5 + ((seed * 7) % 18) * 0.12 - 0.5 * (day - 5) // 4.0..7.0, плавное снижение
-            : 3.0 + ((seed * 13) % 12) * 0.1 - 0.15 * (day - 12); // 1.5..4.0
-
-      list.push({
-        review_datetime: new Date(
-          Date.now() - day * DAY_MS - r * 60 * 60 * 1000,
-        ).toISOString(),
-        rating: (((seed * 5) % 4) + 1) as 1 | 2 | 3 | 4,
-        difficulty: Math.max(1.0, Math.min(10.0, baseDifficulty)),
-        stability: Math.max(1, Math.round(day * 0.7 + 1 + (seed % 3))),
-        review_duration_ms: (3 + ((seed * 7) % 8)) * 1000,
-      });
-    }
-  }
-  return list;
-})();
 
 // ==================== Компонент ====================
 export default function RepeatsGraph({ reviewHistory }: RepeatsGraphProps) {
@@ -299,21 +256,6 @@ export default function RepeatsGraph({ reviewHistory }: RepeatsGraphProps) {
           <View style={{ width: chartWidth, height: CHART_HEIGHT }}>
             {/* Сетка 0..10, столбики, линия сложности, зоны тапа */}
             <Svg width={chartWidth} height={CHART_HEIGHT}>
-              {/* Вертикальный градиент сложности: верх (красный) -> середина (сиреневый) -> низ (зелёный) */}
-              <Defs>
-                <LinearGradient
-                  id="difficultyGradient"
-                  x1={0}
-                  y1={0}
-                  x2={0}
-                  y2={CHART_HEIGHT}
-                  gradientUnits="userSpaceOnUse"
-                >
-                  <Stop offset="0%" stopColor={colors.red1} stopOpacity="1" />
-                  <Stop offset="50%" stopColor={colors.ratingYellow} stopOpacity="1" />
-                  <Stop offset="100%" stopColor={colors.ratingDarkGreen} stopOpacity="1" />
-                </LinearGradient>
-              </Defs>
               {/* Сетка — линии по делениям оси Y */}
               {yTicks.map((v) => (
                 <Line
@@ -374,21 +316,33 @@ export default function RepeatsGraph({ reviewHistory }: RepeatsGraphProps) {
                 );
               })}
 
-              {/* Линия сложности поверх столбиков */}
-              <Polyline
-                points={days
-                  .map(
-                    (d, i) =>
-                      `${dayX(i) + DAY_SPACING / 2},${
-                        CHART_HEIGHT - d.difficulty * (CHART_HEIGHT / maxValue)
-                      }`,
-                  )
-                  .join(" ")}
-                fill="none"
-                stroke="url(#difficultyGradient)"
-                strokeWidth={3}
-                strokeLinejoin="round"
-              />
+              {/* Линия сложности — сегменты, окрашенные по тем же порогам, что и кружки */}
+              {days.map((d, i) => {
+                if (i === days.length - 1) return null;
+                const next = days[i + 1];
+                const mid = (d.difficulty + next.difficulty) / 2;
+                return (
+                  <Line
+                    key={`line-${d.dateKey}`}
+                    x1={dayX(i) + DAY_SPACING / 2}
+                    y1={CHART_HEIGHT - d.difficulty * (CHART_HEIGHT / maxValue)}
+                    x2={dayX(i + 1) + DAY_SPACING / 2}
+                    y2={
+                      CHART_HEIGHT -
+                      next.difficulty * (CHART_HEIGHT / maxValue)
+                    }
+                    stroke={
+                      mid >= 7
+                        ? colors.red1
+                        : mid <= 4
+                          ? colors.ratingDarkGreen
+                          : colors.ratingYellow
+                    }
+                    strokeWidth={3}
+                    strokeLinecap="round"
+                  />
+                );
+              })}
               {days.map((d, i) => (
                 <Circle
                   key={d.dateKey}
@@ -472,6 +426,19 @@ export default function RepeatsGraph({ reviewHistory }: RepeatsGraphProps) {
                 : rawLeft;
             const top = Math.max(4, barTopY - 88); // ближе к столбику
 
+            // Стрелка тултипа всегда указывает на центр столбика,
+            // даже когда сам тултип прижат клампом к краю экрана
+            const barCenterX =
+              Y_AXIS_WIDTH +
+              LEFT_MARGIN +
+              selectedIndex * DAY_SPACING +
+              DAY_SPACING / 2 -
+              scrollOffsetX;
+            const arrowLeft = Math.min(
+              Math.max(barCenterX - left - 7, 4),
+              TOOLTIP_WIDTH - 18,
+            );
+
             // 1. СЛОЖНОСТЬ: Если дельта меньше или равна 0 (падает) -> хорошо (зелёный), если растёт -> плохо (красный)
             const isDifficultyGood =
               selectedDay.difficultyDelta !== null &&
@@ -515,8 +482,8 @@ export default function RepeatsGraph({ reviewHistory }: RepeatsGraphProps) {
                 </Typography>
 
                 <Typography variant="h3" style={styles.tooltipLine}>
-                  Стабильность: {currentDay.stabilityDays}{" "}
-                  {pluralizeDays(currentDay.stabilityDays)}
+                  Стабильность: {Math.round(currentDay.stabilityDays)}{" "}
+                  {pluralizeDays(Math.round(currentDay.stabilityDays))}
                   {currentDay.stabilityDelta !== null && (
                     <Typography
                       variant="h3"
@@ -527,7 +494,11 @@ export default function RepeatsGraph({ reviewHistory }: RepeatsGraphProps) {
                   )}
                 </Typography>
 
-                <Svg width={14} height={8} style={styles.tooltipArrow}>
+                <Svg
+                  width={14}
+                  height={8}
+                  style={[styles.tooltipArrow, { left: arrowLeft }]}
+                >
                   <Polygon points="0,0 14,0 7,8" fill={TOOLTIP_BG} />
                 </Svg>
               </View>

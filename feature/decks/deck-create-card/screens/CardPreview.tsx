@@ -33,9 +33,7 @@ import { CustomAlert } from "@/components/CustomAlert";
 import Toast from "react-native-toast-message";
 import { LogoSadStar } from "@/components/LogoSadStar";
 import MarksGraph from "../components/graphics/MarksGraph";
-import RepeatsGraph, {
-  MOCK_REVIEW_HISTORY,
-} from "../components/graphics/RepeatsGraph";
+import RepeatsGraph from "../components/graphics/RepeatsGraph";
 
 // ДД.ММ из ISO-строки (без Intl — одинаково на Hermes и web)
 const formatDate = (iso: string): string => {
@@ -323,8 +321,7 @@ export default function CardPreview() {
               ))}
             </View>
             <MarksGraph reviewHistory={detail?.review_history ?? []} />
-            {/* TODO: временно мок-данные для тестов вида — вернуть detail?.review_history */}
-            <RepeatsGraph reviewHistory={MOCK_REVIEW_HISTORY} />
+            <RepeatsGraph reviewHistory={detail?.review_history ?? []} />
           </View>
           {/* Удаление карточки */}
           <Pressable
