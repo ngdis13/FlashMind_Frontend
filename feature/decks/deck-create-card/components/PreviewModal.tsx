@@ -21,8 +21,6 @@ interface PreviewModalProps {
   frontBlocks: CardBlock[];
   backBlocks?: CardBlock[];
   initialSide?: "front" | "back";
-  // Разрешить переворот тапом (по умолчанию да)
-  allowFlip?: boolean;
 }
 
 export const PreviewModal: React.FC<PreviewModalProps> = ({
@@ -31,16 +29,10 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
   frontBlocks,
   backBlocks = [],
   initialSide = "front",
-  allowFlip = true,
 }) => {
   const { width: windowWidth } = useWindowDimensions();
   // На десктопе модалка крупнее — по ширине как карточка обучения
   const isWide = windowWidth >= CARD_DISPLAY.WIDE_SCREEN_MIN_WIDTH;
-  // Переворот доступен только если он разрешён И есть обе стороны
-  const isTwoSided = allowFlip && backBlocks.length > 0;
-
-  // Обратный слой рендерим и в режиме «поп-ап заблокирован на обороте»
-  const showBackLayer = isTwoSided || (!allowFlip && initialSide === "back");
 
   // Храним состояние переворота
   const [isFlipped, setIsFlipped] = useState(initialSide === "back");
@@ -59,10 +51,9 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
     }
   }, [isVisible, initialSide, animatedValue]);
 
-  // Точь-в-точь нативная механика переворота из обучения
+  // Точь-в-точь нативная механика переворота из обучения.
+  // Переворот доступен всегда — даже если одна из сторон ещё не заполнена
   const handleCardPress = () => {
-    if (!isTwoSided) return;
-
     const nextFlipped = !isFlipped;
     Animated.timing(animatedValue, {
       toValue: nextFlipped ? 1 : 0,
@@ -106,7 +97,7 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
   const renderBlocksContent = (blocks: CardBlock[]) => {
     return blocks.map((block) => {
       if (block.type === "term" || block.type === "text") {
-        // Рендерим HTML из редактора через эталонный HtmlText (зеркало Editor.css)
+        
         return block.value ? (
           <HtmlText key={block.id} html={block.value} />
         ) : (
@@ -176,21 +167,19 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
             </ScrollView>
           </Animated.View>
 
-          {/* СЛОЙ ОБРАТНОЙ СТОРОНЫ */}
-          {showBackLayer && (
-            <Animated.View
-              style={[styles.cardFace, styles.cardBack, backAnimatedStyle]}
-              pointerEvents={isFlipped ? "auto" : "none"}
+          {/* СЛОЙ ОБРАТНОЙ СТОРОНЫ — рендерим всегда, переворот доступен всегда */}
+          <Animated.View
+            style={[styles.cardFace, styles.cardBack, backAnimatedStyle]}
+            pointerEvents={isFlipped ? "auto" : "none"}
+          >
+            <ScrollView
+              style={styles.scroll}
+              contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
             >
-              <ScrollView
-                style={styles.scroll}
-                contentContainerStyle={styles.scrollContent}
-                showsVerticalScrollIndicator={false}
-              >
-                {renderBlocksContent(backBlocks)}
-              </ScrollView>
-            </Animated.View>
-          )}
+              {renderBlocksContent(backBlocks)}
+            </ScrollView>
+          </Animated.View>
         </Pressable>
       </Pressable>
     </Modal>

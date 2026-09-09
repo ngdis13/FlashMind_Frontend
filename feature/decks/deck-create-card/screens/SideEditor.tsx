@@ -399,7 +399,6 @@ export const SideEditor = () => {
         onClose={() => setIsPreviewVisible(false)}
         frontBlocks={front}
         backBlocks={back}
-        allowFlip={false}
         initialSide={isFront ? "front" : "back"}
       />
     </View>

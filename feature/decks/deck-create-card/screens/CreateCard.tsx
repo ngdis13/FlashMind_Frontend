@@ -1,7 +1,7 @@
 // ============================================================
 // ИМПОРТЫ
 // ============================================================
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   ScrollView,
   View,
@@ -96,9 +96,10 @@ const getFirstFrontText = (blocks: CardBlock[]): string => {
   return "";
 };
 
-// Обёртка блока в ленте конструктора: красная рамка (errorColor), пока блок
-// пуст, и тряска при каждой попытке сохранения с пустым блоком.
-const ShakeableBlock: React.FC<{
+// Универсальная обёртка тряски: дёргает children по горизонтали, когда
+// isInvalid поднимается вместе с новым shakeKey. Используется и для блоков
+// ленты, и для инпутов (название/подсказки) при выходе без сохранения
+const ShakeableBox: React.FC<{
   isInvalid: boolean;
   shakeKey: number;
   children: React.ReactNode;
@@ -120,19 +121,27 @@ const ShakeableBlock: React.FC<{
     transform: [{ translateX: translateX.value }],
   }));
 
-  return (
-    <Animated.View style={animatedStyle}>
-      <View
-        style={[
-          styles.blockItem,
-          isInvalid && { borderColor: colors.errorColor },
-        ]}
-      >
-        {children}
-      </View>
-    </Animated.View>
-  );
+  return <Animated.View style={animatedStyle}>{children}</Animated.View>;
 };
+
+// Обёртка блока в ленте конструктора: красная рамка (errorColor), пока блок
+// пуст или изменён без сохранения, и тряска при попытке сохранения/выхода.
+const ShakeableBlock: React.FC<{
+  isInvalid: boolean;
+  shakeKey: number;
+  children: React.ReactNode;
+}> = ({ isInvalid, shakeKey, children }) => (
+  <ShakeableBox isInvalid={isInvalid} shakeKey={shakeKey}>
+    <View
+      style={[
+        styles.blockItem,
+        isInvalid && { borderColor: colors.errorColor },
+      ]}
+    >
+      {children}
+    </View>
+  </ShakeableBox>
+);
 
 // ============================================================
 // ЭКРАН: КОНСТРУКТОР КАРТОЧКИ (создание + редактирование)
@@ -186,6 +195,13 @@ export default function CreateCardView() {
   const [shakeKey, setShakeKey] = useState(0);
   //управление модалкой при выходе
   const [isExitAlertVisible, setIsExitAlertVisible] = useState(false);
+  // Снимок карточки, загруженной с сервера (режим редактирования):
+  // с ним сравниваем черновик, чтобы понять, было ли что-то изменено без сохранения
+  const originalSnapshotRef = useRef<string | null>(null);
+  // Что именно изменено без сохранения — для тряски/подсветки при выходе
+  const [unsavedBlockIds, setUnsavedBlockIds] = useState<string[]>([]);
+  const [unsavedHint1, setUnsavedHint1] = useState(false);
+  const [unsavedHint2, setUnsavedHint2] = useState(false);
 
   // ----------------------------------------------------------
   // Производные значения
@@ -197,9 +213,31 @@ export default function CreateCardView() {
   // Функции-обработчики
   // ----------------------------------------------------------
 
-  // Есть ли что терять при выходе в режиме создания (для блокировки назад)
+  // Есть ли что терять при выходе (для блокировки назад):
+  // в создании — любое заполнение черновика,
+  // в редактировании — отличие черновика от снимка загруженной карточки
   const hasUnsavedChanges = (): boolean => {
-    if (isEditMode) return false;
+    if (isEditMode) {
+      if (!originalSnapshotRef.current) return false;
+
+      // Эффективное название — то, что реально уйдёт при сохранении
+      // (учитываем галочку «название из лицевой стороны»)
+      const effectiveTitle = (
+        useFrontAsTitle
+          ? firstFrontText || "Без названия"
+          : title.trim() || "Без названия"
+      ).trim();
+
+      const currentSnapshot = JSON.stringify({
+        title: effectiveTitle,
+        hint1: hint1.trim(),
+        hint2: hint2.trim(),
+        front,
+        back,
+      });
+
+      return currentSnapshot !== originalSnapshotRef.current;
+    }
 
     // Проверяем наличие вообще любого блока на лицевой или обратной стороне
     const hasAnyBlocks = front.length > 0 || back.length > 0;
@@ -213,27 +251,78 @@ export default function CreateCardView() {
     );
   };
 
+  // Пометить тряской/подсветкой, что именно изменено без сохранения
+  // (вызывается перед показом поп-апа выхода из редактирования)
+  const markUnsavedChanges = (): void => {
+    if (!originalSnapshotRef.current) return;
+    const snap = JSON.parse(originalSnapshotRef.current) as {
+      title: string;
+      hint1: string;
+      hint2: string;
+      front: CardBlock[];
+      back: CardBlock[];
+    };
+
+    // Блоки: изменённые существующие (JSON отличается от снимка) или новые
+    const changedIds: string[] = [];
+    const collectChanged = (draft: CardBlock[], snapshot: CardBlock[]): void => {
+      const snapshotById = new Map(
+        snapshot.map((b) => [b.id, JSON.stringify(b)]),
+      );
+      draft.forEach((b) => {
+        const snapStr = snapshotById.get(b.id);
+        if (snapStr === undefined || snapStr !== JSON.stringify(b)) {
+          changedIds.push(b.id);
+        }
+      });
+    };
+    collectChanged(front, snap.front);
+    collectChanged(back, snap.back);
+    setUnsavedBlockIds(changedIds);
+
+    setUnsavedHint1(hint1.trim() !== snap.hint1);
+    setUnsavedHint2(hint2.trim() !== snap.hint2);
+
+    // Общий триггер тряски всех помеченных зон
+    setShakeKey((k) => k + 1);
+  };
+
+  const clearUnsavedHighlights = (): void => {
+    setUnsavedBlockIds([]);
+    setUnsavedHint1(false);
+    setUnsavedHint2(false);
+  };
+
   // Клик «назад»: из редактирования — к «Просмотру карточки»,
   // из создания — к списку шаблонов (с защитой черновика)
   const handleBack = (): void => {
-    if (isEditMode) {
-      router.push(`/card/${cardId}?deckId=${id}`);
-      return;
-    }
-
-    //если поля не сохранены, но пользователь хочет выйти
+    // Есть несохранённые изменения — показываем поп-ап и подсвечиваем изменённое
     if (hasUnsavedChanges()) {
+      markUnsavedChanges();
       setIsExitAlertVisible(true);
       return;
     }
 
     resetDraft();
+
+    if (isEditMode) {
+      router.push(`/card/${cardId}?deckId=${id}`);
+      return;
+    }
+
     router.push(`/decks/${id}/create-card`);
   };
 
   const handleConfirmExit = (): void => {
     setIsExitAlertVisible(false);
+    clearUnsavedHighlights();
     resetDraft();
+
+    // Из редактирования возвращаемся к карточке, из создания — к шаблонам
+    if (isEditMode && cardId) {
+      router.push(`/card/${cardId}?deckId=${id}`);
+      return;
+    }
     router.push(`/decks/${id}/create-card`);
   };
 
@@ -361,6 +450,7 @@ export default function CreateCardView() {
         });
       }
 
+      clearUnsavedHighlights();
       resetDraft();
       // После редактирования возвращаемся к «Просмотру карточки»,
       // после создания — к странице колоды
@@ -432,6 +522,17 @@ export default function CreateCardView() {
     (async () => {
       const card = await getCardById(cardId as string);
       if (!card || cancelled) return;
+
+      // Снимок «как было на сервере» — эталон для сравнения при выходе.
+      // Запоминаем всегда, до заполнения черновика
+      originalSnapshotRef.current = JSON.stringify({
+        title: card.title.trim(),
+        hint1: (card.hint1 ?? "").trim(),
+        hint2: (card.hint2 ?? "").trim(),
+        front: card.front,
+        back: card.back,
+      });
+
       // Заполняем черновик только если он пуст (не перезаписываем правки,
       // сделанные в side-editor при возврате на экран)
       if (front.length === 0 && back.length === 0) {
@@ -558,7 +659,10 @@ export default function CreateCardView() {
                   .map((block) => (
                     <ShakeableBlock
                       key={block.id}
-                      isInvalid={invalidBlockIds.includes(block.id)}
+                      isInvalid={
+                        invalidBlockIds.includes(block.id) ||
+                        unsavedBlockIds.includes(block.id)
+                      }
                       shakeKey={shakeKey}
                     >
                       <Typography variant="span" color={colors.darkGray}>
@@ -599,7 +703,10 @@ export default function CreateCardView() {
                   .map((block) => (
                     <ShakeableBlock
                       key={block.id}
-                      isInvalid={invalidBlockIds.includes(block.id)}
+                      isInvalid={
+                        invalidBlockIds.includes(block.id) ||
+                        unsavedBlockIds.includes(block.id)
+                      }
                       shakeKey={shakeKey}
                     >
                       <Typography variant="span" color={colors.darkGray}>
@@ -618,18 +725,28 @@ export default function CreateCardView() {
               <Image source={iconInfo} style={styles.iconInfo} />
             </View>
             <View style={styles.hintList}>
-              <Input
-                style={{ textAlign: "left" }}
-                placeholder={"Подсказка 1"}
-                value={hint1}
-                onChangeText={setHint1}
-              />
-              <Input
-                style={{ textAlign: "left" }}
-                placeholder={"Подсказка 2"}
-                value={hint2}
-                onChangeText={setHint2}
-              />
+              <ShakeableBox isInvalid={unsavedHint1} shakeKey={shakeKey}>
+                <Input
+                  style={{
+                    textAlign: "left",
+                    borderColor: unsavedHint1 ? colors.errorColor : undefined,
+                  }}
+                  placeholder={"Подсказка 1"}
+                  value={hint1}
+                  onChangeText={setHint1}
+                />
+              </ShakeableBox>
+              <ShakeableBox isInvalid={unsavedHint2} shakeKey={shakeKey}>
+                <Input
+                  style={{
+                    textAlign: "left",
+                    borderColor: unsavedHint2 ? colors.errorColor : undefined,
+                  }}
+                  placeholder={"Подсказка 2"}
+                  value={hint2}
+                  onChangeText={setHint2}
+                />
+              </ShakeableBox>
             </View>
           </View>
         </ScrollView>
@@ -663,7 +780,11 @@ export default function CreateCardView() {
       <CustomAlert
         visible={isExitAlertVisible}
         message="Выйти без сохранения?"
-        description="Изменения не запишутся, и создаваемая карточка будет удалена"
+        description={
+          isEditMode
+            ? "Внесённые изменения не сохранятся, карточка останется прежней"
+            : "Изменения не запишутся, и создаваемая карточка будет удалена"
+        }
         confirmText="Выйти"
         cancelText="Вернуться к редактированию"
         onConfirm={handleConfirmExit}
