@@ -118,13 +118,15 @@ export const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
     backgroundColor: colors.white,
+    flexDirection: "row", // название слева, глазик справа
+    alignItems: "center",
   },
   cardText: {
     fontSize: 15,
     flex: 1,
     lineHeight: 20,
   },
-  cardArrow: {
+  cardEyeButton: {
     marginLeft: 12,
   },
 

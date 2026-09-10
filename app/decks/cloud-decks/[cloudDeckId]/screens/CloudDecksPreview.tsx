@@ -16,6 +16,8 @@ import { formatDownloadsCount } from "@/utils/helpers/formatDownloadsCount";
 import { UserAvatar } from "@/feature-profile/assets/UserAvatar";
 import { Input } from "@/components/Input";
 import searchButton from "@/feature/decks/assets/searchButton.png";
+import { PreviewModal } from "@/feature-decks/deck-create-card/components/PreviewModal";
+import viewCardIcon from "@/feature-decks/assets/viewCardIcon.png";
 import { Logo } from "@/components/Logo";
 import { MainButton } from "@/components/MainButton";
 import { LogoSadStar } from "@/components/LogoSadStar";
@@ -30,6 +32,10 @@ export default function CloudDecksPreview() {
   const [search, setSearch] = useState("");
   const [isImporting, setIsImporting] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  // Карточка, открытая в предпросмотре (модалка как в колоде)
+  const [previewCard, setPreviewCard] = useState<CloudPreviewCard | null>(
+    null,
+  );
   const { importDeck, decks, deleteDeck } = useDecks();
 
   const accessToken = useAuthStore((state) => state.accessToken);
@@ -214,16 +220,19 @@ export default function CloudDecksPreview() {
       return haystack.toLowerCase().includes(search.toLowerCase());
     }) || [];
 
-  const handleCardPress = (cardId: string) => {
-    router.push(`/decks/cloud-decks/card/${cardId}?cloudDeckId=${cloudDeckId}`);
-  };
-
   const renderCardItem = ({ item }: { item: CloudPreviewCard }) => (
-    <Pressable onPress={() => handleCardPress(item.id)}>
+    <Pressable onPress={() => setPreviewCard(item)}>
       <View style={[commonStyles.mainBox, styles.cardItem]}>
         <Typography variant="h2" style={styles.cardText} numberOfLines={3}>
           {item.title || blocksToPlainText(item.front)}
         </Typography>
+        <Pressable
+          onPress={() => setPreviewCard(item)}
+          hitSlop={8}
+          style={styles.cardEyeButton}
+        >
+          <Image source={viewCardIcon} style={{ width: 28, height: 28 }} />
+        </Pressable>
       </View>
     </Pressable>
   );
@@ -238,7 +247,7 @@ export default function CloudDecksPreview() {
         >
           <Image source={ReturnIcon} style={{ width: 10, height: 18 }} />
         </Pressable>
-        <Typography variant="h2">Вернуться к колодам</Typography>
+        <Typography variant="h2">Просмотр колоды</Typography>
       </View>
 
       <View style={[commonStyles.mainBox, styles.deckCard]}>
@@ -389,6 +398,14 @@ export default function CloudDecksPreview() {
           confirmText="Удалить"
           cancelText="Отмена"
           type="author_cloud-delete"
+        />
+        {/* Полноэкранный предпросмотр карточки — как в колоде */}
+        <PreviewModal
+          isVisible={previewCard !== null}
+          onClose={() => setPreviewCard(null)}
+          frontBlocks={previewCard?.front ?? []}
+          backBlocks={previewCard?.back ?? []}
+          initialSide="front"
         />
         {renderBottomButton()}
       </View>
