@@ -39,7 +39,7 @@ export default function CardsStatusGraph({
 
   // ГЕОМЕТРИЯ КОЛЬЦА (под viewBox 130x130, центр в точке 65, 65)
   const radius = 48;
-  const strokeWidth = 14; // Изящная толщина кольца из дизайна
+  const strokeWidth = 14; // Изящная толщина кольца из дизайн
   const circumference = 2 * Math.PI * radius; // Длина окружности (~301.6)
 
   const capLength = strokeWidth / 2;

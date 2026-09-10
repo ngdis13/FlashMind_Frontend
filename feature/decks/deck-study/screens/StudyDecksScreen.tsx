@@ -1,18 +1,42 @@
 import { commonStyles } from "@/styles/Common";
 import { Typography } from "@/styles/Typography";
-import { Pressable, View, Image } from "react-native";
+import { Pressable, View, Image, Modal, Animated } from "react-native";
 import ReturnIcon from "@/assets/icons/ReturnIcon.png";
-import IconInfo from "@/feature-decks/deck-study/assets/icon/IconInfo.png";
-import IconPlus from "@/feature-decks/deck-study/assets/icon/IconPlus.png";
-import IconMinus from "@/feature-decks/deck-study/assets/icon/IconMinus.png";
-import SmallIcon from "@/assets/icons/SmallLogo.png";
+
 import { useDecks } from "@/storage/hooks/useDecks";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { styles } from "@/feature-decks/deck-study/styles/StudyDecks.styles";
 import { MainButton } from "@/components/MainButton";
 import { useEffect, useState } from "react";
-import { Animated } from "react-native";
 import { colors } from "@/styles/Colors";
+import { AxiosError } from "axios";
+
+// Донат «к повтору сегодня»
+import RepeatTodayDonut from "@/feature-decks/deck-study/components/RepeatTodayDonut";
+
+// AI-инсайты (перенесены из статистики)
+import AiInsightsButton from "@/feature-decks/deck-study/components/AiInsightsButton";
+import { AiInsightsScreen } from "@/feature-decks/deck-study/components/AiInsightsScreen";
+import {
+  AiModal,
+  InsufficientReviewsData,
+} from "@/feature-decks/deck-study/components/AiModal";
+import {
+  analyzeStudyStat,
+  StudyStatAnalyzeResponse,
+} from "@/feature-decks/deck-study/api/aiApi";
+import Reanimated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  runOnJS,
+  Easing,
+} from "react-native-reanimated";
+
+const SMOOTH_TIMING_CONFIG = {
+  duration: 280,
+  easing: Easing.bezier(0.25, 1, 0.5, 1),
+};
 
 export default function StudyDecksScreen() {
   const router = useRouter();
@@ -21,6 +45,13 @@ export default function StudyDecksScreen() {
   const deck = decks.find((d) => d.id === id);
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
   const fadeAnim = useState(new Animated.Value(0))[0]; // Начальная прозрачность 0
+
+
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  const [aiData, setAiData] = useState<StudyStatAnalyzeResponse | null>(null);
+  const [aiError, setAiError] = useState<InsufficientReviewsData | null>(null);
+  const [isAiErrorModal, setIsAiErrorModal] = useState(false);
+  const [isAiModalVisible, setIsAiModalVisible] = useState(false);
 
   const [addCount, setAddCount] = useState(0);
 
@@ -53,9 +84,51 @@ export default function StudyDecksScreen() {
     setAddCount(Math.min(5, newCard));
   }, [newCard]);
 
+
+
+  /** Плавный выезд AI-экрана снизу */
+  const aiTranslateY = useSharedValue(400);
+  const aiOpacity = useSharedValue(0);
+
+  const openAiModal = () => {
+    setIsAiModalVisible(true);
+    aiTranslateY.value = withTiming(0, SMOOTH_TIMING_CONFIG);
+    aiOpacity.value = withTiming(1, SMOOTH_TIMING_CONFIG);
+  };
+
+  const closeAiModal = () => {
+    aiTranslateY.value = withTiming(400, SMOOTH_TIMING_CONFIG);
+    aiOpacity.value = withTiming(0, SMOOTH_TIMING_CONFIG, (finished) => {
+      if (finished) runOnJS(setIsAiModalVisible)(false);
+    });
+  };
+
+  const aiAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: aiTranslateY.value }],
+    opacity: aiOpacity.value,
+  }));
+
+  /** Запуск AI-анализа по конкретной колоде */
+  const handleAiInsights = async () => {
+    if (!id) return;
+    setIsAiLoading(true);
+    try {
+      const result = await analyzeStudyStat(id);
+      setAiData(result);
+      openAiModal();
+    } catch (err) {
+      if (err instanceof AxiosError && err.response?.status === 422) {
+        setAiError(err.response.data as InsufficientReviewsData);
+        setIsAiErrorModal(true);
+      }
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
+
   return (
     <View
-      style={{ flex: 1, backgroundColor: colors.background, width: "100%"}}
+      style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}
     >
       <View style={[commonStyles.container, { flex: 1 }]}>
         <View
@@ -64,124 +137,39 @@ export default function StudyDecksScreen() {
             width: "100%",
             paddingHorizontal: 10,
             paddingTop: 20,
-            
           }}
         >
           <View style={[styles.mainContent, { width: "100%" }]}>
             <View style={styles.header}>
-              <Pressable onPress={handleBack}>
-                <Image source={ReturnIcon} style={{ width: 12, height: 22 }} />
+              <Pressable
+                onPress={handleBack}
+                style={styles.backButton}
+                hitSlop={20}
+              >
+                <Image source={ReturnIcon} style={{ width: 10, height: 18 }} />
               </Pressable>
-              <Typography
-                variant="h1"
-                style={styles.headerTitle}
-                numberOfLines={2}
-                ellipsizeMode="tail"
-              >
-                {deck?.name}
-              </Typography>
+              <Typography variant="h2">{deck?.name}</Typography>
             </View>
 
-            <View style={[commonStyles.mainBox, { gap: 24 }, styles.infoBox]}>
-              <View style={styles.infoLine}>
-                <Typography variant="h2">Всего карточек</Typography>
-                <Typography variant="h2">{total}</Typography>
-              </View>
-              <View style={styles.infoLine}>
-                <Typography variant="h2">Новые</Typography>
-                <Typography variant="h2">{newCard}</Typography>
-              </View>
-              <View style={styles.infoLine}>
-                <Typography variant="h2">В обучении</Typography>
-                <Typography variant="h2">{inLearning}</Typography>
-              </View>
-              <View style={[styles.infoLine, { paddingEnd: 0 }]}>
-                <View style={styles.infoContent}>
-                  <Typography variant="h2">Добавить к изучению</Typography>
-                  <View>
-                    <Pressable
-                      onPress={() => setIsTooltipVisible(!isTooltipVisible)}
-                      onHoverIn={() => setIsTooltipVisible(true)}
-                      onHoverOut={() => setIsTooltipVisible(false)}
-                    >
-                      <Image
-                        source={IconInfo}
-                        style={{ width: 20, height: 20 }}
-                      />
-                    </Pressable>
-                  </View>
-                </View>
-                <View style={styles.counter}>
-                  <Pressable
-                    onPress={() => setAddCount((prev) => Math.max(0, prev - 1))}
-                  >
-                    <Image
-                      source={IconMinus}
-                      style={{ width: 21, height: 20 }}
-                    />
-                  </Pressable>
-                  <Typography variant="h2">{addCount}</Typography>
-                  <Pressable
-                    onPress={() =>
-                      setAddCount((prev) => Math.min(newCard, prev + 1))
-                    }
-                  >
-                    <Image
-                      source={IconPlus}
-                      style={{
-                        width: 21,
-                        height: 20,
-                        opacity: addCount >= newCard ? 0.3 : 1,
-                      }}
-                    />
-                  </Pressable>
-                </View>
-              </View>
+            <View
+              style={[commonStyles.mainBox, { gap: 20 }, styles.infoBox]}
+            >
+              {/* График «к повтору сегодня» с легендой */}
+              <RepeatTodayDonut
+                dueCards={deck?.cards_on_study ?? []}
+                newCount={addCount}
+              />
             </View>
 
-            {isTooltipVisible && (
-              <Animated.View
-                style={[
-                  styles.tooltip,
-                  {
-                    opacity: fadeAnim,
-                    transform: [
-                      {
-                        translateY: fadeAnim.interpolate({
-                          inputRange: [0, 1],
-                          outputRange: [10, 0],
-                        }),
-                      },
-                    ],
-                  },
-                ]}
-              >
-                <Image source={SmallIcon} style={{ width: 20, height: 20 }} />
-                <View style={{ flex: 1 }}>
-                  <Typography variant="h3">
-                    Не рекомендуем добавлять сразу все карточки к изучению,
-                    начните с 5-20 в день. Следите, чтобы "К повтору сегодня" не
-                    росло слишком сильно, берегите свое здоровье
-                  </Typography>
-                </View>
-              </Animated.View>
-            )}
+            {/* Кнопка AI-инсайтов — анализ по этой колоде */}
+            <AiInsightsButton
+              onPress={handleAiInsights}
+              isLoading={isAiLoading}
+              disabled={!deck}
+            />
           </View>
         </View>
 
-        <View
-          style={{
-            gap: 12,
-            alignItems: "center",
-            width: "100%",
-            paddingHorizontal: 10,
-            paddingBottom: 16,
-          }}
-        >
-          <Typography variant="h2">
-            К повторению сегодня: {deck?.repeat_cards ?? 0}
-          </Typography>
-        </View>
       </View>
       <View style={styles.startButton}>
         <MainButton
@@ -191,7 +179,27 @@ export default function StudyDecksScreen() {
           disabled={!deck || (deck?.repeat_cards ?? 0) + addCount === 0}
         />
       </View>
+
+      {/* Полноэкранная модалка AI Insights с плавным выездом */}
+      <Modal
+        visible={isAiModalVisible}
+        transparent
+        animationType="none"
+        onRequestClose={closeAiModal}
+      >
+        <View style={styles.aiModalOverlay}>
+          <Reanimated.View style={[styles.aiModalContent, aiAnimatedStyle]}>
+            {aiData && <AiInsightsScreen data={aiData} onBack={closeAiModal} />}
+          </Reanimated.View>
+        </View>
+      </Modal>
+
+      {/* Модалка «Недостаточно данных» (ошибка 422) */}
+      <AiModal
+        visible={isAiErrorModal}
+        onClose={() => setIsAiErrorModal(false)}
+        data={aiError}
+      />
     </View>
   );
 }
-

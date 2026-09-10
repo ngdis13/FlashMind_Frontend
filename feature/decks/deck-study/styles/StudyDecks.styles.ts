@@ -4,9 +4,15 @@ import { StyleSheet } from "react-native";
 export const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
-    gap: 12,
     alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
     width: "100%",
+  },
+  backButton: {
+    position: "absolute",
+    left: -20,
+    padding: 20,
   },
   headerTitle: {
     flex: 1, // Текст забирает всё свободное пространство и не выталкивает стрелку
@@ -58,5 +64,15 @@ export const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+  },
+  // Стили полноэкранной AI-модалки (перенесены из статистики)
+  aiModalOverlay: {
+    flex: 1,
+    alignItems: "center",
+  },
+  aiModalContent: {
+    width: "100%",
+    maxWidth: 800,
+    flex: 1,
   },
 });

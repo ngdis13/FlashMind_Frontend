@@ -58,6 +58,7 @@ export const colors = {
   statusColorYellow: "#F7F580",
   statusColorRed: "#FB8B93",
   statusColorGrey: "#D9D9D9",
+  statusColorOrange: "#F5A55C", // «Умеренные» в донате «к повтору сегодня»
 
   /**График сложности карточек */
   diffGreen: "#C6E5C7",

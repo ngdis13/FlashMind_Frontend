@@ -141,16 +141,4 @@ export const styles = StyleSheet.create({
   graphsBox: {
     gap: 16,
   },
-  AiButton: {
-    marginBottom: 16,
-  },
-  aiModalOverlay: {
-    flex: 1,
-    alignItems: "center",
-  },
-  aiModalContent: {
-    width: "100%",
-    maxWidth: 800,
-    flex: 1,
-  },
 });

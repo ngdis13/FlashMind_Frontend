@@ -3,7 +3,6 @@ import {
   Pressable,
   ScrollView,
   View,
-  Modal,
   Image,
   StyleSheet,
   useWindowDimensions,
@@ -42,11 +41,6 @@ import CardsStatusGraph from "../components/CardsStatusGraph";
 import DifficultyCardsGraph from "../components/DifficultyCardsGraph";
 import StabilityGraph from "../components/StabilityGraph";
 import ForecastGraph from "../components/ForecastGraph";
-import AiInsightsButton from "../components/AiInsightsButton";
-import { AiInsightsScreen } from "../components/AiInsightsScreen";
-import { AiModal, InsufficientReviewsData } from "../components/AiModal";
-import { analyzeStudyStat, StudyStatAnalyzeResponse } from "../api/aiApi";
-
 const SMOOTH_TIMING_CONFIG = {
   duration: 280,
   easing: Easing.bezier(0.25, 1, 0.5, 1),
@@ -65,10 +59,6 @@ export default function StatisticScreen() {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedDeck, setSelectedDeck] = useState(deckOptions[0]);
   const [statsData, setStatsData] = useState<StatsResponse | null>(null);
-  const [isAiLoading, setIsAiLoading] = useState(false);
-  const [aiData, setAiData] = useState<StudyStatAnalyzeResponse | null>(null);
-  const [aiError, setAiError] = useState<InsufficientReviewsData | null>(null);
-  const [isAiErrorModal, setIsAiErrorModal] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -189,47 +179,6 @@ export default function StatisticScreen() {
       },
     );
   };
-  const [isAiModalVisible, setIsAiModalVisible] = useState(false);
-
-  /** Плавный выезд AI-экрана снизу */
-  const aiTranslateY = useSharedValue(400);
-  const aiOpacity = useSharedValue(0);
-
-  const openAiModal = () => {
-    setIsAiModalVisible(true);
-    aiTranslateY.value = withTiming(0, SMOOTH_TIMING_CONFIG);
-    aiOpacity.value = withTiming(1, SMOOTH_TIMING_CONFIG);
-  };
-
-  const closeAiModal = () => {
-    aiTranslateY.value = withTiming(400, SMOOTH_TIMING_CONFIG);
-    aiOpacity.value = withTiming(0, SMOOTH_TIMING_CONFIG, (finished) => {
-      if (finished) runOnJS(setIsAiModalVisible)(false);
-    });
-  };
-
-  const aiAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: aiTranslateY.value }],
-    opacity: aiOpacity.value,
-  }));
-
-  const handleAiInsights = async () => {
-    setIsAiLoading(true);
-    try {
-      const deckId = selectedDeck.id === "all" ? null : selectedDeck.id;
-      const result = await analyzeStudyStat(deckId);
-      setAiData(result);
-      openAiModal();
-    } catch (err: any) {
-      if (err?.response?.status === 422) {
-        setAiError(err.response.data);
-        setIsAiErrorModal(true);
-      }
-    } finally {
-      setIsAiLoading(false);
-    }
-  };
-
   const arrowStyle = useAnimatedStyle(() => {
     return { transform: [{ rotate: `${animatedProgress.value * 180}deg` }] };
   });
@@ -385,14 +334,6 @@ export default function StatisticScreen() {
                 </View>
               ))}
             </View>
-            <View style={styles.AiButton}>
-              <AiInsightsButton
-                onPress={handleAiInsights}
-                isLoading={isAiLoading}
-                disabled={selectedDeck.id === "all"}
-              />
-            </View>
-
             {/**Контейнер со всеми графиками */}
             <View
               style={[
@@ -431,35 +372,6 @@ export default function StatisticScreen() {
           </ScrollView>
         </View>
 
-        {/* Полноэкранная модалка AI Insights с плавным выездом */}
-        <Modal
-          visible={isAiModalVisible}
-          transparent
-          animationType="none"
-          onRequestClose={closeAiModal}
-        >
-          <View style={styles.aiModalOverlay}>
-            <Animated.View
-              style={[
-                styles.aiModalContent,
-                aiAnimatedStyle,
-              ]}
-            >
-              {aiData && (
-              <AiInsightsScreen
-                data={aiData}
-                onBack={closeAiModal}
-              />
-              )}
-            </Animated.View>
-          </View>
-        </Modal>
-
-      <AiModal
-        visible={isAiErrorModal}
-        onClose={() => setIsAiErrorModal(false)}
-        data={aiError}
-      />
       </View>
   );
 }
