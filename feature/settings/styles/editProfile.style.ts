@@ -10,11 +10,6 @@ export const styles = StyleSheet.create({
     paddingBottom: 40,
   },
 
-  backButton: {
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
   containerInput: {
     gap: 16,
     width: "100%",

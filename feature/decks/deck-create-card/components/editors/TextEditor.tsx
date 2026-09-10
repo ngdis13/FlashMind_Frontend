@@ -147,10 +147,16 @@ export const TextEditor = () => {
           keyboardShouldPersistTaps="handled"
         >
           {/* Шапка — как на экране термина */}
-          <View style={[styles.header, styles.contentWidth]}>
+          <View
+            style={[
+              commonStyles.screenHeader,
+              styles.contentWidth,
+              { marginBottom: 16 },
+            ]}
+          >
             <Pressable
               onPress={handleBack}
-              style={styles.backButton}
+              style={commonStyles.backButton}
               hitSlop={20}
             >
               <Image source={ReturnIcon} style={{ width: 10, height: 18 }} />
@@ -219,16 +225,6 @@ export const TextEditor = () => {
 };
 
 const styles = StyleSheet.create({
-  // Шапка — 1:1 с TermEditor
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    position: "relative",
-    marginBottom: 16,
-    width: "100%",
-  },
-  backButton: { position: "absolute", left: -20, padding: 20 },
   // Ограничение ширины контента как во всём приложении (web)
   contentWidth: { width: "100%", maxWidth: 800, alignSelf: "center" },
   toolbarWrapper: { width: "100%", marginBottom: 12 },

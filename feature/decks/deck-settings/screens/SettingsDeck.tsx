@@ -400,11 +400,15 @@ export default function SettingsDecksScreen() {
           scrollEnabled={isScrollEnabled}
         >
           {/* Шапка экрана */}
-          <View style={styles.header}>
-            <Pressable onPress={handleBack} style={styles.backButton}>
-              <Image source={ReturnIcon} style={{ width: 12, height: 22 }} />
+          <View style={[commonStyles.screenHeader, { marginBottom: 16 }]}>
+            <Pressable
+              onPress={handleBack}
+              style={commonStyles.backButton}
+              hitSlop={20}
+            >
+              <Image source={ReturnIcon} style={{ width: 10, height: 18 }} />
             </Pressable>
-            <Typography variant="h1">Настройки колоды</Typography>
+            <Typography variant="h2">Настройки колоды</Typography>
           </View>
 
           {/* Блок полей ввода */}
@@ -448,7 +452,7 @@ export default function SettingsDecksScreen() {
                 <Typography variant="h2" style={styles.colorText}>
                   Интенсивность обучения
                 </Typography>
-                <Pressable onPress={handleInfo} style={styles.backButton}>
+                <Pressable onPress={handleInfo} style={styles.infoButton}>
                   <Image
                     source={infoButton}
                     style={{ width: 16, height: 16 }}

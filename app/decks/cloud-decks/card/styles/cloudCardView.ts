@@ -3,13 +3,6 @@ import { StyleSheet } from "react-native";
 import { colors } from "@/styles/Colors";
 
 export const styles = StyleSheet.create({
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 16,
-    width: "100%",
-    gap: 12
-  },
   inputWrapper: {
     width: "100%",
     marginBottom: 24,

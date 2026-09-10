@@ -866,9 +866,6 @@ export default function DeckViewById() {
    */
   const hasCards = cards.length > 0;
 
-  // ============================================
-  // ⭐ ОТРИСОВКА
-  // ============================================
   return (
     <View
       style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}
@@ -887,14 +884,15 @@ export default function DeckViewById() {
           }}
           showsVerticalScrollIndicator={false}
         >
-          <View style={[commonStyles.header, styles.header]}>
-            <View style={styles.headerName}>
-              <Pressable onPress={handleBack}>
-                <Image source={ReturnIcon} style={{ width: 12, height: 22 }} />
-              </Pressable>
-
-              <Typography variant="h1">Вернуться к колодам</Typography>
-            </View>
+          <View style={[commonStyles.screenHeader, { marginBottom: 16 }]}>
+            <Pressable
+              onPress={handleBack}
+              style={commonStyles.backButton}
+              hitSlop={20}
+            >
+              <Image source={ReturnIcon} style={{ width: 10, height: 18 }} />
+            </Pressable>
+            <Typography variant="h2">Управление колодой</Typography>
 
             <View style={styles.noticeBox}>
               {/* Приоритет 1: колода удалена автором */}
@@ -913,7 +911,7 @@ export default function DeckViewById() {
                   onPress={handleCloudSyncAlert}
                   style={styles.cloudAlertAbsoluteLeft}
                 >
-                  <Image source={InfoIcon} style={{ width: 24, height: 24 }} />
+                  <Image source={InfoIcon} style={{ width: 20, height: 20 }} />
                 </Pressable>
               )}
 
@@ -923,7 +921,7 @@ export default function DeckViewById() {
                   onPress={handleAccessSync}
                   style={styles.cloudAlertAbsoluteLeft}
                 >
-                  <Image source={GreatIcon} style={{ width: 24, height: 24 }} />
+                  <Image source={GreatIcon} style={{ width: 20, height: 20 }} />
                 </Pressable>
               )}
 

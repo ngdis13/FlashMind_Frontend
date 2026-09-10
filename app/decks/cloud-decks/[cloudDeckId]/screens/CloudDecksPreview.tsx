@@ -1,4 +1,4 @@
- import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { Pressable, View, Image, FlatList } from "react-native";
 import { fetchCloudDeckPreview, deleteCloudDeck } from "../../api/api";
 import { CloudDeckPreviewResponse, CloudPreviewCard } from "../../types/types";
@@ -230,13 +230,15 @@ export default function CloudDecksPreview() {
 
   const renderHeader = () => (
     <>
-      <View style={[commonStyles.header, styles.header]}>
-        <View style={styles.headerName}>
-          <Pressable onPress={handleBack}>
-            <Image source={ReturnIcon} style={{ width: 12, height: 22 }} />
-          </Pressable>
-          <Typography variant="h1">Вернуться к колодам</Typography>
-        </View>
+      <View style={[commonStyles.screenHeader, { marginBottom: 16 }]}>
+        <Pressable
+          onPress={handleBack}
+          style={commonStyles.backButton}
+          hitSlop={20}
+        >
+          <Image source={ReturnIcon} style={{ width: 10, height: 18 }} />
+        </Pressable>
+        <Typography variant="h2">Вернуться к колодам</Typography>
       </View>
 
       <View style={[commonStyles.mainBox, styles.deckCard]}>

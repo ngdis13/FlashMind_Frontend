@@ -11,14 +11,7 @@ export const styles = StyleSheet.create({
     paddingTop: 20,
     paddingBottom: 40,
   },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    marginBottom: 16,
-    width: "100%",
-  },
-  backButton: {
+  infoButton: {
     justifyContent: "center",
     alignItems: "center",
   },

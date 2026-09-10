@@ -2,11 +2,6 @@ import { BOTTOM_MARGIN } from "@/styles/Common";
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
-  header: {
-    flexDirection: "row",
-    gap: 12,
-    marginBottom: 16,
-  },
   inputBox: {
     gap: 16,
     marginBottom: 16

@@ -221,24 +221,12 @@ export default function CardPreview() {
       style={{ flex: 1, backgroundColor: colors.background, width: "100%" }}
     >
       <View style={[commonStyles.container, { flex: 1 }]}>
-        <ScrollView
-          style={{ width: "100%" }}
-          contentContainerStyle={{
-            flexGrow: 1,
-            width: "100%",
-            paddingHorizontal: 10,
-            paddingTop: 20,
-            paddingBottom: 30,
-          }}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-          nestedScrollEnabled={Platform.OS === "android"}
-        >
-          {/* Шапка */}
-          <View style={styles.header}>
+        {/* Шапка зафиксирована вне скролла — единая для всех экранов, не прыгает */}
+        <View style={commonStyles.headerWrapper}>
+          <View style={[commonStyles.screenHeader, { marginBottom: 16 }]}>
             <Pressable
               onPress={handleBack}
-              style={styles.backButton}
+              style={commonStyles.backButton}
               hitSlop={20}
             >
               <Image source={ReturnIcon} style={{ width: 10, height: 18 }} />
@@ -267,6 +255,20 @@ export default function CardPreview() {
               </Pressable>
             </View>
           </View>
+        </View>
+
+        <ScrollView
+          style={{ width: "100%" }}
+          contentContainerStyle={{
+            flexGrow: 1,
+            width: "100%",
+            paddingHorizontal: 10,
+            paddingBottom: 30,
+          }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          nestedScrollEnabled={Platform.OS === "android"}
+        >
           {/* Название карточки */}
           <View style={[commonStyles.mainBox, styles.nameCard]}>
             <Typography variant="h2">{cardTitle}</Typography>

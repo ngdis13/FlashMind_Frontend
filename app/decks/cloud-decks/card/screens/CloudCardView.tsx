@@ -94,17 +94,15 @@ export default function CloudCardView() {
           showsVerticalScrollIndicator={false}
         >
           {/* Хедер */}
-          <View style={styles.header}>
-            <Pressable onPress={handleBack}>
-              <Image
-                source={ReturnIcon}
-                style={{ width: 12, height: 22 }}
-              />
+          <View style={[commonStyles.screenHeader, { marginBottom: 16 }]}>
+            <Pressable
+              onPress={handleBack}
+              style={commonStyles.backButton}
+              hitSlop={20}
+            >
+              <Image source={ReturnIcon} style={{ width: 10, height: 18 }} />
             </Pressable>
-
-            <Typography variant="h1" style={{ marginBottom: 0 }}>
-              Вернуться к колоде
-            </Typography>
+            <Typography variant="h2">Вернуться к колоде</Typography>
           </View>
 
           {/* Контент карточки */}

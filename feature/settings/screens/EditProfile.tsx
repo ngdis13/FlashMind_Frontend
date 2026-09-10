@@ -85,11 +85,15 @@ export default function EditProfile() {
           contentContainerStyle={styles.scrollContainer}
           style={{ width: "100%" }}
         >
-          <View style={commonStyles.mainHeader}>
-            <Pressable onPress={handleBack} style={styles.backButton}>
-              <Image source={ReturnIcon} style={{ width: 12, height: 22 }} />
+          <View style={[commonStyles.screenHeader, { marginBottom: 16 }]}>
+            <Pressable
+              onPress={handleBack}
+              style={commonStyles.backButton}
+              hitSlop={20}
+            >
+              <Image source={ReturnIcon} style={{ width: 10, height: 18 }} />
             </Pressable>
-            <Typography variant="h1">Профиль</Typography>
+            <Typography variant="h2">Профиль</Typography>
           </View>
 
           <View style={styles.containerInput}>

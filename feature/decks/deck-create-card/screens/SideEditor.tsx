@@ -325,11 +325,11 @@ export const SideEditor = () => {
     >
       <View style={[commonStyles.container, { flex: 1 }]}>
         {/* Шапка экрана со статичным заголовком стороны и рабочим "глазиком" превью */}
-        <View style={styles.headerWrapper}>
-          <View style={styles.header}>
+        <View style={commonStyles.headerWrapper}>
+          <View style={[commonStyles.screenHeader, { marginBottom: 16 }]}>
             <Pressable
               onPress={handleBack}
-              style={styles.backButton}
+              style={commonStyles.backButton}
               hitSlop={20}
             >
               <Image source={ReturnIcon} style={{ width: 10, height: 18 }} />
@@ -389,7 +389,7 @@ export const SideEditor = () => {
         onClose={() => setIsBottomSheetVisible(false)}
         onSelectBlockType={handleSelectBlockType}
         allowedTypes={
-          sideKey === "front" ? [ "text", "image"] : ["text", "image"]
+          sideKey === "front" ? ["text", "image"] : ["text", "image"]
         }
       />
 
@@ -406,16 +406,6 @@ export const SideEditor = () => {
 };
 
 const styles = StyleSheet.create({
-  headerWrapper: { width: "100%", paddingHorizontal: 10, paddingTop: 20 },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    position: "relative",
-    marginBottom: 16,
-    width: "100%",
-  },
-  backButton: { position: "absolute", left: -20, padding: 20 },
   viewCardButton: { position: "absolute", right: -20, padding: 20 },
   viewCardButtonDisabled: { opacity: 0.4 },
   listContent: { paddingHorizontal: 10, paddingTop: 10, paddingBottom: 30 },

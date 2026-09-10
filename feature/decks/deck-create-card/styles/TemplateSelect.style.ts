@@ -1,19 +1,6 @@
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    position: "relative",
-    marginBottom: 16,
-    width: "100%",
-  },
-  backButton: {
-    position: "absolute",
-    left: -20,
-    padding: 20,
-  },
   searchBox: {
     flexDirection: "row",
     alignItems: "center",

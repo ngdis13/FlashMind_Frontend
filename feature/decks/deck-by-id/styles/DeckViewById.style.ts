@@ -9,26 +9,22 @@ export const styles = StyleSheet.create({
     marginBottom: 16,
   },
   noticeBox: {
-    position: "relative", // Контейнер становится опорной точкой для абсолютного элемента
+    position: "absolute", // было "relative" — теперь прижата справа к шапке
+    right: 0,
     alignItems: "center",
     justifyContent: "center",
-    width: 24, // Задаем ширину строго по размеру кнопки импорта
-    height: 24,
-  },
-  headerName: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
+    width: 20,
+    height: 20,
   },
   importButton: {
-    width: 24,
-    height: 24,
+    width: 20,
+    height: 20,
   },
   cloudAlertAbsoluteLeft: {
     position: "absolute",
     left: -32, // Сдвигаем уведомление влево ровно на 32 пикселя от импорта
-    width: 24,
-    height: 24,
+    width: 20,
+    height: 20,
   },
   mainInfo: {
     gap: 16,

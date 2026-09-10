@@ -15,18 +15,6 @@ export const styles = StyleSheet.create({
     width: "100%",
     gap: 16,
   },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    width: "100%",
-  },
-  backButton: {
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 12,
-    margin: -12,
-  },
   privateLinkBox: {
     gap: 8,
   },

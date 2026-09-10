@@ -2,13 +2,6 @@ import { colors } from "@/styles/Colors";
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
-  header: {
-    flexDirection: "row",
-    gap: 12,
-    alignItems: "center",
-    marginBottom: 16,
-    width: "100%", 
-  },
   counter: {
     alignItems: "center",
     width: "100%", 

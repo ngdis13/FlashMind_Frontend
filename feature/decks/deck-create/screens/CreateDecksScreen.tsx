@@ -31,10 +31,10 @@ import { useDecks } from "@/storage/hooks/useDecks";
 
 /**
  * Экран создания новой колоды
- * 
+ *
  * @component
  * @returns {JSX.Element} React компонент экрана создания колоды
- * 
+ *
  * @description
  * Экран предоставляет:
  * - Поле для ввода названия колоды (обязательное)
@@ -43,7 +43,7 @@ import { useDecks } from "@/storage/hooks/useDecks";
  * - Кнопку создания колоды с валидацией
  * - Информационный блок с логотипом
  * - Возврат к списку колод
- * 
+ *
  * @example
  * // Использование в навигации
  * router.push("/create-decks")
@@ -74,7 +74,8 @@ export default function CreateDecksScreen() {
   /**
    * Управление видимостью модального окна палитры цветов
    */
-  const [visibleColorPalette, setVisibleColorPalette] = useState<boolean>(false);
+  const [visibleColorPalette, setVisibleColorPalette] =
+    useState<boolean>(false);
 
   /**
    * Выбранный цвет для колоды
@@ -85,7 +86,7 @@ export default function CreateDecksScreen() {
   /**
    * Обрабатывает изменение описания колоды
    * Ограничивает количество строк до 4
-   * 
+   *
    * @param {string} text - Новый текст описания
    */
   const handleDescriptionChange = (text: string): void => {
@@ -161,22 +162,19 @@ export default function CreateDecksScreen() {
       <View
         style={[
           commonStyles.container,
-          { flex: 1, justifyContent: "space-between"},
+          { flex: 1, justifyContent: "space-between" },
         ]}
       >
         <View style={commonStyles.mainContent}>
-          <View style={styles.header}>
-            <Pressable onPress={() => router.replace("/decks")} hitSlop={10}>
-              <Image
-                source={ReturnIcon}
-                style={{ width: 12, height: 22, top: 5 }}
-                resizeMode="contain"
-              />
+          <View style={[commonStyles.screenHeader, { marginBottom: 16 }]}>
+            <Pressable
+              onPress={() => router.replace("/decks")}
+              style={commonStyles.backButton}
+              hitSlop={20}
+            >
+              <Image source={ReturnIcon} style={{ width: 10, height: 18 }} />
             </Pressable>
-
-            <Typography variant="h1" style={{ marginBottom: 16 }}>
-              Создание новой колоды
-            </Typography>
+            <Typography variant="h2">Создание новой колоды</Typography>
           </View>
 
           <View style={styles.inputBox}>

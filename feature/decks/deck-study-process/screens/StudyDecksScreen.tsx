@@ -318,11 +318,15 @@ export default function StudyDecksScreen() {
             maxHeight: 800,
           }}
         >
-          <View style={styles.header}>
-            <Pressable onPress={handleBack}>
-              <Image source={ReturnIcon} style={{ width: 12, height: 22 }} />
+          <View style={[commonStyles.screenHeader, { marginBottom: 16 }]}>
+            <Pressable
+              onPress={handleBack}
+              style={commonStyles.backButton}
+              hitSlop={20}
+            >
+              <Image source={ReturnIcon} style={{ width: 10, height: 18 }} />
             </Pressable>
-            <Typography variant="h1">{deck?.name || "Изучение"}</Typography>
+            <Typography variant="h2">{deck?.name || "Изучение"}</Typography>
           </View>
 
           <View style={styles.counter}>

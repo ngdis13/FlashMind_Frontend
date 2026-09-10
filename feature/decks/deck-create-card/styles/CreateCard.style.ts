@@ -2,19 +2,6 @@ import { StyleSheet } from "react-native";
 import { colors } from "@/styles/Colors";
 
 export const styles = StyleSheet.create({
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    position: "relative",
-    marginBottom: 16,
-    width: "100%",
-  },
-  backButton: {
-    position: "absolute",
-    left: -20,
-    padding: 20,
-  },
   viewCardButton: {
     position: "absolute",
     right: -20,

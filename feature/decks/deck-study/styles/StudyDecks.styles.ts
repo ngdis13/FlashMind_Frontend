@@ -2,18 +2,6 @@ import { BOTTOM_MARGIN } from "@/styles/Common";
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    position: "relative",
-    width: "100%",
-  },
-  backButton: {
-    position: "absolute",
-    left: -20,
-    padding: 20,
-  },
   headerTitle: {
     flex: 1, // Текст забирает всё свободное пространство и не выталкивает стрелку
     flexWrap: "wrap", // Перенос строго по словам, а не по буквам

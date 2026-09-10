@@ -12,10 +12,4 @@ export const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
 
-  header: {
-    flexDirection: "row",
-    gap: 12,
-    alignItems: "center",
-    marginBottom: 16
-  },
 });

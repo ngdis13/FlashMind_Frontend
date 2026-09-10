@@ -94,10 +94,10 @@ export const TemplateSelectScreen = () => {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <View style={styles.header}>
+          <View style={[commonStyles.screenHeader, { marginBottom: 16 }]}>
             <Pressable
               onPress={handleBack}
-              style={styles.backButton}
+              style={commonStyles.backButton}
               hitSlop={20}
             >
               <Image source={ReturnIcon} style={{ width: 10, height: 18 }} />

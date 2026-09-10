@@ -74,10 +74,10 @@ export const ImageEditor = () => {
           showsVerticalScrollIndicator={false}
         >
           {/* Шапка: Всегда статичный заголовок "Изображение" */}
-          <View style={styles.header}>
+          <View style={[commonStyles.screenHeader, { marginBottom: 16 }]}>
             <Pressable
               onPress={handleBack}
-              style={styles.backButton}
+              style={commonStyles.backButton}
               hitSlop={20}
             >
               <Image source={ReturnIcon} style={{ width: 10, height: 18 }} />
@@ -151,15 +151,6 @@ const styles = StyleSheet.create({
     paddingBottom: 30,
     alignItems: "center",
   },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    position: "relative",
-    marginBottom: 16,
-    width: "100%",
-  },
-  backButton: { position: "absolute", left: -20, padding: 20 },
   centerContent: {
     flex: 1,
     width: "100%",

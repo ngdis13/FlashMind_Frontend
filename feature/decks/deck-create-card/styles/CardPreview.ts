@@ -2,20 +2,6 @@ import { StyleSheet } from "react-native";
 import { colors } from "@/styles/Colors";
 
 export const styles = StyleSheet.create({
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center", // Строго центрируем заголовок по горизонтали
-    position: "relative",
-    marginBottom: 16, // Немного увеличили отступ до карточки как на макете
-    width: "100%",
-  },
-  backButton: {
-    position: "absolute",
-    left: 0, // Прижимаем к левому краю контейнера
-    paddingVertical: 10,
-    paddingHorizontal: 5,
-  },
   boxActions: {
     position: "absolute",
     right: 0, // Прижимаем к правому краю контейнера

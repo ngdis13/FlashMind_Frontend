@@ -33,11 +33,15 @@ export default function EditLanguage() {
     >
       <View style={[commonStyles.container, { flex: 1 }]}>
         <View style={{ width: "100%", paddingHorizontal: 10, paddingTop: 20 }}>
-          <View style={commonStyles.mainHeader}>
-            <Pressable onPress={handleBack}>
-              <Image source={ReturnIcon} style={{ width: 12, height: 22 }} />
+          <View style={[commonStyles.screenHeader, { marginBottom: 16 }]}>
+            <Pressable
+              onPress={handleBack}
+              style={commonStyles.backButton}
+              hitSlop={20}
+            >
+              <Image source={ReturnIcon} style={{ width: 10, height: 18 }} />
             </Pressable>
-            <Typography variant="h1">Язык</Typography>
+            <Typography variant="h2">Язык</Typography>
           </View>
 
           <View style={styles.buttonBox}>

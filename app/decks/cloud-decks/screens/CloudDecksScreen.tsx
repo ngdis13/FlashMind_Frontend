@@ -196,11 +196,15 @@ export default function CloudDecksScreen() {
         >
           <View style={styles.mainContent}>
             {/* Шапка */}
-            <View style={styles.header}>
-              <Pressable onPress={handleBack}>
-                <Image source={ReturnIcon} style={{ width: 12, height: 22 }} />
+            <View style={commonStyles.screenHeader}>
+              <Pressable
+                onPress={handleBack}
+                style={commonStyles.backButton}
+                hitSlop={20}
+              >
+                <Image source={ReturnIcon} style={{ width: 10, height: 18 }} />
               </Pressable>
-              <Typography variant="h1">Облачные колоды</Typography>
+              <Typography variant="h2">Облачные колоды</Typography>
             </View>
 
             {/* Приватная ссылка */}

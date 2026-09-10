@@ -140,10 +140,10 @@ export default function StudyDecksScreen() {
           }}
         >
           <View style={[styles.mainContent, { width: "100%" }]}>
-            <View style={styles.header}>
+            <View style={commonStyles.screenHeader}>
               <Pressable
                 onPress={handleBack}
-                style={styles.backButton}
+                style={commonStyles.backButton}
                 hitSlop={20}
               >
                 <Image source={ReturnIcon} style={{ width: 10, height: 18 }} />

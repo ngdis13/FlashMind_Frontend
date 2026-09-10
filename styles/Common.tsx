@@ -78,6 +78,28 @@ export const commonStyles = StyleSheet.create({
     marginBottom: 16,
   },
 
+  // ===== Единая шапка внутреннего экрана =====
+  // Обёртка фиксированной шапки (вне скролла — не прыгает при прокрутке/клавиатуре)
+  headerWrapper: {
+    width: "100%",
+    paddingHorizontal: 10,
+    paddingTop: 20,
+  },
+  // Шапка: стрелка назад слева, заголовок строго по центру
+  screenHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
+    width: "100%",
+  },
+  // Кнопка назад: стрелка на 10px от края экрана, хит-зона 40×38
+  backButton: {
+    position: "absolute",
+    left: -20,
+    padding: 20,
+  },
+
   infoBox: {
     flexDirection: "row",
     alignItems: "center",

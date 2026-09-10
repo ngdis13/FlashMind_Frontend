@@ -19,7 +19,7 @@ import { useDeckStore } from "@/store/deck.store";
 import { useCardStore } from "@/store/card.store";
 import { clearAllData } from "@/storage/service/decksStorage";
 import ReturnIcon from "@/assets/icons/ReturnIcon.png";
-import Toast from "react-native-toast-message"; 
+import Toast from "react-native-toast-message";
 import { AxiosError } from "axios";
 
 export default function SettingsScreens() {
@@ -48,7 +48,11 @@ export default function SettingsScreens() {
       // Сбрасываем все Zustand store'ы в памяти
       useAuthStore.getState().logout();
       useUserStore.getState().clearUser();
-      useDeckStore.setState({ decksState: null, isLoading: false, error: null });
+      useDeckStore.setState({
+        decksState: null,
+        isLoading: false,
+        error: null,
+      });
       useCardStore.getState().clearCards();
 
       Toast.show({
@@ -59,8 +63,9 @@ export default function SettingsScreens() {
       });
     } catch (error) {
       const err = error as AxiosError<{ message?: string }>;
-      const serverMessage = err?.response?.data?.message || err?.message || "Не удалось выйти";
-      
+      const serverMessage =
+        err?.response?.data?.message || err?.message || "Не удалось выйти";
+
       Toast.show({
         type: "error",
         text1: "Ошибка выхода",
@@ -73,7 +78,7 @@ export default function SettingsScreens() {
   };
 
   const handleBack = () => {
-    router.push('/profile');
+    router.push("/profile");
   };
 
   return (
@@ -82,13 +87,15 @@ export default function SettingsScreens() {
     >
       <View style={[commonStyles.container, { flex: 1 }]}>
         <View style={{ width: "100%", paddingHorizontal: 10, paddingTop: 20 }}>
-          <View style={styles.header}>
-            <Pressable onPress={handleBack}>
-              <Image source={ReturnIcon} style={{ width: 12, height: 22 }} />
+          <View style={[commonStyles.screenHeader, { marginBottom: 16 }]}>
+            <Pressable
+              onPress={handleBack}
+              style={commonStyles.backButton}
+              hitSlop={20}
+            >
+              <Image source={ReturnIcon} style={{ width: 10, height: 18 }} />
             </Pressable>
-            <Typography variant="h1" >
-              Настройки
-            </Typography>
+            <Typography variant="h2">Настройки</Typography>
           </View>
 
           <View style={styles.buttonBox}>
