@@ -2,8 +2,8 @@
 // Значения блоков — HTML из Lexical-редактора, а этот компонент —
 // зеркало Editor.css: что видно при редактировании, то и на рендере
 // (обучение, превью, облачная карточка — везде через этот компонент).
-import React from "react";
-import { useWindowDimensions } from "react-native";
+import React, { useState } from "react";
+import { useWindowDimensions, View } from "react-native";
 import RenderHtml from "react-native-render-html";
 
 import { colors } from "@/styles/Colors";
@@ -35,10 +35,14 @@ export const HtmlText: React.FC<HtmlTextProps> = ({
   align = "left",
 }) => {
   const { width } = useWindowDimensions();
+  // Реальная ширина контейнера (карточки), а не окна — иначе картинки
+  // масштабируются по окну и «вылезают» за карточку
+  const [containerWidth, setContainerWidth] = useState(0);
 
   return (
+    <View onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}>
     <RenderHtml
-      contentWidth={width}
+      contentWidth={containerWidth || width}
       source={{ html }}
       systemFonts={SYSTEM_FONTS}
       // База = .editor-input: Montserrat 18px, line-height 1.6, #1E1F4B
@@ -99,7 +103,15 @@ export const HtmlText: React.FC<HtmlTextProps> = ({
           color: "#55556E",
         },
         a: { color: colors.mainColor },
+        // Картинки: по центру карточки, скругление как у блоков-картинок
+        img: {
+          maxWidth: "100%",
+          alignSelf: "center",
+          borderRadius: 16,
+          marginVertical: 8,
+        },
       }}
     />
+    </View>
   );
 };

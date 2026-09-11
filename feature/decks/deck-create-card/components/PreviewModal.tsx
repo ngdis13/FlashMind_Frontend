@@ -8,6 +8,7 @@ import {
   ScrollView,
   Animated,
   useWindowDimensions,
+  View,
 } from "react-native";
 import { Typography } from "@/styles/Typography";
 import { colors } from "@/styles/Colors";
@@ -94,6 +95,44 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
     opacity: backOpacity,
   };
 
+  // Картинка превью: сохраняет ориентацию (вертикаль/горизонталь),
+  // выбранную при кропе, и центрируется в карточке
+  const PreviewImage: React.FC<{ url: string }> = ({ url }) => {
+    const [aspect, setAspect] = useState<number>(4 / 3);
+    const [containerW, setContainerW] = useState(0);
+
+    useEffect(() => {
+      let active = true;
+      Image.getSize(
+        url,
+        (w, h) => {
+          if (active && w > 0 && h > 0) setAspect(w / h);
+        },
+        () => {},
+      );
+      return () => {
+        active = false;
+      };
+    }, [url]);
+
+    // Потолок высоты внутри карточки, чтобы картинка не вытеснила текст
+    const MAX_H = 260;
+    const w = containerW ? Math.min(containerW, MAX_H * aspect) : 0;
+    const h = w / aspect;
+
+    return (
+      <View
+        onLayout={(e) => setContainerW(e.nativeEvent.layout.width)}
+        style={{ width: "100%", alignItems: "center" }}
+      >
+        <Image
+          source={{ uri: url }}
+          style={{ width: w, height: h, borderRadius: 16, resizeMode: "cover" }}
+        />
+      </View>
+    );
+  };
+
   const renderBlocksContent = (blocks: CardBlock[]) => {
     return blocks.map((block) => {
       if (block.type === "term" || block.type === "text") {
@@ -113,11 +152,7 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
 
       if (block.type === "image") {
         return block.url ? (
-          <Image
-            key={block.id}
-            source={{ uri: block.url }}
-            style={styles.trainingImage}
-          />
+          <PreviewImage key={block.id} url={block.url} />
         ) : (
           <Typography
             key={block.id}
