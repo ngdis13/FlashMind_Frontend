@@ -4,6 +4,8 @@ import { Pressable, View, Image, Modal, Animated } from "react-native";
 import ReturnIcon from "@/assets/icons/ReturnIcon.png";
 
 import { useDecks } from "@/storage/hooks/useDecks";
+import { useCards } from "@/storage/hooks/useCards";
+import type { Card } from "@/storage/types/types";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { styles } from "@/feature-decks/deck-study/styles/StudyDecks.styles";
 import { MainButton } from "@/components/MainButton";
@@ -54,11 +56,52 @@ export default function StudyDecksScreen() {
   const [isAiModalVisible, setIsAiModalVisible] = useState(false);
 
   const [addCount, setAddCount] = useState(0);
+  const [deckCards, setDeckCards] = useState<Card[]>([]);
 
-  // v2.0.0: GET /study удалён — счётчики считаем из данных колоды
-  const total = deck?.total_cards ?? 0;
-  const inLearning = deck?.cards_on_study?.length ?? 0;
-  const newCard = Math.max(0, total - inLearning);
+  const { getDeckCards, invalidateDeckCards } = useCards();
+
+  // Карточки колоды для точного подсчёта: кэш, при устаревании — сеть.
+  // Если состав кэша расходится с total_cards — кэш устарел,
+  // однократно перезагружаем карточки с сервера.
+  useEffect(() => {
+    if (!id) return;
+    let cancelled = false;
+    const refetched = { done: false };
+    (async () => {
+      try {
+        let cards = await getDeckCards(id);
+        const expected = deck?.total_cards ?? 0;
+        if (
+          !refetched.done &&
+          cards.length > 0 &&
+          expected > 0 &&
+          cards.length !== expected
+        ) {
+          refetched.done = true;
+          console.log(
+            `⚠️ Рассинхрон: карточек в кэше ${cards.length}, total_cards ${expected} — перезагружаем`,
+          );
+          invalidateDeckCards(id);
+          cards = await getDeckCards(id);
+        }
+        if (!cancelled) setDeckCards(cards);
+      } catch (e) {
+        console.error("Не удалось загрузить карточки колоды:", e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [id, getDeckCards, invalidateDeckCards, deck?.total_cards]);
+
+  // v2.0.0: GET /study удалён — счётчики считаем из данных колоды.
+  // ВАЖНО: cards_on_study — это due-карточки НА СЕГОДНЯ, а не «все в обучении»:
+  // после успешного ревью карточка уходит из cards_on_study, оставаясь in_learning.
+  // Новые = реальные карточки колоды, ещё не в изучении и не приостановленные.
+  // НЕ вычитаем из total_cards: он приходит из кэша списка колод и может отставать.
+  const newCard = deckCards.filter(
+    (c) => !c.in_learning && !c.is_suspended,
+  ).length;
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
