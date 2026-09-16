@@ -140,7 +140,6 @@ const styles = StyleSheet.create({
    */
   card: {
     flex: 1,
-    maxWidth: 182,
     minHeight: 122,
     flexDirection: "column",
     justifyContent: "space-between",

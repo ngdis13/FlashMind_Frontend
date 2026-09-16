@@ -86,6 +86,8 @@ export default function MainDecksScreen() {
   const { width } = useWindowDimensions();
   const currentContentWidth = Math.min(width, 800);
   const numColumns = Math.max(2, Math.floor((currentContentWidth - 20) / 180));
+  const GAP = 12
+  const columnWidth = (currentContentWidth - 20 - (numColumns - 1) * GAP) / numColumns;
 
   /**
    * Загрузка данных при монтировании компонента
@@ -289,7 +291,7 @@ export default function MainDecksScreen() {
               )}
               renderItem={({ item, index }: { item: Deck; index: number }) => {
                 return (
-                  <View style={styles.deckItemWrapper}>
+                  <View style={[styles.deckItemWrapper, { width: columnWidth }]}>
                     <DecksView
                       title={item.name}
                       cardCount={getPluralCards(item.total_cards)}
