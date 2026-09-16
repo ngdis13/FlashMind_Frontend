@@ -6,6 +6,7 @@ import {
   Image,
   StyleSheet,
   GestureResponderEvent,
+  type LayoutChangeEvent,
 } from "react-native";
 import Svg, { Polyline, Circle } from "react-native-svg";
 import Animated, {
@@ -52,6 +53,10 @@ const HoverableCircle = Circle as unknown as React.ComponentType<
 >;
 
 // ==================== Утилиты ====================
+/** Ограничивает значение диапазоном [min, max] — тултипы не выходят за края графика */
+const clamp = (v: number, min: number, max: number) =>
+  Math.min(Math.max(v, min), Math.max(min, max));
+
 const formatDateLabel = (dateStr: string) => {
   const checkDate = new Date(dateStr);
   const months = [
@@ -88,6 +93,7 @@ export default function ActivityGraph({
   const [selectedBar, setSelectedBar] = useState<ReviewPoint | null>(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
   const [scrollOffsetX, setScrollOffsetX] = useState(0);
+  const [timeScrollOffsetX, setTimeScrollOffsetX] = useState(0);
   const [isInfoVisible, setIsInfoVisible] = useState(false);
 
   const [chartWidth, setChartWidth] = useState(0);
@@ -96,6 +102,10 @@ export default function ActivityGraph({
     x: number;
     y: number;
   } | null>(null);
+
+  // Реальная ширина области chart — для clamp тултипов по краям
+  const handleChartLayout = (e: LayoutChangeEvent) =>
+    setChartWidth(e.nativeEvent.layout.width);
 
   // ========== Вычисления для столбчатого графика ==========
   const maxTotalValue = Math.max(
@@ -237,7 +247,7 @@ export default function ActivityGraph({
 
       {/* ==================== СТОЛБЧАТЫЙ ГРАФИК ==================== */}
       {activeTab === "cards" && (
-        <View style={styles.chart}>
+        <View style={styles.chart} onLayout={handleChartLayout}>
           <View style={styles.chart__yAxis}>
             <Typography variant="h2" style={styles.chart__axisText}>
               {maxTotalValue}
@@ -373,7 +383,14 @@ export default function ActivityGraph({
                 <View
                   style={[
                     styles.tooltip,
-                    { left: tooltipPos.x - scrollOffsetX, top: tooltipPos.y },
+                    {
+                      left: clamp(
+                        tooltipPos.x - scrollOffsetX,
+                        8,
+                        chartWidth - 178,
+                      ),
+                      top: Math.max(8, tooltipPos.y),
+                    },
                   ]}
                 >
                   <View
@@ -473,7 +490,7 @@ export default function ActivityGraph({
 
       {/* ==================== ЛИНЕЙНЫЙ ГРАФИК ==================== */}
       {activeTab === "time" && (
-        <View style={styles.chart}>
+        <View style={styles.chart} onLayout={handleChartLayout}>
           <View style={styles.chart__yAxis}>
             <Typography
               variant="h2"
@@ -512,6 +529,9 @@ export default function ActivityGraph({
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.chart__scrollContent}
             onScrollBeginDrag={() => setSelectedTimePoint(null)}
+            onScroll={(e) =>
+              setTimeScrollOffsetX(e.nativeEvent.contentOffset.x)
+            }
             scrollEventThrottle={16}
           >
             <View style={{ width: timeChartWidth, height: chartHeight, position: "relative" }}>
@@ -619,85 +639,90 @@ export default function ActivityGraph({
                 );
               })}
 
-              {/* Тултип линейного графика */}
-              {selectedTimePoint &&
-                (() => {
-                  const dayReview = reviewPoints.find(
-                    (r) => r.date === selectedTimePoint.point.date,
-                  );
-                  const dayCards = dayReview
-                    ? dayReview.forgotten +
-                      dayReview.hard +
-                      dayReview.good +
-                      dayReview.easy
-                    : 0;
-                  const dayAvgSec =
-                    dayCards > 0
-                      ? Math.round(selectedTimePoint.point.seconds / dayCards)
-                      : 0;
-                  const avgDiff =
-                    dayCards > 0 ? dayAvgSec - computedAverageSeconds : 0;
-
-                  return (
-                    <View
-                      style={[
-                        styles.tooltip,
-                        {
-                          width: 130,
-                          left: selectedTimePoint.x - 65,
-                          top: selectedTimePoint.y - 60,
-                        },
-                      ]}
-                    >
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                        }}
-                      >
-                        <Typography variant="h3" style={styles.tooltip__date}>
-                          {formatDateLabel(selectedTimePoint.point.date)}
-                        </Typography>
-                        <View
-                          style={{ flexDirection: "row", alignItems: "center" }}
-                        >
-                          <Typography variant="h3" style={styles.tooltip__date}>
-                            {dayAvgSec} с
-                          </Typography>
-                          {avgDiff !== 0 && (
-                            <Typography
-                              variant="h3"
-                              style={[
-                                styles.tooltip__date,
-                                {
-                                  color:
-                                    avgDiff < 0
-                                      ? colors.ratingDarkGreen
-                                      : colors.ratingRed,
-                                },
-                              ]}
-                            >
-                              {" "}
-                              ({avgDiff > 0 ? "+" : ""}
-                              {avgDiff})
-                            </Typography>
-                          )}
-                        </View>
-                      </View>
-                      <Typography
-                        variant="h3"
-                        style={[styles.tooltip__total, { textAlign: "center" }]}
-                      >
-                        {Math.floor(selectedTimePoint.point.seconds / 60)} мин{" "}
-                        {selectedTimePoint.point.seconds % 60} сек
-                      </Typography>
-                      <View style={[styles.tooltip__arrow, { left: 59 }]} />
-                    </View>
-                  );
-                })()}
             </View>
           </ScrollView>
+
+          {/* Тултип линейного графика — вне скролла, поверх графика (как у «Карточек») */}
+          {selectedTimePoint &&
+            (() => {
+              const dayReview = reviewPoints.find(
+                (r) => r.date === selectedTimePoint.point.date,
+              );
+              const dayCards = dayReview
+                ? dayReview.forgotten +
+                  dayReview.hard +
+                  dayReview.good +
+                  dayReview.easy
+                : 0;
+              const dayAvgSec =
+                dayCards > 0
+                  ? Math.round(selectedTimePoint.point.seconds / dayCards)
+                  : 0;
+              const avgDiff =
+                dayCards > 0 ? dayAvgSec - computedAverageSeconds : 0;
+
+              return (
+                <View
+                  style={[
+                    styles.tooltip,
+                    {
+                      width: 130,
+                      left: clamp(
+                        selectedTimePoint.x - timeScrollOffsetX - 65,
+                        8,
+                        chartWidth - 138,
+                      ),
+                      top: Math.max(8, selectedTimePoint.y - 60),
+                    },
+                  ]}
+                >
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Typography variant="h3" style={styles.tooltip__date}>
+                      {formatDateLabel(selectedTimePoint.point.date)}
+                    </Typography>
+                    <View
+                      style={{ flexDirection: "row", alignItems: "center" }}
+                    >
+                      <Typography variant="h3" style={styles.tooltip__date}>
+                        {dayAvgSec} с
+                      </Typography>
+                      {avgDiff !== 0 && (
+                        <Typography
+                          variant="h3"
+                          style={[
+                            styles.tooltip__date,
+                            {
+                              color:
+                                avgDiff < 0
+                                  ? colors.ratingDarkGreen
+                                  : colors.ratingRed,
+                            },
+                          ]}
+                        >
+                          {" "}
+                          ({avgDiff > 0 ? "+" : ""}
+                          {avgDiff})
+                        </Typography>
+                      )}
+                    </View>
+                  </View>
+                  <Typography
+                    variant="h3"
+                    style={[styles.tooltip__total, { textAlign: "center" }]}
+                  >
+                    {Math.floor(selectedTimePoint.point.seconds / 60)} мин{" "}
+                    {selectedTimePoint.point.seconds % 60} сек
+                  </Typography>
+                  <View style={[styles.tooltip__arrow, { left: 59 }]} />
+                </View>
+              );
+            })()}
         </View>
       )}
 

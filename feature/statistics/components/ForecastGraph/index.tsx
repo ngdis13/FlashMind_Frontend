@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { commonStyles } from "@/styles/Common";
 import { Typography } from "@/styles/Typography";
 import { colors } from "@/styles/Colors";
-import { Pressable, View, Image, StyleSheet, ScrollView, type DimensionValue } from "react-native";
+import { Pressable, View, Image, StyleSheet, ScrollView, type DimensionValue, type LayoutChangeEvent } from "react-native";
 import { styles } from "./styles";
 import IconInfo from "@/assets/icons/IconInfo.png";
 import { InfoForecast } from "./components/InfoForecast";
@@ -26,10 +26,19 @@ const formatDateLabel = (dateStr: string) => {
   return `${parseInt(day)} ${months[checkDate.getMonth()]}`;
 };
 
+/** Ограничивает значение диапазоном [min, max] — тултип не выходит за края графика */
+const clamp = (v: number, min: number, max: number) =>
+  Math.min(Math.max(v, min), Math.max(min, max));
+
 export default function ForecastGraph({ forecast }: ForecastGraphProps) {
   const [selectedBar, setSelectedBar] = useState<ForecastPoint | null>(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
   const [scrollOffsetX, setScrollOffsetX] = useState(0);
+
+  // Реальная ширина области chart — для clamp тултипа по краям
+  const [chartWidth, setChartWidth] = useState(0);
+  const handleChartLayout = (e: LayoutChangeEvent) =>
+    setChartWidth(e.nativeEvent.layout.width);
 
   const [isInfoVisible, setIsInfoVisible] = useState(false);
 
@@ -78,7 +87,7 @@ export default function ForecastGraph({ forecast }: ForecastGraphProps) {
       </View>
 
       {/* ===== Блок chart ===== */}
-      <View style={styles.chart}>
+      <View style={styles.chart} onLayout={handleChartLayout}>
         {/* Ось Y */}
         <View style={styles.chart__yAxis}>
           <Typography variant="h2" style={styles.chart__axisText}>{maxValue}</Typography>
@@ -128,7 +137,19 @@ export default function ForecastGraph({ forecast }: ForecastGraphProps) {
 
         {/* Тултип */}
         {selectedBar && (
-          <View style={[styles.tooltip, { left: tooltipPos.x - scrollOffsetX, top: tooltipPos.y }]}>
+          <View
+            style={[
+              styles.tooltip,
+              {
+                left: clamp(
+                  tooltipPos.x - scrollOffsetX,
+                  8,
+                  chartWidth - 88,
+                ),
+                top: Math.max(8, tooltipPos.y),
+              },
+            ]}
+          >
             <Typography variant="h3" style={styles.tooltip__date}>{selectedBar.date.includes(" ") ? selectedBar.date : formatDateLabel(selectedBar.date)}</Typography>
             <Typography variant="h3" style={styles.tooltip__count}>{selectedBar.count} карт</Typography>
             <View style={styles.tooltip__arrow} />
