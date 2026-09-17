@@ -92,8 +92,11 @@ export default function ActivityGraph({
   const [activeTab, setActiveTab] = useState<"cards" | "time">("cards");
   const [selectedBar, setSelectedBar] = useState<ReviewPoint | null>(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
-  const [scrollOffsetX, setScrollOffsetX] = useState(0);
   const [timeScrollOffsetX, setTimeScrollOffsetX] = useState(0);
+  // Офсеты скролла в ref — актуальны в момент нажатия
+  // (стейт обновляется событиями onScroll и отстаёт при инерции)
+  const cardsScrollOffsetRef = useRef(0);
+  const timeScrollOffsetRef = useRef(0);
   const [isInfoVisible, setIsInfoVisible] = useState(false);
 
   const [chartWidth, setChartWidth] = useState(0);
@@ -128,8 +131,11 @@ export default function ActivityGraph({
     const barPixelHeight = (total / maxTotalValue) * chartHeight;
     const tooltipHeightWithGap = 90;
 
+    // Центр тултипа (85px при ширине 170) строго над центром столбика.
+    // Координаты: контент скролла → chart (+35px ось Y).
+    // Центр столбика в chart = 35 + 22 + index * 44 − offset
     setTooltipPos({
-      x: index * barWidthWithGap - 26,
+      x: 35 + index * barWidthWithGap + 22 - 85 - cardsScrollOffsetRef.current,
       y: chartHeight - barPixelHeight - tooltipHeightWithGap,
     });
 
@@ -271,7 +277,9 @@ export default function ActivityGraph({
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.chart__scrollContent}
             onScrollBeginDrag={() => setSelectedBar(null)}
-            onScroll={(e) => setScrollOffsetX(e.nativeEvent.contentOffset.x)}
+            onScroll={(e) => {
+              cardsScrollOffsetRef.current = e.nativeEvent.contentOffset.x;
+            }}
             scrollEventThrottle={16}
           >
             <View style={[styles.chart__bars, { height: chartHeight }]}>
@@ -384,11 +392,7 @@ export default function ActivityGraph({
                   style={[
                     styles.tooltip,
                     {
-                      left: clamp(
-                        tooltipPos.x - scrollOffsetX,
-                        8,
-                        chartWidth - 178,
-                      ),
+                      left: clamp(tooltipPos.x, 8, chartWidth - 178),
                       top: Math.max(8, tooltipPos.y),
                     },
                   ]}
@@ -529,9 +533,10 @@ export default function ActivityGraph({
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.chart__scrollContent}
             onScrollBeginDrag={() => setSelectedTimePoint(null)}
-            onScroll={(e) =>
-              setTimeScrollOffsetX(e.nativeEvent.contentOffset.x)
-            }
+            onScroll={(e) => {
+              timeScrollOffsetRef.current = e.nativeEvent.contentOffset.x;
+              setTimeScrollOffsetX(e.nativeEvent.contentOffset.x);
+            }}
             scrollEventThrottle={16}
           >
             <View style={{ width: timeChartWidth, height: chartHeight, position: "relative" }}>
@@ -661,17 +666,20 @@ export default function ActivityGraph({
               const avgDiff =
                 dayCards > 0 ? dayAvgSec - computedAverageSeconds : 0;
 
+              // Позиция точки в координатах chart (ось Y = 35px)
+              const pointX =
+                35 + selectedTimePoint.x - timeScrollOffsetRef.current;
+              const tooltipLeft = clamp(pointX - 65, 8, chartWidth - 138);
+              // Стрелка следует за точкой, даже когда тултип прижат к краю
+              const arrowLeft = clamp(pointX - tooltipLeft - 6, 6, 112);
+
               return (
                 <View
                   style={[
                     styles.tooltip,
                     {
                       width: 130,
-                      left: clamp(
-                        selectedTimePoint.x - timeScrollOffsetX - 65,
-                        8,
-                        chartWidth - 138,
-                      ),
+                      left: tooltipLeft,
                       top: Math.max(8, selectedTimePoint.y - 60),
                     },
                   ]}
@@ -719,7 +727,7 @@ export default function ActivityGraph({
                     {Math.floor(selectedTimePoint.point.seconds / 60)} мин{" "}
                     {selectedTimePoint.point.seconds % 60} сек
                   </Typography>
-                  <View style={[styles.tooltip__arrow, { left: 59 }]} />
+                  <View style={[styles.tooltip__arrow, { left: arrowLeft }]} />
                 </View>
               );
             })()}

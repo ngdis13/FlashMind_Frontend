@@ -33,7 +33,9 @@ const clamp = (v: number, min: number, max: number) =>
 export default function ForecastGraph({ forecast }: ForecastGraphProps) {
   const [selectedBar, setSelectedBar] = useState<ForecastPoint | null>(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
-  const [scrollOffsetX, setScrollOffsetX] = useState(0);
+  // Офсет скролла в ref — актуален в момент нажатия
+  // (стейт обновляется событиями onScroll и отстаёт при инерции)
+  const scrollOffsetRef = useRef(0);
 
   // Реальная ширина области chart — для clamp тултипа по краям
   const [chartWidth, setChartWidth] = useState(0);
@@ -61,7 +63,13 @@ export default function ForecastGraph({ forecast }: ForecastGraphProps) {
   const handleBarPress = (item: ForecastPoint, index: number) => {
     const barWidthWithGap = 10; // 8 wrapper + 2 margin
     const barHeightPx = (item.count / maxValue) * 200;
-    setTooltipPos({ x: index * barWidthWithGap + 17, y: 200 - barHeightPx - 55 });
+    // Центр тултипа (40px при ширине 80) строго над центром бара.
+    // Координаты: контент скролла → chart (+45px ось Y).
+    // Центр бара в chart = 45 + 11 + index * 10 − offset
+    setTooltipPos({
+      x: 45 + index * barWidthWithGap + 11 - 40 - scrollOffsetRef.current,
+      y: 200 - barHeightPx - 55,
+    });
     setSelectedBar(selectedBar?.date === item.date ? null : item);
   };
 
@@ -103,7 +111,9 @@ export default function ForecastGraph({ forecast }: ForecastGraphProps) {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.chart__scrollContent}
           onScrollBeginDrag={() => setSelectedBar(null)}
-          onScroll={(e) => setScrollOffsetX(e.nativeEvent.contentOffset.x)}
+          onScroll={(e) => {
+            scrollOffsetRef.current = e.nativeEvent.contentOffset.x;
+          }}
           scrollEventThrottle={16}
         >
           <View style={styles.chart__barsContainer}>
@@ -141,11 +151,7 @@ export default function ForecastGraph({ forecast }: ForecastGraphProps) {
             style={[
               styles.tooltip,
               {
-                left: clamp(
-                  tooltipPos.x - scrollOffsetX,
-                  8,
-                  chartWidth - 88,
-                ),
+                left: clamp(tooltipPos.x, 8, chartWidth - 88),
                 top: Math.max(8, tooltipPos.y),
               },
             ]}
