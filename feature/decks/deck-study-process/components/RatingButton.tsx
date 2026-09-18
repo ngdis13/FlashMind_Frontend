@@ -71,11 +71,11 @@ export const RatingButton = React.memo<RatingButtonProps>(({
         <View style={[styles.ratingButton, colorStyle]}>
           {/* Слой затемнения */}
           {pressed && (
-            <View 
+            <View
               style={[
-                StyleSheet.absoluteFill, 
+                StyleSheet.absoluteFill,
                 { backgroundColor: "rgba(0, 0, 0, 0.15)" }
-              ]} 
+              ]}
             />
           )}
           

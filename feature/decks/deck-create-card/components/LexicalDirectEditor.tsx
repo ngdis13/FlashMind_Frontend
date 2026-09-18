@@ -41,35 +41,40 @@ import type {
 // Стили тем Lexical для web-версии. Внутри WebView они вшиты в сборку (Editor.css),
 // а здесь их нужно внедрить на страницу вручную: без них форматы (bold/italic/...)
 // применяются в модели, но визуально не видны.
-// Селекторы ограничены корнем редактора, чтобы стили не утекали на весь сайт
-const EDITOR_THEME_CSS = `
+// Селекторы ограничены корнем редактора, чтобы стили не утекали на весь сайт.
+// Размеры шрифтов параметризованы базой (baseFontSize): при 18 — эталон Editor.css
+// (code 16, h1 24, h2 20, h3 18, отступ списков 22); при масштабировании
+// карточки (умное масштабирование на десктопе) растут пропорционально базе.
+const buildThemeCss = (base: number) => `
 #lexical-direct-editor-root p { margin: 0; padding: 0; }
 .editor-text-bold { font-family: "MontserratBold", sans-serif; font-weight: 400; }
 .editor-text-italic { font-style: italic; }
 .editor-text-underline { text-decoration: underline; }
 .editor-text-strikethrough { text-decoration: line-through; }
 .editor-text-underlineStrikethrough { text-decoration: underline line-through; }
-.editor-text-code { font-family: 'CourierPrime', monospace; background: #f4f4f9; padding: 1px 4px; border-radius: 4px; font-size: 16px; }
-.editor-heading-h1 { font-size: 24px; font-weight: 400; font-family: "MontserratBold", sans-serif; margin: 12px 0; color: #1E1F4B; }
-.editor-heading-h2 { font-size: 20px; font-weight: 400; font-family: "MontserratBold", sans-serif; margin: 10px 0; color: #1E1F4B; }
-.editor-heading-h3 { font-size: 18px; font-weight: 400; font-family: "MontserratSemiBold", sans-serif; margin: 8px 0; color: #1E1F4B; }
-.editor-list-ul { list-style-type: disc; padding-left: 22px; margin: 8px 0; }
-.editor-list-ol { list-style-type: decimal; padding-left: 22px; margin: 8px 0; }
+.editor-text-code { font-family: 'CourierPrime', monospace; background: #f4f4f9; padding: 1px 4px; border-radius: 4px; font-size: ${base - 2}px; }
+.editor-heading-h1 { font-size: ${base + 6}px; font-weight: 400; font-family: "MontserratBold", sans-serif; margin: 12px 0; color: #1E1F4B; }
+.editor-heading-h2 { font-size: ${base + 2}px; font-weight: 400; font-family: "MontserratBold", sans-serif; margin: 10px 0; color: #1E1F4B; }
+.editor-heading-h3 { font-size: ${base}px; font-weight: 400; font-family: "MontserratSemiBold", sans-serif; margin: 8px 0; color: #1E1F4B; }
+.editor-list-ul { list-style-type: disc; padding-left: ${base + 4}px; margin: 8px 0; }
+.editor-list-ol { list-style-type: decimal; padding-left: ${base + 4}px; margin: 8px 0; }
 .editor-listitem { margin: 2px 0; }
 .editor-quote { margin: 8px 0; padding-left: 12px; border-left: 4px solid #ddd; color: #55556e; }
 `;
 
-// Однократная инжекция стилей темы в <head>
-const ThemeStyleInjection = () => {
+// Инжекция стилей темы в <head>; при смене baseFontSize (ресайз окна)
+// текст стиля обновляется, а не дублируется
+const ThemeStyleInjection = ({ fontSize = 18 }: { fontSize?: number }) => {
   React.useEffect(() => {
     const STYLE_ID = "lexical-direct-editor-css";
-    if (!document.getElementById(STYLE_ID)) {
-      const style = document.createElement("style");
+    let style = document.getElementById(STYLE_ID);
+    if (!style) {
+      style = document.createElement("style");
       style.id = STYLE_ID;
-      style.textContent = EDITOR_THEME_CSS;
       document.head.appendChild(style);
     }
-  }, []);
+    style.textContent = buildThemeCss(fontSize);
+  }, [fontSize]);
   return null;
 };
 
@@ -80,6 +85,11 @@ interface DirectEditorProps {
   editorRef: React.MutableRefObject<LexicalEditor | null>;
   /** Подсказка пустого поля (по умолчанию «Введите текст...») */
   placeholder?: string;
+  /** Базовый шрифт редактора (по умолчанию 18 — эталон Editor.css).
+   *  Заголовки/код/списки масштабируются пропорционально базе. */
+  baseFontSize?: number;
+  /** Паддинг поля ввода — зеркало .editor-input { padding: 16px 14px } */
+  padding?: { vertical: number; horizontal: number };
 }
 
 const INITIAL_TOOLBAR_STATE: ToolbarState = {
@@ -240,6 +250,8 @@ export const LexicalDirectEditor: React.FC<DirectEditorProps> = ({
   onSelectionState,
   editorRef,
   placeholder = "Введите текст...",
+  baseFontSize = 18,
+  padding = { vertical: 16, horizontal: 14 },
 }) => {
   const initialConfig = {
     namespace: "FlashMindEditor",
@@ -286,8 +298,11 @@ export const LexicalDirectEditor: React.FC<DirectEditorProps> = ({
                   outline: "none",
                   minHeight: 280,
                   height: "100%",
-                  padding: "16px 14px",
-                  fontSize: 18,
+                  // Паддинг — зеркало .editor-input { padding: 16px 14px },
+                  // масштабируется вместе с карточкой
+                  padding: `${padding.vertical}px ${padding.horizontal}px`,
+                  // Базовый шрифт: 18 → 22 на десктопе
+                  fontSize: baseFontSize,
                   lineHeight: 1.6,
                   color: "#1E1F4B",
                   fontFamily: "MontserratRegular, Montserrat, sans-serif",
@@ -299,8 +314,9 @@ export const LexicalDirectEditor: React.FC<DirectEditorProps> = ({
               <div
                 style={{
                   position: "absolute",
-                  top: 16,
-                  left: 14,
+                  // Плейсхолдер выравнивается по паддингу поля
+                  top: padding.vertical,
+                  left: padding.horizontal,
                   color: "#aaa",
                   pointerEvents: "none",
                 }}
@@ -314,7 +330,7 @@ export const LexicalDirectEditor: React.FC<DirectEditorProps> = ({
         <HistoryPlugin />
         <ListPlugin />
         <EditorRefPlugin editorRef={editorRef} />
-        <ThemeStyleInjection />
+        <ThemeStyleInjection fontSize={baseFontSize} />
       </div>
     </LexicalComposer>
   );

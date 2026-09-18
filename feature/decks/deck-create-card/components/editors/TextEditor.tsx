@@ -18,13 +18,14 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 
 import { BOTTOM_MARGIN, commonStyles } from "@/styles/Common";
 import { Typography } from "@/styles/Typography";
 import { colors } from "@/styles/Colors";
 import { CARD_DISPLAY } from "@/styles/CardDisplay";
 import { useCardStore } from "@/store/card.store";
+import { useCardScale } from "@/utils/hooks/useCardScale";
 import { MainButton } from "@/components/MainButton";
 
 import ReturnIcon from "@/assets/icons/ReturnIcon.png";
@@ -86,6 +87,24 @@ export const TextEditor = () => {
   const { width: windowWidth } = useWindowDimensions();
   // На десктопе бокс редактора крупнее — на всю ширину контентной зоны
   const isWide = windowWidth >= CARD_DISPLAY.WIDE_SCREEN_MIN_WIDTH;
+
+  // Коэффициент масштабирования карточки — тот же, что в обучении/превью:
+  // 1 на телефонах (бокс 372×520), до 1.35 на планшетах/десктопе (650×750);
+  // шрифты контента редактора — через scaledText (мягче, до +20%)
+  const { scaled, scaledText } = useCardScale();
+
+  // Мобильный размер бокса редактора через scaled — перекрывает статичный
+  // styles.editorBox, на десктопе остаётся 650×750
+  const dynamicStyles = useMemo(
+    () =>
+      StyleSheet.create({
+        editorBox: {
+          width: scaled(CARD_DISPLAY.width),
+          height: scaled(CARD_DISPLAY.height),
+        },
+      }),
+    [scaled],
+  );
 
   const handleEditorChange = useCallback((html: string, length: number) => {
     setLocalHtml(html);
@@ -177,7 +196,10 @@ export const TextEditor = () => {
             <View
               style={[
                 styles.editorBox,
+                // Мобильный размер бокса через scaled (при scale = 1 — 372×520)
+                dynamicStyles.editorBox,
                 isWide && {
+                  // Десктоп: бокс 650×750 — как карточка обучения/превью
                   width: CARD_DISPLAY.desktopMaxWidth,
                   maxWidth: "100%",
                   height: CARD_DISPLAY.desktopHeight,
@@ -190,6 +212,10 @@ export const TextEditor = () => {
                   onChange={handleEditorChange}
                   onSelectionState={handleSelectionState}
                   editorRef={lexicalEditorRef}
+                  // Контент редактора масштабируется как карточка:
+                  // шрифт 18 → 22 на десктопе, паддинги зеркалят .editor-input
+                  baseFontSize={scaledText(CARD_DISPLAY.fontSize)}
+                  padding={{ vertical: scaled(16), horizontal: scaled(14) }}
                 />
               ) : (
                 <LexicalWebViewEditor

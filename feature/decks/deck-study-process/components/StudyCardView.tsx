@@ -1,5 +1,5 @@
 // --------------------------- React ---------------------------
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 // --------------------------- React Native ---------------------------
 import {
@@ -20,6 +20,9 @@ import { CARD_DISPLAY } from "@/styles/CardDisplay";
 import { UserHint } from "@/components/UserHint";
 import { HtmlText } from "@/feature-decks/deck-create-card/components/HtmlText";
 
+// --------------------------- Хуки ---------------------------
+import { useCardScale } from "@/utils/hooks/useCardScale";
+
 // --------------------------- Типы и хелперы ---------------------------
 import { Card } from "@/storage/types/types";
 import { blocksToHtml } from "@/utils/helpers/blocksToHtml";
@@ -34,6 +37,10 @@ export const StudyCardView = ({ card, isFirstCard }: Props) => {
   // Десктоп (≥768px): прежний «большой» вид карточки (95% ширины, flex-высота).
   // Мобильные: фикс 372×520, как в редакторе/превью
   const isWide = windowWidth >= CARD_DISPLAY.WIDE_SCREEN_MIN_WIDTH;
+  // Коэффициент масштабирования КОНТЕНТА КАРТОЧКИ: 1 на телефонах (мобильный
+  // дизайн не меняется), до 1.35 на планшетах/десктопе.
+  // Шрифты — через scaledText (мягче, до +20%), точки сложности — статичны
+  const { textScale, scaled, scaledText } = useCardScale();
   const [isFlipped, setIsFlipped] = useState<boolean>(false);
   const [wasFlipped, setWasFlipped] = useState<boolean>(false);
   const [showUserHint, setShowUserHint] = useState<boolean>(false);
@@ -144,6 +151,39 @@ export const StudyCardView = ({ card, isFirstCard }: Props) => {
     outputRange: [0, 1],
   });
 
+  // Динамические стили карточки: пересоздаются только при смене scale.
+  // На мобильных (scale = 1) значения равны эталонным — дизайн не меняется,
+  // на планшетах/десктопе контент растёт внутри контейнера 650×750
+  const dynamicStyles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          marginBottom: scaled(24),
+          maxWidth: "100%",
+          alignSelf: "center",
+        },
+        scrollContent: {
+          flexGrow: 1,
+          // Контент по центру вертикали карточки
+          justifyContent: "center",
+          // Паддинги — зеркало .editor-input { padding: 16px 14px }
+          paddingTop: scaled(CARD_DISPLAY.paddingTop),
+          paddingBottom: scaled(CARD_DISPLAY.paddingBottom),
+          paddingHorizontal: scaled(CARD_DISPLAY.paddingHorizontal),
+          width: "100%",
+        },
+        absoluteHint: {
+          position: "absolute",
+          top: scaled(36),
+          left: 0,
+          right: 0,
+          paddingHorizontal: scaled(16),
+          zIndex: 999,
+        },
+      }),
+    [scaled],
+  );
+
   const renderDifficultyDots = () => {
     const activeColor =
       difficultyLevel > 0 ? getDifficultyColor(difficultyLevel) : "#BBBBBB";
@@ -173,26 +213,42 @@ export const StudyCardView = ({ card, isFirstCard }: Props) => {
 
   const renderCardContent = (html: string) => (
     <ScrollView
-      contentContainerStyle={styles.scrollContent}
+      contentContainerStyle={dynamicStyles.scrollContent}
       showsVerticalScrollIndicator={false}
     >
-      {html ? <HtmlText html={html} /> : null}
+      {html ? (
+        <HtmlText
+          html={html}
+          // Базовый шрифт термина/описания: 18 → 22 на десктопе
+          // (текст растёт мягче контейнера — до +20%)
+          fontSize={scaledText(CARD_DISPLAY.fontSize)}
+          // textScale — чтобы внутренние заголовки h1–h3 контента
+          // росли пропорционально базовому тексту
+          scale={textScale}
+        />
+      ) : null}
     </ScrollView>
   );
 
   return (
     <View
       style={[
-        styles.container,
+        dynamicStyles.container,
         isWide
           ? {
-              
+              // Десктоп: контейнер ограничен maxWidth 650 и отцентрован
+              // (alignSelf в dynamicStyles.container),
+              // контент внутри масштабируется через scaled()
               width: CARD_DISPLAY.desktopMaxWidth,
               maxWidth: "100%",
               height: CARD_DISPLAY.desktopHeight,
               maxHeight: "100%",
             }
-          : { width: CARD_DISPLAY.width, height: CARD_DISPLAY.height },
+          : {
+              // Мобильные: при scale = 1 это ровно эталонные 372×520
+              width: scaled(CARD_DISPLAY.width),
+              height: scaled(CARD_DISPLAY.height),
+            },
       ]}
     >
       <Pressable style={styles.touchArea} onPress={handleFlip}>
@@ -212,7 +268,7 @@ export const StudyCardView = ({ card, isFirstCard }: Props) => {
             visible={showUserHint}
             text="Сложность карточки рассчитывается нашей ИИ-моделью. Алгоритм анализирует твои ответы и сам решает, когда повторить материал!"
             onClose={handleCloseHint}
-            style={styles.absoluteHint}
+            style={dynamicStyles.absoluteHint}
           />
           {renderCardContent(blocksToHtml(card?.front))}
           <Animated.View style={{ opacity: hintOpacity }} />
@@ -233,12 +289,25 @@ export const StudyCardView = ({ card, isFirstCard }: Props) => {
   );
 };
 
+// Статичные стили, не зависящие от масштаба экрана.
+// Все размеры контента (паддинги, точки, отступы, шрифт) вынесены
+// в dynamicStyles внутри компонента — они масштабируются через scaled()
 const styles = StyleSheet.create({
-  container: {
-    marginBottom: 24,
-    maxWidth: "100%",
-    alignSelf: "center",
+  // Точки сложности НЕ масштабируются — эталонный мобильный размер
+  dotsPressArea: {
+    width: "100%",
+    alignItems: "center",
+    marginTop: 12,
+    zIndex: 101,
   },
+  dotsContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 8,
+    width: "100%",
+  },
+  dot: { width: 10, height: 10, borderRadius: 5 },
   touchArea: { flex: 1, width: "100%" },
   card: {
     flex: 1,
@@ -261,37 +330,5 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     backgroundColor: "#FFFFFF",
-  },
-  scrollContent: {
-    flexGrow: 1,
-    // Контент по центру вертикали карточки
-    justifyContent: "center",
-    // Паддинги — зеркало .editor-input { padding: 16px 14px }
-    paddingTop: CARD_DISPLAY.paddingTop,
-    paddingBottom: CARD_DISPLAY.paddingBottom,
-    paddingHorizontal: CARD_DISPLAY.paddingHorizontal,
-    width: "100%",
-  },
-  dotsPressArea: {
-    width: "100%",
-    alignItems: "center",
-    marginTop: 12,
-    zIndex: 101,
-  },
-  dotsContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 8,
-    width: "100%",
-  },
-  dot: { width: 10, height: 10, borderRadius: 5 },
-  absoluteHint: {
-    position: "absolute",
-    top: 36,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 16,
-    zIndex: 999,
   },
 });

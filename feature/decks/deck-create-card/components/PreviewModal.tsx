@@ -1,5 +1,5 @@
 // feature-decks/deck-create-card/components/PreviewModal.tsx
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import {
   Modal,
   StyleSheet,
@@ -15,6 +15,7 @@ import { colors } from "@/styles/Colors";
 import { CARD_DISPLAY } from "@/styles/CardDisplay";
 import { CardBlock } from "../types/cardBlocks";
 import { HtmlText } from "./HtmlText";
+import { useCardScale } from "@/utils/hooks/useCardScale";
 
 interface PreviewModalProps {
   isVisible: boolean;
@@ -34,6 +35,11 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
   const { width: windowWidth } = useWindowDimensions();
   // На десктопе модалка крупнее — по ширине как карточка обучения
   const isWide = windowWidth >= CARD_DISPLAY.WIDE_SCREEN_MIN_WIDTH;
+
+  // Коэффициент масштабирования КОНТЕНТА карточки предпросмотра —
+  // тот же, что в обучении: 1 на телефонах, до 1.35 на планшетах/десктопе
+  // (шрифты через scaledText — мягче, до +20%)
+  const { textScale, scaled, scaledText } = useCardScale();
 
   // Храним состояние переворота
   const [isFlipped, setIsFlipped] = useState(initialSide === "back");
@@ -115,8 +121,9 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
       };
     }, [url]);
 
-    // Потолок высоты внутри карточки, чтобы картинка не вытеснила текст
-    const MAX_H = 260;
+    // Потолок высоты внутри карточки, чтобы картинка не вытеснила текст.
+    // Растёт вместе с карточкой: 260 → 351 на десктопе
+    const MAX_H = scaled(260);
     const w = containerW ? Math.min(containerW, MAX_H * aspect) : 0;
     const h = w / aspect;
 
@@ -138,7 +145,14 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
       if (block.type === "term" || block.type === "text") {
         
         return block.value ? (
-          <HtmlText key={block.id} html={block.value} />
+          <HtmlText
+            key={block.id}
+            html={block.value}
+            // Базовый шрифт блока: 18 → 22 на десктопе (как в обучении)
+            fontSize={scaledText(CARD_DISPLAY.fontSize)}
+            // Внутренние заголовки h1–h3 контента растут пропорционально
+            scale={textScale}
+          />
         ) : (
           <Typography
             key={block.id}
@@ -167,6 +181,32 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
     });
   };
 
+  // Динамические стили контента карточки: пересоздаются только при смене
+  // scale. На мобильных (scale = 1) значения равны эталонным — 372×520,
+  // на десктопе контент растёт внутри карточки 650×750
+  const dynamicStyles = useMemo(
+    () =>
+      StyleSheet.create({
+        cardContainer: {
+          width: scaled(CARD_DISPLAY.width),
+          height: scaled(CARD_DISPLAY.height),
+          position: "relative",
+        },
+        scrollContent: {
+          flexGrow: 1,
+          // Блоки на всю ширину — контент слева, по центру вертикали — как в обучении
+          alignItems: "stretch",
+          justifyContent: "center",
+          gap: scaled(CARD_DISPLAY.blockGap),
+          // Паддинги — зеркало .editor-input { padding: 16px 14px }
+          paddingTop: scaled(CARD_DISPLAY.paddingTop),
+          paddingBottom: scaled(CARD_DISPLAY.paddingBottom),
+          paddingHorizontal: scaled(CARD_DISPLAY.paddingHorizontal),
+        },
+      }),
+    [scaled],
+  );
+
   return (
     <Modal
       visible={isVisible}
@@ -179,8 +219,9 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
         {/* Белая карточка перехватывает нажатие для переворота */}
         <Pressable
           style={[
-            styles.cardContainer,
+            dynamicStyles.cardContainer,
             isWide && {
+              // Десктоп: карточка ограничена maxWidth 650 — как в обучении
               width: "95%",
               maxWidth: CARD_DISPLAY.desktopMaxWidth,
               height: CARD_DISPLAY.desktopHeight,
@@ -195,7 +236,7 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
           >
             <ScrollView
               style={styles.scroll}
-              contentContainerStyle={styles.scrollContent}
+              contentContainerStyle={dynamicStyles.scrollContent}
               showsVerticalScrollIndicator={false}
             >
               {renderBlocksContent(frontBlocks)}
@@ -209,7 +250,7 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
           >
             <ScrollView
               style={styles.scroll}
-              contentContainerStyle={styles.scrollContent}
+              contentContainerStyle={dynamicStyles.scrollContent}
               showsVerticalScrollIndicator={false}
             >
               {renderBlocksContent(backBlocks)}
@@ -227,11 +268,6 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.4)",
     justifyContent: "center",
     alignItems: "center",
-  },
-  cardContainer: {
-    width: CARD_DISPLAY.width,
-    height: CARD_DISPLAY.height,
-    position: "relative",
   },
   topSideIndicator: {
     position: "absolute",
@@ -265,17 +301,6 @@ const styles = StyleSheet.create({
   scroll: {
     flex: 1,
     width: "100%",
-  },
-  scrollContent: {
-    flexGrow: 1,
-    // Блоки на всю ширину — контент слева, по центру вертикали — как в обучении
-    alignItems: "stretch",
-    justifyContent: "center",
-    gap: CARD_DISPLAY.blockGap,
-    // Паддинги — зеркало .editor-input { padding: 16px 14px }
-    paddingTop: CARD_DISPLAY.paddingTop,
-    paddingBottom: CARD_DISPLAY.paddingBottom,
-    paddingHorizontal: CARD_DISPLAY.paddingHorizontal,
   },
   termText: {
     textAlign: "center",

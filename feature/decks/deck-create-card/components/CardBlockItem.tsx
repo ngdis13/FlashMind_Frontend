@@ -70,9 +70,7 @@ export const CardBlockItem: React.FC<CardBlockItemProps> = React.memo(
           </Typography>
         </View>
 
-        {/* Кнопки правки/удаления не должны запускать перетаскивание:
-            на вебе глушим всплытие pointerdown, на мобилках вложенные
-            Pressable и так перехватывают нажатие */}
+\\
         <View
           style={styles.headerActions}
           onPointerDown={isWeb ? (e) => e.stopPropagation() : undefined}

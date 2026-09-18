@@ -12,6 +12,13 @@ interface HtmlTextProps {
   html: string;
   /** Базовый размер шрифта (по умолчанию 18 — как в редакторе) */
   fontSize?: number;
+  /**
+   * Коэффициент масштабирования заголовков/кодовых блоков и отступов
+   * списков внутри контента (по умолчанию 1 — без изменений).
+   * Нужен карточке обучения: базовый текст там масштабируется,
+   * и заголовки h1–h3 не должны оставаться «мобильного» размера.
+   */
+  scale?: number;
   color?: string;
   align?: "left" | "center";
 }
@@ -31,6 +38,7 @@ const EDITOR_TEXT_COLOR = "#1E1F4B";
 export const HtmlText: React.FC<HtmlTextProps> = ({
   html,
   fontSize = 18, // было 16 — в редакторе 18px
+  scale = 1, // по умолчанию все вложенные размеры не меняются
   color = EDITOR_TEXT_COLOR, // был серый darkGray
   align = "left",
 }) => {
@@ -68,32 +76,32 @@ export const HtmlText: React.FC<HtmlTextProps> = ({
         code: {
           fontFamily: "CourierPrime",
           backgroundColor: "#F4F4F9",
-          fontSize: 16,
+          fontSize: Math.round(16 * scale),
           borderRadius: 4,
         },
         h1: {
           fontFamily: "MontserratBold",
           fontWeight: "400",
-          fontSize: 24,
+          fontSize: Math.round(24 * scale),
           color: "#1E1F4B",
           marginVertical: 12,
         },
         h2: {
           fontFamily: "MontserratBold",
           fontWeight: "400",
-          fontSize: 20,
+          fontSize: Math.round(20 * scale),
           color: "#1E1F4B",
           marginVertical: 10,
         },
         h3: {
           fontFamily: "MontserratSemiBold",
           fontWeight: "400",
-          fontSize: 18,
+          fontSize: Math.round(18 * scale),
           color: "#1E1F4B",
           marginVertical: 8,
         },
-        ul: { paddingLeft: 22, marginVertical: 8 },
-        ol: { paddingLeft: 22, marginVertical: 8 },
+        ul: { paddingLeft: Math.round(22 * scale), marginVertical: 8 },
+        ol: { paddingLeft: Math.round(22 * scale), marginVertical: 8 },
         li: { marginVertical: 2 },
         blockquote: {
           borderLeftWidth: 4,
