@@ -2,7 +2,15 @@ import React, { useState, useEffect, useRef } from "react";
 import { commonStyles } from "@/styles/Common";
 import { Typography } from "@/styles/Typography";
 import { colors } from "@/styles/Colors";
-import { Pressable, View, Image, StyleSheet, ScrollView, type DimensionValue, type LayoutChangeEvent } from "react-native";
+import {
+  Pressable,
+  View,
+  Image,
+  StyleSheet,
+  ScrollView,
+  type DimensionValue,
+  type LayoutChangeEvent,
+} from "react-native";
 import { styles } from "./styles";
 import IconInfo from "@/assets/icons/IconInfo.png";
 import { InfoForecast } from "./components/InfoForecast";
@@ -19,8 +27,18 @@ interface ForecastGraphProps {
 const formatDateLabel = (dateStr: string) => {
   const checkDate = new Date(dateStr);
   const months = [
-    "Января", "Февраля", "Марта", "Апреля", "Мая", "Июня",
-    "Июля", "Августа", "Сентября", "Октября", "Ноября", "Декабря",
+    "Января",
+    "Февраля",
+    "Марта",
+    "Апреля",
+    "Мая",
+    "Июня",
+    "Июля",
+    "Августа",
+    "Сентября",
+    "Октября",
+    "Ноября",
+    "Декабря",
   ];
   const [, , day] = dateStr.split("-");
   return `${parseInt(day)} ${months[checkDate.getMonth()]}`;
@@ -52,10 +70,13 @@ export default function ForecastGraph({ forecast }: ForecastGraphProps) {
   const displayData = forecast;
 
   // Месячные метки: каждые 30 дней
-  const monthMarkers = Array.from({ length: Math.ceil(displayData.length / 30) }, (_, m) => ({
-    index: m * 30,
-    label: m === 0 ? "Текущий мес" : `+${m} мес`,
-  }));
+  const monthMarkers = Array.from(
+    { length: Math.ceil(displayData.length / 30) },
+    (_, m) => ({
+      index: m * 30,
+      label: m === 0 ? "Текущий мес" : `+${m} мес`,
+    }),
+  );
 
   const maxCount = Math.max(...displayData.map((p) => p.count), 10);
   const maxValue = Math.ceil(maxCount * 1.15);
@@ -98,11 +119,21 @@ export default function ForecastGraph({ forecast }: ForecastGraphProps) {
       <View style={styles.chart} onLayout={handleChartLayout}>
         {/* Ось Y */}
         <View style={styles.chart__yAxis}>
-          <Typography variant="h2" style={styles.chart__axisText}>{maxValue}</Typography>
-          <Typography variant="h2" style={styles.chart__axisText}>{Math.round(maxValue * 0.75)}</Typography>
-          <Typography variant="h2" style={styles.chart__axisText}>{Math.round(maxValue / 2)}</Typography>
-          <Typography variant="h2" style={styles.chart__axisText}>{Math.round(maxValue * 0.25)}</Typography>
-          <Typography variant="h2" style={styles.chart__axisText}>0</Typography>
+          <Typography variant="h2" style={styles.chart__axisText}>
+            {maxValue}
+          </Typography>
+          <Typography variant="h2" style={styles.chart__axisText}>
+            {Math.round(maxValue * 0.75)}
+          </Typography>
+          <Typography variant="h2" style={styles.chart__axisText}>
+            {Math.round(maxValue / 2)}
+          </Typography>
+          <Typography variant="h2" style={styles.chart__axisText}>
+            {Math.round(maxValue * 0.25)}
+          </Typography>
+          <Typography variant="h2" style={styles.chart__axisText}>
+            0
+          </Typography>
         </View>
 
         {/* Скролл с графиком */}
@@ -123,22 +154,49 @@ export default function ForecastGraph({ forecast }: ForecastGraphProps) {
               <View style={[styles.chart__gridLine, { top: "25%" }]} />
               <View style={[styles.chart__gridLine, { top: "50%" }]} />
               <View style={[styles.chart__gridLine, { top: "75%" }]} />
-              <View style={[styles.chart__gridLine, { bottom: 0, borderBottomWidth: 2, borderColor: "#E5E5E5" }]} />
+              <View
+                style={[
+                  styles.chart__gridLine,
+                  { bottom: 0, borderBottomWidth: 2, borderColor: "#E5E5E5" },
+                ]}
+              />
             </View>
 
             {/* Столбики */}
             {displayData.map((point, index) => {
-              const barHeight = maxValue > 0 ? `${(point.count / maxValue) * 100}%` : "0%";
+              const barHeight =
+                maxValue > 0 ? `${(point.count / maxValue) * 100}%` : "0%";
               return (
-                <Pressable key={index} style={styles.chart__barWrapper} onPress={() => handleBarPress(point, index)}>
-                  <View style={[styles.chart__bar, { height: barHeight as DimensionValue }]} />
+                <Pressable
+                  key={index}
+                  style={styles.chart__barWrapper}
+                  onPress={() => handleBarPress(point, index)}
+                >
+                  <View
+                    style={[
+                      styles.chart__bar,
+                      { height: barHeight as DimensionValue },
+                    ]}
+                  />
                 </Pressable>
               );
             })}
 
             {/* Метки месяцев */}
             {monthMarkers.map((m) => (
-              <Typography key={m.index} variant="h3" style={[styles.chart__axisText, { position: "absolute", left: m.index * 10 + 8, bottom: -16, zIndex: 1 }]}>
+              <Typography
+                key={m.index}
+                variant="h3"
+                style={[
+                  styles.chart__axisText,
+                  {
+                    position: "absolute",
+                    left: m.index * 10 + 8,
+                    bottom: -16,
+                    zIndex: 1,
+                  },
+                ]}
+              >
                 {m.label}
               </Typography>
             ))}
@@ -146,21 +204,33 @@ export default function ForecastGraph({ forecast }: ForecastGraphProps) {
         </ScrollView>
 
         {/* Тултип */}
-        {selectedBar && (
-          <View
-            style={[
-              styles.tooltip,
-              {
-                left: clamp(tooltipPos.x, 8, chartWidth - 88),
-                top: Math.max(8, tooltipPos.y),
-              },
-            ]}
-          >
-            <Typography variant="h3" style={styles.tooltip__date}>{selectedBar.date.includes(" ") ? selectedBar.date : formatDateLabel(selectedBar.date)}</Typography>
-            <Typography variant="h3" style={styles.tooltip__count}>{selectedBar.count} карт</Typography>
-            <View style={styles.tooltip__arrow} />
-          </View>
-        )}
+        {selectedBar &&
+          (() => {
+            // Центр бара в координатах chart (x уже включает ось Y и офсет)
+            const barCenter = tooltipPos.x + 40;
+            const tooltipLeft = clamp(tooltipPos.x, 8, chartWidth - 88);
+            // Стрелка следует за баром, даже когда тултип прижат к краю
+            const arrowLeft = clamp(barCenter - tooltipLeft - 6, 6, 62);
+
+            return (
+              <View
+                style={[
+                  styles.tooltip,
+                  { left: tooltipLeft, top: Math.max(8, tooltipPos.y) },
+                ]}
+              >
+                <Typography variant="h3" style={styles.tooltip__date}>
+                  {selectedBar.date.includes(" ")
+                    ? selectedBar.date
+                    : formatDateLabel(selectedBar.date)}
+                </Typography>
+                <Typography variant="h3" style={styles.tooltip__count}>
+                  {selectedBar.count} карт
+                </Typography>
+                <View style={[styles.tooltip__arrow, { left: arrowLeft }]} />
+              </View>
+            );
+          })()}
       </View>
 
       {/* ===== Сводная статистика ===== */}
@@ -174,16 +244,28 @@ export default function ForecastGraph({ forecast }: ForecastGraphProps) {
         return (
           <View style={styles.stats__row}>
             <View style={styles.stats__column}>
-              <Typography variant="h2" style={styles.stats__value}>{nextDayCount}</Typography>
-              <Typography variant="h3" style={styles.stats__label}>на завтра</Typography>
+              <Typography variant="h2" style={styles.stats__value}>
+                {nextDayCount}
+              </Typography>
+              <Typography variant="h3" style={styles.stats__label}>
+                на завтра
+              </Typography>
             </View>
             <View style={styles.stats__column}>
-              <Typography variant="h2" style={styles.stats__value}>{averageDaily}</Typography>
-              <Typography variant="h3" style={styles.stats__label}>в среднем{"\n"}за день</Typography>
+              <Typography variant="h2" style={styles.stats__value}>
+                {averageDaily}
+              </Typography>
+              <Typography variant="h3" style={styles.stats__label}>
+                в среднем{"\n"}за день
+              </Typography>
             </View>
             <View style={styles.stats__column}>
-              <Typography variant="h2" style={styles.stats__value}>{totalViews.toLocaleString("ru-RU")}</Typography>
-              <Typography variant="h3" style={styles.stats__label}>всего{"\n"}просмотров</Typography>
+              <Typography variant="h2" style={styles.stats__value}>
+                {totalViews.toLocaleString("ru-RU")}
+              </Typography>
+              <Typography variant="h3" style={styles.stats__label}>
+                всего{"\n"}просмотров
+              </Typography>
             </View>
           </View>
         );

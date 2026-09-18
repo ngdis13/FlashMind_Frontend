@@ -124,7 +124,7 @@ export default function ActivityGraph({
   const handleBarPress = (
     item: ReviewPoint,
     index: number,
-    _event: GestureResponderEvent,
+    _event?: GestureResponderEvent,
   ) => {
     const barWidthWithGap = 44;
     const total = item.forgotten + item.hard + item.good + item.easy;
@@ -139,11 +139,9 @@ export default function ActivityGraph({
       y: chartHeight - barPixelHeight - tooltipHeightWithGap,
     });
 
-    if (selectedBar?.date === item.date) {
-      setSelectedBar(null);
-    } else {
-      setSelectedBar(item);
-    }
+    // Наведение/нажатие просто показывает тултип (без toggle —
+    // скрытие происходит при уходе курсора или начале скролла)
+    setSelectedBar(item);
   };
 
   // ========== Вычисления для линейного графика ==========
@@ -318,6 +316,8 @@ export default function ActivityGraph({
                           { height: (total / maxTotalValue) * chartHeight },
                         ]}
                         onPress={(e) => handleBarPress(item, index, e)}
+                        onHoverIn={() => handleBarPress(item, index)}
+                        onHoverOut={() => setSelectedBar(null)}
                       >
                         <View
                           style={[
@@ -387,12 +387,18 @@ export default function ActivityGraph({
                     )
                   : 0;
 
+              // Центр столбика в координатах chart (x уже включает ось Y и офсет)
+              const barCenter = tooltipPos.x + 85;
+              const tooltipLeft = clamp(tooltipPos.x, 8, chartWidth - 178);
+              // Стрелка следует за столбиком, даже когда тултип прижат к краю
+              const arrowLeft = clamp(barCenter - tooltipLeft - 6, 6, 152);
+
               return (
                 <View
                   style={[
                     styles.tooltip,
                     {
-                      left: clamp(tooltipPos.x, 8, chartWidth - 178),
+                      left: tooltipLeft,
                       top: Math.max(8, tooltipPos.y),
                     },
                   ]}
@@ -485,7 +491,7 @@ export default function ActivityGraph({
                       </Typography>
                     </View>
                   </View>
-                  <View style={styles.tooltip__arrow} />
+                  <View style={[styles.tooltip__arrow, { left: arrowLeft }]} />
                 </View>
               );
             })()}
