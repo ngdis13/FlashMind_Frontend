@@ -33,6 +33,7 @@ import deleteIcon from "@/feature-decks/assets/deleteIcon.png";
 
 // --------------------------- Хуки и хранилища ---------------------------
 import { useDecks } from "@/storage/hooks/useDecks";
+import { InfoProdSettings } from "../../components/InfoProdSettings";
 
 // --------------------------- Константы ---------------------------
 /**
@@ -49,7 +50,7 @@ const MAX_DAYS = 730;
 /**
  * Преобразует позицию слайдера (0-1) в реальное количество дней
  * Использует логарифмическую шкалу для равномерного распределения
- * 
+ *
  * @param {number} value - Позиция слайдера от 0 до 1
  * @returns {number} Количество дней (округленное)
  */
@@ -62,7 +63,7 @@ const logScale = (value: number): number => {
 
 /**
  * Преобразует количество дней в позицию слайдера (0-1)
- * 
+ *
  * @param {number} days - Количество дней
  * @returns {number} Позиция слайдера от 0 до 1
  */
@@ -76,10 +77,10 @@ const logPosition = (days: number): number => {
 
 /**
  * Экран настроек колоды
- * 
+ *
  * @component
  * @returns {JSX.Element} React компонент экрана настроек колоды
- * 
+ *
  * @description
  * Экран предоставляет:
  * - Редактирование названия и описания колоды
@@ -90,7 +91,7 @@ const logPosition = (days: number): number => {
  *   - Максимальный интервал повторения (30-730 дней)
  * - Удаление колоды с подтверждением
  * - Сохранение всех изменений с валидацией
- * 
+ *
  * @example
  * // Использование в навигации
  * router.push(`/decks/${deckId}/settings`)
@@ -108,42 +109,48 @@ export default function SettingsDecksScreen() {
    * Название колоды
    */
   const [name, setName] = useState<string>("");
-  
+
   /**
    * Описание колоды
    */
   const [description, setDescription] = useState<string>("");
-  
+
   /**
    * Выбранный цвет колоды
    */
   const [selectedColor, setSelectedColor] = useState<string>(colors.red1);
-  
+
   /**
    * Видимость палитры цветов
    */
-  const [visibleColorPalette, setVisibleColorPalette] = useState<boolean>(false);
-  
+  const [visibleColorPalette, setVisibleColorPalette] =
+    useState<boolean>(false);
+
   /**
-   * Видимость информационного блока об обучении
+   * Видимость информационного блока об интенсивности обучения
    */
   const [visibleInfo, setVisibleInfo] = useState<boolean>(false);
+
+  /**
+   * Видимость информационного блока о продвинутых настройках
+   */
+  const [visibleInfoProd, setVisibleInfoProd] = useState<boolean>(false);
 
   /**
    * Режим интенсивности обучения: "light" | "balance" | "intensive" | "custom"
    */
   const [intensity, setIntensity] = useState<string>("balance");
-  
+
   /**
    * Целевой процент запоминания (85-95%)
    */
   const [targetRetention, setTargetRetention] = useState<number>(90);
-  
+
   /**
    * Максимальный интервал повторения в днях
    */
   const [maxInterval, setMaxInterval] = useState<number>(90);
-  
+
   /**
    * Управление прокруткой ScrollView во время настройки слайдеров
    */
@@ -153,7 +160,7 @@ export default function SettingsDecksScreen() {
    * Флаг загрузки
    */
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  
+
   /**
    * Видимость модального окна подтверждения удаления
    */
@@ -263,15 +270,22 @@ export default function SettingsDecksScreen() {
 
   // --------------------------- Обработчики интенсивности ---------------------------
   /**
-   * Переключает видимость информационного блока об обучении
+   * Переключает видимость информационного блока об интенсивности обучения
    */
   const handleInfo = (): void => {
     setVisibleInfo((prev) => !prev);
   };
 
   /**
+   * Переключает видимость информационного блока продвинутых настроек
+   */
+  const handleInfoProd = (): void => {
+    setVisibleInfoProd((prev) => !prev);
+  };
+
+  /**
    * Выбирает режим интенсивности обучения и обновляет соответствующие настройки
-   * 
+   *
    * @param {string} mode - Идентификатор режима ("light" | "balance" | "intensive")
    */
   const handleSelectIntensity = (mode: string): void => {
@@ -453,10 +467,7 @@ export default function SettingsDecksScreen() {
                   Интенсивность обучения
                 </Typography>
                 <Pressable onPress={handleInfo} style={styles.infoButton}>
-                  <Image
-                    source={infoIcon}
-                    style={{ width: 16, height: 16 }}
-                  />
+                  <Image source={infoIcon} style={{ width: 16, height: 16 }} />
                 </Pressable>
               </View>
 
@@ -484,12 +495,15 @@ export default function SettingsDecksScreen() {
             </View>
 
             <View style={styles.advancedSettingsBox}>
-              <Typography
-                variant="h1"
-                style={[styles.colorText, { marginBottom: 12 }]}
-              >
-                Продвинутые настройки
-              </Typography>
+              <View style={[styles.headerIntensity, { marginBottom: 12 }]}>
+                <Typography variant="h1" style={styles.colorText}>
+                  Продвинутые настройки
+                </Typography>
+
+                <Pressable onPress={handleInfoProd} style={styles.infoButton}>
+                  <Image source={infoIcon} style={{ width: 16, height: 16 }} />
+                </Pressable>
+              </View>
 
               <View style={[commonStyles.mainBox, styles.advancedSettings]}>
                 {/* НАСТРОЙКА 1: Целевое запоминание */}
@@ -655,6 +669,7 @@ export default function SettingsDecksScreen() {
       )}
 
       {visibleInfo && <InfoStudy visible={visibleInfo} onCancel={handleInfo} />}
+      {visibleInfoProd && <InfoProdSettings visible={visibleInfoProd} onCancel={handleInfoProd} />}
     </View>
   );
 }

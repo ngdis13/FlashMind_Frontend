@@ -17,33 +17,16 @@ export const InfoStudy = ({ visible, onCancel }: InfoStudyProps) => {
     <InfoModalLayout
       visible={visible}
       onClose={onCancel}
-      containerStyle={{ padding: 20, gap: 20, width: "90%" }}
+      containerStyle={{ padding: 20, width: "90%" }}
     >
-      {/* Верхнее описание параметров */}
-      <View style={styles.headerInfo}>
-        <Typography variant="h3" style={styles.paragraph}>
-          <Typography variant="h3" style={styles.boldText}>
-            Целевое запоминание
-          </Typography>{" "}
-          — вероятность вспомнить карточку при повторении. Чем выше %, тем чаще
-          алгоритм возвращает карточки и тем выше нагрузка на обучение.
-        </Typography>
-
-        <Typography variant="h3" style={styles.paragraph}>
-          <Typography variant="h3" style={styles.boldText}>
-            Максимальный интервал
-          </Typography>{" "}
-          — самый долгий перерыв перед повторением уже хорошо изученного слова.
-        </Typography>
-      </View>
-
       {/* Секция: Режимы обучения */}
       <View style={styles.modesSection}>
         <Typography
           variant="h3"
-          style={[styles.boldText, { marginBottom: 12 }]}
+          style={[styles.boldText, { marginBottom: 16 }]}
         >
-          Режимы обучения:
+          Режимы обучения{" "}
+          <Image source={AppEmojis.target} style={styles.inlineEmoji} />
         </Typography>
 
         {/* Режим: Лайт */}
@@ -117,6 +100,10 @@ const styles = StyleSheet.create({
   modesSection: {
     width: "100%",
   },
+  inlineEmoji: {
+    width: 12,
+    height: 12,
+  },
   modeRow: {
     flexDirection: "row",
     alignItems: "flex-start",
@@ -139,6 +126,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 12,
     justifyContent: "center",
+    marginBottom: 24
   },
   hintText: {
     lineHeight: 18,
