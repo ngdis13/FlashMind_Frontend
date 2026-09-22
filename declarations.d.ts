@@ -1,6 +1,5 @@
-// declarations.d.ts
 
-// Для импорта SVG как React-компонента (когда заработает transformer)
+// Для импорта SVG как React-компонента 
 declare module '*.svg' {
   import React from 'react';
   import { SvgProps } from 'react-native-svg';
@@ -8,7 +7,7 @@ declare module '*.svg' {
   export default content;
 }
 
-// Для импорта SVG как строки с ?raw (то, что тебе сейчас нужно)
+// Для импорта SVG как строки с ?raw 
 declare module '*.svg?raw' {
   const content: string;
   export default content;

@@ -34,6 +34,9 @@ import Toast from "react-native-toast-message";
 import { LogoSadStar } from "@/components/LogoSadStar";
 import MarksGraph from "../components/graphics/MarksGraph";
 import RepeatsGraph from "../components/graphics/RepeatsGraph";
+import { InfoPutOff } from "../components/info/InfoPutOff";
+import { InfoMetrics } from "../components/info/infoMetrics";
+
 
 // ДД.ММ из ISO-строки (без Intl — одинаково на Hermes и web)
 const formatDate = (iso: string): string => {
@@ -75,7 +78,30 @@ export default function CardPreview() {
   const [isPutOff, setIsPutOff] = useState(false);
   // поп-ап предпросмотра (тот же, что в конструкторе)
   const [isPreviewVisible, setIsPreviewVisible] = useState(false);
+  /**
+   * Видимость информационного блока о отложении карточки
+   */
+  const [visibleInfoDeferred, setVisibleInfoDeferred] =
+    useState<boolean>(false);
 
+  /**
+   * Видимость информационного блока о метриках
+   */
+  const [visibleInfoMetric, setVisibleInfoMetrics] = useState<boolean>(false);
+
+  /**
+   * Переключает видимость информационного блока об обучении
+   */
+  const handleInfoPutOff = (): void => {
+    setVisibleInfoDeferred((prev) => !prev);
+  };
+
+  /**
+   * Переключает видимость информационного блока об обучении
+   */
+  const handleInfoMetrics = (): void => {
+    setVisibleInfoMetrics((prev) => !prev);
+  };
   // поп-ап подтверждения удаления карточки
   const [isDeleteAlertVisible, setIsDeleteAlertVisible] = useState(false);
   // true, пока запрос удаления в процессе (защита от двойного тапа)
@@ -103,8 +129,7 @@ export default function CardPreview() {
   const handleViewCard = () => {
     setIsPreviewVisible(true);
   };
-  const handleInfoPutOff = () => {};
-  const handleInfoMetrics = () => {};
+
   const handlePutOffCard = async (newValue: boolean) => {
     if (!cardId) return;
     setIsPutOff(newValue);
@@ -347,7 +372,7 @@ export default function CardPreview() {
           </Pressable>
         </ScrollView>
       </View>
-      {/* Поп-ап предпросмотра — тот же, что в режиме редактирования */}
+      {/* Поп-ап предпросмотра */}
       <PreviewModal
         isVisible={isPreviewVisible}
         onClose={() => setIsPreviewVisible(false)}
@@ -366,6 +391,9 @@ export default function CardPreview() {
         onCancel={handleCancelDelete}
         icon={<LogoSadStar size={160} />}
       />
+
+      {visibleInfoDeferred && <InfoPutOff visible={visibleInfoDeferred} onCancel={handleInfoPutOff} />}
+      {visibleInfoMetric && <InfoMetrics visible={visibleInfoMetric} onCancel={handleInfoMetrics} />}
     </View>
   );
 }

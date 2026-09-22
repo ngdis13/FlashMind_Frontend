@@ -17,6 +17,7 @@ export const AppEmojis = {
   lightbulb: require("../emoji-png/lightbulb.png"),
   sparkles: require("../emoji-png/sparkles.png"),
   clock: require("../emoji-png/clock.png"),
+  fire: require("../emoji-png/fire.png"),
   tools: require("../emoji-png/tools.png"),
   star: require("../emoji-png/star.png"),
   document: require("../emoji-png/document.png"),

@@ -92,7 +92,6 @@ const formatTime = (sec: number): string => {
 const formatDelta = (delta: number, digits = 0): string =>
   `(${delta > 0 ? "+" : ""}${delta.toFixed(digits)})`;
 
-
 /** Path прямоугольника со скруглёнными ТОЛЬКО верхними углами */
 const topRoundedRect = (
   x: number,
@@ -228,10 +227,6 @@ export default function RepeatsGraph({ reviewHistory }: RepeatsGraphProps) {
       {/* Заголовок с кнопкой (i) */}
       <View style={styles.header}>
         <Typography variant="h2">Повторы</Typography>
-        {/* TODO: подключить поп-ап с пояснением графика */}
-        <Pressable onPress={() => {}}>
-          <Image source={IconInfo} style={styles.infoIcon} />
-        </Pressable>
       </View>
 
       <View style={styles.chart}>
@@ -328,8 +323,7 @@ export default function RepeatsGraph({ reviewHistory }: RepeatsGraphProps) {
                     y1={CHART_HEIGHT - d.difficulty * (CHART_HEIGHT / maxValue)}
                     x2={dayX(i + 1) + DAY_SPACING / 2}
                     y2={
-                      CHART_HEIGHT -
-                      next.difficulty * (CHART_HEIGHT / maxValue)
+                      CHART_HEIGHT - next.difficulty * (CHART_HEIGHT / maxValue)
                     }
                     stroke={
                       mid >= 7

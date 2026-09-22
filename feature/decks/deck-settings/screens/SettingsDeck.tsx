@@ -28,7 +28,7 @@ import { InfoStudy } from "@/feature/decks/components/InfoStudy";
 
 // --------------------------- Ассеты ---------------------------
 import ReturnIcon from "@/assets/icons/ReturnIcon.png";
-import infoButton from "@/feature-decks/assets/infoButton.png";
+import infoIcon from "@/assets/icons/IconInfo.png";
 import deleteIcon from "@/feature-decks/assets/deleteIcon.png";
 
 // --------------------------- Хуки и хранилища ---------------------------
@@ -454,7 +454,7 @@ export default function SettingsDecksScreen() {
                 </Typography>
                 <Pressable onPress={handleInfo} style={styles.infoButton}>
                   <Image
-                    source={infoButton}
+                    source={infoIcon}
                     style={{ width: 16, height: 16 }}
                   />
                 </Pressable>

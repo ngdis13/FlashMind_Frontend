@@ -40,7 +40,6 @@ const pluralizeReviews = (n: number): string => {
 };
 
 export default function MarksGraph({ reviewHistory }: MarksGraphProps) {
-  const [isInfoVisible, setIsInfoVisible] = useState(false);
 
   // Считаем количество каждой оценки из review_history
   const ratingCounts = useMemo(() => {
@@ -78,9 +77,6 @@ export default function MarksGraph({ reviewHistory }: MarksGraphProps) {
       {/* Заголовок */}
       <View style={styles.header}>
         <Typography variant="h2">Оценки</Typography>
-        <Pressable onPress={() => setIsInfoVisible(true)}>
-          <Image source={IconInfo} style={styles.infoIcon} />
-        </Pressable>
       </View>
 
       <View style={styles.content}>
