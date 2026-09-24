@@ -59,7 +59,7 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 20, // Скругленные края как на макете
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: "#E0E0E0", // Базовый цвет рамки неактивной кнопки
     backgroundColor: colors.white,
   },
@@ -102,6 +102,7 @@ export const styles = StyleSheet.create({
   },
   deleteButton: {
     borderColor: colors.errorColor,
+  
   },
   button: {
     width: "100%",

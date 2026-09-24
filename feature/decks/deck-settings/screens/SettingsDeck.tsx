@@ -150,6 +150,15 @@ export default function SettingsDecksScreen() {
    * Максимальный интервал повторения в днях
    */
   const [maxInterval, setMaxInterval] = useState<number>(90);
+  /**
+   * Количество новых карточек в день (1-100)
+   */
+  const [newCardsPerDay, setNewCardsPerDay] = useState<number>(20);
+
+  /**
+   * Дневной лимит карточек (1-1000)
+   */
+  const [dailyLimit, setDailyLimit] = useState<number>(200);
 
   /**
    * Управление прокруткой ScrollView во время настройки слайдеров
@@ -292,14 +301,20 @@ export default function SettingsDecksScreen() {
     setIntensity(mode);
 
     if (mode === "light") {
-      setTargetRetention(85);
+      setTargetRetention(85); 
       setMaxInterval(730);
+      setNewCardsPerDay(10);
+      setDailyLimit(50);
     } else if (mode === "balance") {
       setTargetRetention(92);
       setMaxInterval(365);
+      setNewCardsPerDay(20);
+      setDailyLimit(200);
     } else if (mode === "intensive") {
       setTargetRetention(95);
       setMaxInterval(30);
+      setNewCardsPerDay(50);
+      setDailyLimit(500);
     }
   };
 
@@ -384,16 +399,37 @@ export default function SettingsDecksScreen() {
               : rawInterval;
       }
 
-      // 2. Сетим значения в стейты для ползунков
+      // 2. Получаем значения новых настроек (с дефолтами, пока API не готов)
+      const loadedNewCards = deck.settings.new_cards_per_day ?? 20;
+      const loadedDailyLimit = deck.settings.daily_limit ?? 200;
+
+      // 3. Сетим значения в стейты для ползунков
       setTargetRetention(loadedRetention);
       setMaxInterval(loadedInterval);
+      setNewCardsPerDay(loadedNewCards);
+      setDailyLimit(loadedDailyLimit);
 
-      // 3. Автоматически определяем режим на основе пришедших данных
-      if (loadedRetention === 85 && loadedInterval === 730) {
+      // 4. Автоматически определяем режим на основе пришедших данных
+      if (
+        loadedRetention === 85 &&
+        loadedInterval === 730 &&
+        loadedNewCards === 10 &&
+        loadedDailyLimit === 50
+      ) {
         setIntensity("light");
-      } else if (loadedRetention === 92 && loadedInterval === 365) {
+      } else if (
+        loadedRetention === 92 &&
+        loadedInterval === 365 &&
+        loadedNewCards === 20 &&
+        loadedDailyLimit === 200
+      ) {
         setIntensity("balance");
-      } else if (loadedRetention === 95 && loadedInterval === 30) {
+      } else if (
+        loadedRetention === 95 &&
+        loadedInterval === 30 &&
+        loadedNewCards === 50 &&
+        loadedDailyLimit === 500
+      ) {
         setIntensity("intensive");
       } else {
         setIntensity("custom");
@@ -506,7 +542,115 @@ export default function SettingsDecksScreen() {
               </View>
 
               <View style={[commonStyles.mainBox, styles.advancedSettings]}>
-                {/* НАСТРОЙКА 1: Целевое запоминание */}
+                {/* НАСТРОЙКА 1:Количество новых карточек */}
+                <View style={styles.settings}>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 4,
+                      marginBottom: 4,
+                    }}
+                  >
+                    <Typography variant="h2" style={styles.colorText}>
+                      Количество новых карточек
+                    </Typography>
+                    <Typography
+                      variant="h2"
+                      style={{ color: colors.mainColor }}
+                    >
+                      [ {newCardsPerDay} ]
+                    </Typography>
+                  </View>
+
+                  <Slider
+                    style={{ width: "100%", height: 30 }}
+                    minimumValue={1}
+                    maximumValue={100}
+                    step={1}
+                    value={newCardsPerDay}
+                    onValueChange={(val) => {
+                      setNewCardsPerDay(val);
+                      setIntensity("custom");
+                    }}
+                    onSlidingStart={() => setIsScrollEnabled(false)}
+                    onSlidingComplete={() => setIsScrollEnabled(true)}
+                    minimumTrackTintColor={colors.mainColor}
+                    maximumTrackTintColor="#E0E0E0"
+                    thumbTintColor={colors.mainColor}
+                  />
+
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      marginTop: 2,
+                    }}
+                  >
+                    <Typography variant="h3">1</Typography>
+                    <Typography variant="h3">100</Typography>
+                  </View>
+
+                  <Typography variant="h3" style={styles.sliderDescription}>
+                    Количество новых карточек, добавляемых в день
+                  </Typography>
+                </View>
+
+                {/* НАСТРОЙКА 2:Дневной лимит карточек  */}
+                <View style={styles.settings}>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 4,
+                      marginBottom: 4,
+                    }}
+                  >
+                    <Typography variant="h2" style={styles.colorText}>
+                      Дневной лимит карточек
+                    </Typography>
+                    <Typography
+                      variant="h2"
+                      style={{ color: colors.mainColor }}
+                    >
+                      [ {dailyLimit} ]
+                    </Typography>
+                  </View>
+
+                  <Slider
+                    style={{ width: "100%", height: 30 }}
+                    minimumValue={1}
+                    maximumValue={1000}
+                    step={1}
+                    value={dailyLimit}
+                    onValueChange={(val) => {
+                      setDailyLimit(val);
+                      setIntensity("custom");
+                    }}
+                    onSlidingStart={() => setIsScrollEnabled(false)}
+                    onSlidingComplete={() => setIsScrollEnabled(true)}
+                    minimumTrackTintColor={colors.mainColor}
+                    maximumTrackTintColor="#E0E0E0"
+                    thumbTintColor={colors.mainColor}
+                  />
+
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      marginTop: 2,
+                    }}
+                  >
+                    <Typography variant="h3">1</Typography>
+                    <Typography variant="h3">1000</Typography>
+                  </View>
+
+                  <Typography variant="h3" style={styles.sliderDescription}>
+                    Общий лимит повторений карточек в день
+                  </Typography>
+                </View>
+
+                {/* НАСТРОЙКА 3: Целевое запоминание */}
                 <View style={styles.settings}>
                   <View
                     style={{
@@ -533,7 +677,10 @@ export default function SettingsDecksScreen() {
                     maximumValue={95}
                     step={1}
                     value={targetRetention}
-                    onValueChange={setTargetRetention}
+                    onValueChange={(val) => {
+                      setTargetRetention(val);
+                      setIntensity("custom");
+                    }}
                     onSlidingStart={() => setIsScrollEnabled(false)}
                     onSlidingComplete={() => setIsScrollEnabled(true)}
                     minimumTrackTintColor={colors.mainColor}
@@ -557,7 +704,7 @@ export default function SettingsDecksScreen() {
                   </Typography>
                 </View>
 
-                {/* НАСТРОЙКА 2: Максимальный интервал */}
+                {/* НАСТРОЙКА 4: Максимальный интервал */}
                 <View style={[styles.settings]}>
                   <View
                     style={{
@@ -587,6 +734,7 @@ export default function SettingsDecksScreen() {
                       const calculatedDays = logScale(val);
                       if (calculatedDays >= 30 && calculatedDays <= 730) {
                         setMaxInterval(calculatedDays);
+                        setIntensity("custom");
                       }
                     }}
                     onSlidingStart={() => setIsScrollEnabled(false)}
@@ -669,7 +817,9 @@ export default function SettingsDecksScreen() {
       )}
 
       {visibleInfo && <InfoStudy visible={visibleInfo} onCancel={handleInfo} />}
-      {visibleInfoProd && <InfoProdSettings visible={visibleInfoProd} onCancel={handleInfoProd} />}
+      {visibleInfoProd && (
+        <InfoProdSettings visible={visibleInfoProd} onCancel={handleInfoProd} />
+      )}
     </View>
   );
 }

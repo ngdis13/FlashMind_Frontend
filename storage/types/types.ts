@@ -48,6 +48,16 @@ export interface DeckSettings {
   color: string;
   desired_retention: number;
   maximum_interval: number;
+  /**
+   * Количество новых карточек в день (1-100)
+   * Пока не поддерживается сервером (API в разработке)
+   */
+  new_cards_per_day?: number;
+  /**
+   * Дневной лимит карточек (1-1000)
+   * Пока не поддерживается сервером (API в разработке)
+   */
+  daily_limit?: number;
 }
 
 /**
