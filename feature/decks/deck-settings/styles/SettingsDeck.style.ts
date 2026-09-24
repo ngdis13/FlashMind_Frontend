@@ -93,6 +93,15 @@ export const styles = StyleSheet.create({
     marginTop: 6,
     lineHeight: 18,
   },
+  valueInput: {
+    fontFamily: "MontserratSemiBold",
+    fontSize: 16,
+    color: colors.mainColor,
+    textAlign: "center",
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+    marginHorizontal: 1,
+  },
   bottomButtonContainer: {
     width: "100%",
     paddingHorizontal: 10,

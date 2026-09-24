@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 
 // --------------------------- React Native ---------------------------
-import { Pressable, View, Image, ScrollView } from "react-native";
+import { Pressable, View, Image, ScrollView, TextInput } from "react-native";
 
 // --------------------------- Expo ---------------------------
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -227,6 +227,19 @@ export default function SettingsDecksScreen() {
       return;
     }
 
+    // Валидация настроек перед сохранением
+    const validationError = validateSettings();
+    if (validationError) {
+      Toast.show({
+        type: "error",
+        text1: "Проверьте настройки",
+        text2: validationError,
+        position: "bottom",
+        visibilityTime: 3000,
+      });
+      return;
+    }
+
     try {
       setIsLoading(true);
 
@@ -297,6 +310,67 @@ export default function SettingsDecksScreen() {
    *
    * @param {string} mode - Идентификатор режима ("light" | "balance" | "intensive")
    */
+  /**
+   * Обработка свободного ввода: пользователь может печатать и стирать
+   * что угодно — никаких проверок на лету. Валидация выполняется
+   * при нажатии «Сохранить изменения» (см. validateSettings).
+   */
+  const handleValueInput = (
+    text: string,
+    setter: (value: number) => void,
+  ): void => {
+    const num = parseInt(text, 10);
+    setter(isNaN(num) ? 0 : num);
+  };
+
+  /**
+   * Валидация всех настроек перед сохранением.
+   * @returns {string | null} Текст ошибки или null, если всё в порядке
+   */
+  const validateSettings = (): string | null => {
+    const validations = [
+      {
+        value: newCardsPerDay,
+        min: 1,
+        max: 100,
+        label: "Количество новых карточек",
+        unit: "",
+      },
+      {
+        value: dailyLimit,
+        min: 1,
+        max: 1000,
+        label: "Дневной лимит карточек",
+        unit: "",
+      },
+      {
+        value: targetRetention,
+        min: 85,
+        max: 95,
+        label: "Целевое запоминание",
+        unit: "%",
+      },
+      {
+        value: maxInterval,
+        min: MIN_DAYS,
+        max: MAX_DAYS,
+        label: "Максимальный интервал",
+        unit: " дней",
+      },
+    ];
+
+    for (const v of validations) {
+      if (v.value < v.min) {
+        return `${v.label}: минимальное значение — ${v.min}${v.unit}`;
+      }
+      if (v.value > v.max) {
+        return `${v.label}: максимальное значение — ${v.max}${v.unit}`;
+      }
+    }
+
+    return null;
+  };
+
   const handleSelectIntensity = (mode: string): void => {
     setIntensity(mode);
 
@@ -555,11 +629,27 @@ export default function SettingsDecksScreen() {
                     <Typography variant="h2" style={styles.colorText}>
                       Количество новых карточек
                     </Typography>
-                    <Typography
-                      variant="h2"
-                      style={{ color: colors.mainColor }}
-                    >
-                      [ {newCardsPerDay} ]
+                    <Typography variant="h2" style={{ color: colors.mainColor }}>
+                      [
+                    </Typography>
+                    <TextInput
+                      style={[
+                        styles.valueInput,
+                        {
+                          width:
+                            String(newCardsPerDay).length * 10 + 4,
+                        },
+                      ]}
+                      value={String(newCardsPerDay)}
+                      keyboardType="number-pad"
+                      maxLength={3}
+                      onChangeText={(text) => {
+                        handleValueInput(text, setNewCardsPerDay);
+                        setIntensity("custom");
+                      }}
+                    />
+                    <Typography variant="h2" style={{ color: colors.mainColor }}>
+                      ]
                     </Typography>
                   </View>
 
@@ -609,11 +699,24 @@ export default function SettingsDecksScreen() {
                     <Typography variant="h2" style={styles.colorText}>
                       Дневной лимит карточек
                     </Typography>
-                    <Typography
-                      variant="h2"
-                      style={{ color: colors.mainColor }}
-                    >
-                      [ {dailyLimit} ]
+                    <Typography variant="h2" style={{ color: colors.mainColor }}>
+                      [
+                    </Typography>
+                    <TextInput
+                      style={[
+                        styles.valueInput,
+                        { width: String(dailyLimit).length * 10 + 4 },
+                      ]}
+                      value={String(dailyLimit)}
+                      keyboardType="number-pad"
+                      maxLength={4}
+                      onChangeText={(text) => {
+                        handleValueInput(text, setDailyLimit);
+                        setIntensity("custom");
+                      }}
+                    />
+                    <Typography variant="h2" style={{ color: colors.mainColor }}>
+                      ]
                     </Typography>
                   </View>
 
@@ -663,11 +766,27 @@ export default function SettingsDecksScreen() {
                     <Typography variant="h2" style={styles.colorText}>
                       Целевое запоминание
                     </Typography>
-                    <Typography
-                      variant="h2"
-                      style={{ color: colors.mainColor }}
-                    >
-                      [ {targetRetention}% ]
+                    <Typography variant="h2" style={{ color: colors.mainColor }}>
+                      [
+                    </Typography>
+                    <TextInput
+                      style={[
+                        styles.valueInput,
+                        {
+                          width:
+                            String(targetRetention).length * 10 + 4,
+                        },
+                      ]}
+                      value={String(targetRetention)}
+                      keyboardType="number-pad"
+                      maxLength={3}
+                      onChangeText={(text) => {
+                        handleValueInput(text, setTargetRetention);
+                        setIntensity("custom");
+                      }}
+                    />
+                    <Typography variant="h2" style={{ color: colors.mainColor }}>
+                      %]
                     </Typography>
                   </View>
 
@@ -717,11 +836,24 @@ export default function SettingsDecksScreen() {
                     <Typography variant="h2" style={styles.colorText}>
                       Максимальный интервал
                     </Typography>
-                    <Typography
-                      variant="h2"
-                      style={{ color: colors.mainColor }}
-                    >
-                      [ {maxInterval} дней ]
+                    <Typography variant="h2" style={{ color: colors.mainColor }}>
+                      [
+                    </Typography>
+                    <TextInput
+                      style={[
+                        styles.valueInput,
+                        { width: String(maxInterval).length * 10 + 4 },
+                      ]}
+                      value={String(maxInterval)}
+                      keyboardType="number-pad"
+                      maxLength={4}
+                      onChangeText={(text) => {
+                        handleValueInput(text, setMaxInterval);
+                        setIntensity("custom");
+                      }}
+                    />
+                    <Typography variant="h2" style={{ color: colors.mainColor }}>
+                      дней]
                     </Typography>
                   </View>
 
