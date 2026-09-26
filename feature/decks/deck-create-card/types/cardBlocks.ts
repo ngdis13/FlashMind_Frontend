@@ -20,7 +20,7 @@ export interface TextBlock extends BaseBlock {
 export interface QuizBlock extends BaseBlock {
   type: "quiz";
   variants: string[];
-  correctIndex: number;
+  correctIndexes: number[]; // индексы верных вариантов — их может быть несколько
 }
 
 export interface ImageBlock extends BaseBlock {

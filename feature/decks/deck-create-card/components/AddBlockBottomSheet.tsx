@@ -24,6 +24,7 @@ import viewCardIcon2 from "@/feature-decks/assets/ViewCardIcon2.png";
 import ImageIcon from "@/feature-decks/assets/ImageIcon.png";
 import TermIcon from "@/feature-decks/assets/TermIcon.png";
 import TextIcon from "@/feature-decks/assets/TextIcon.png";
+import QuizIcon from "@/feature-decks/assets/QuizIcon.png";
 
 interface AddBlockBottomSheetProps {
   isVisible: boolean;
@@ -36,7 +37,7 @@ export const AddBlockBottomSheet: React.FC<AddBlockBottomSheetProps> = ({
   isVisible,
   onClose,
   onSelectBlockType,
-  allowedTypes = ["term", "text", "image"], // Дефолтные значения
+  allowedTypes = ["term", "text", "image", "quiz"],
 }) => {
   const [search, setSearch] = useState(""); //
   // Держим модалку смонтированной, пока идёт анимация закрытия
@@ -149,6 +150,13 @@ export const AddBlockBottomSheet: React.FC<AddBlockBottomSheetProps> = ({
         description:
           "Визуальный образ на любой стороне для ассоциативной памяти", //
       },
+      {
+        type: "quiz",
+        title: "Варианты ответа",
+        icon: QuizIcon,
+        description:
+          "Блок для создания вопросов с вариантами ответов. Идеально подходит для проверки знаний",
+      },
     ];
 
     const filteredBySide = allBlocks.filter((block) =>
@@ -209,10 +217,7 @@ export const AddBlockBottomSheet: React.FC<AddBlockBottomSheetProps> = ({
               onChangeText={setSearch} //
             />
             <Pressable style={styles.searchButton}>
-              <Image
-                source={searchButton}
-                style={{ width: 18, height: 18 }}
-              />
+              <Image source={searchButton} style={{ width: 18, height: 18 }} />
             </Pressable>
           </View>
 

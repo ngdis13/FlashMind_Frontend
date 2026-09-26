@@ -18,7 +18,9 @@ export const blocksToHtml = (blocks: CardBlock[] | undefined): string => {
           return `<img src="${block.url}" style="max-width:100%;" />`;
         case "quiz":
           return `<p>${block.variants
-            .map((v, i) => (i === block.correctIndex ? `✅ ${v}` : `• ${v}`))
+            .map((v, i) =>
+              block.correctIndexes.includes(i) ? `✅ ${v}` : `• ${v}`,
+            )
             .join("<br/>")}</p>`;
         default:
           return "";

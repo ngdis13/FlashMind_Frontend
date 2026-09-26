@@ -77,7 +77,7 @@ const emptyBlockContent = (block: CardBlock): CardBlock => {
       return {
         ...block,
         variants: block.variants.map(() => ""),
-        correctIndex: 0,
+        correctIndexes: [0],
       };
     default:
       return { ...block, value: "" };

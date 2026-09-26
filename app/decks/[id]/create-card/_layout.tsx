@@ -11,6 +11,7 @@ export default function CreateCardLayout() {
       <Stack.Screen name="side-editor" />
       <Stack.Screen name="image-editor" />
       <Stack.Screen name="image-search" />
+      <Stack.Screen name="quiz-editor" />
     </Stack>
   );
 }

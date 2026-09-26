@@ -50,13 +50,13 @@ type CardState = {
   updateCard: (id: string, data: UpdateCardPayload) => Promise<Card>;
   deleteCard: (id: string, deckId: string) => Promise<void>;
   /**
-   * Точечная замена карточки в кэше 
+   * Точечная замена карточки в кэше
    * Используется после ревью: PATCH /study возвращает обновлённую карточку —
    * заменяем её по ID вместо сброса всего кэша колоды.
    */
   replaceCard: (deckId: string, updatedCard: Card) => void;
   clearCards: (deckId?: string) => void;
-  // Прямой метод ручного обновления стора 
+  // Прямой метод ручного обновления стора
   setDeckCardsState: (deckId: string, newState: DeckCardsStorage) => void;
 
   setDraftTitle: (title: string) => void;
@@ -69,6 +69,11 @@ type CardState = {
     side: "front" | "back",
     blockId: string,
     value: string,
+  ) => void;
+  updateDraftBlock: (
+    side: "front" | "back",
+    blockId: string,
+    block: CardBlock,
   ) => void;
   resetDraft: () => void;
   addDraftBlock: (side: "front" | "back", block: CardBlock) => void;
@@ -374,7 +379,9 @@ export const useCardStore = create<CardState>((set, get) => {
     replaceCard: (deckId, updatedCard) => {
       const record = get().cards[deckId];
       if (!record) {
-        console.log(`⚠️ replaceCard: кэш колоды ${deckId} пуст, заменять нечего`);
+        console.log(
+          `⚠️ replaceCard: кэш колоды ${deckId} пуст, заменять нечего`,
+        );
         return;
       }
 
@@ -434,6 +441,15 @@ export const useCardStore = create<CardState>((set, get) => {
             }
             return { ...block, value };
           });
+
+        return side === "front"
+          ? { draftFront: updateBlocks(state.draftFront) }
+          : { draftBack: updateBlocks(state.draftBack) };
+      }),
+    updateDraftBlock: (side, blockId, block) =>
+      set((state) => {
+        const updateBlocks = (blocks: CardBlock[]) =>
+          blocks.map((b) => (b.id === blockId ? block : b));
 
         return side === "front"
           ? { draftFront: updateBlocks(state.draftFront) }

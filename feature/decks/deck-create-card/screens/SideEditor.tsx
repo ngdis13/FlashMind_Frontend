@@ -153,6 +153,7 @@ export const SideEditor = () => {
   const handleEditBlock = (block: CardBlock): void => {
     let route = "text-editor";
     if (block.type === "image") route = "image-editor";
+    if (block.type === "quiz") route = "quiz-editor";
 
     router.push({
       pathname: `/decks/${id}/create-card/${route}`,
@@ -177,8 +178,8 @@ export const SideEditor = () => {
       finalizedBlock = {
         ...baseBlock,
         type: "quiz",
-        variants: ["", "", "", ""],
-        correctIndex: 0,
+        variants: ["", ""], // два пустых обязательных варианта
+        correctIndexes: [0], // первый отмечен верным по умолчанию
       };
     } else if (type === "image") {
       finalizedBlock = { ...baseBlock, type: "image", url: "" };
@@ -388,9 +389,7 @@ export const SideEditor = () => {
         isVisible={isBottomSheetVisible}
         onClose={() => setIsBottomSheetVisible(false)}
         onSelectBlockType={handleSelectBlockType}
-        allowedTypes={
-          sideKey === "front" ? ["text", "image"] : ["text", "image"]
-        }
+        allowedTypes={["text", "image", "quiz"]}
       />
 
       {/* Модальное окно полноэкранного интерактивного превью создаваемой карточки */}

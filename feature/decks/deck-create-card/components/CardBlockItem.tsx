@@ -1,4 +1,3 @@
-
 import React from "react";
 import { View, StyleSheet, Pressable, Image, Platform } from "react-native";
 import * as Haptics from "expo-haptics";
@@ -11,6 +10,7 @@ import editIcon from "@/assets/icons/editIcon2.png";
 import { TextBlock } from "./blocks/TextBlock";
 import { ImageBlock } from "./blocks/ImageBlock";
 import type { CardBlock } from "../types/cardBlocks";
+import { QuizBlock } from "./blocks/QuizBlock";
 
 interface CardBlockItemProps {
   item: CardBlock;
@@ -67,10 +67,10 @@ export const CardBlockItem: React.FC<CardBlockItemProps> = React.memo(
           <Typography variant="h2" color={colors.white}>
             {item.type === "text" && "Текст"}
             {item.type === "image" && "Изображение"}
+            {item.type === "quiz" && "Варианты ответа"}
           </Typography>
         </View>
 
-\\
         <View
           style={styles.headerActions}
           onPointerDown={isWeb ? (e) => e.stopPropagation() : undefined}
@@ -119,6 +119,12 @@ export const CardBlockItem: React.FC<CardBlockItemProps> = React.memo(
         <View style={styles.body}>
           {item.type === "text" && <TextBlock value={item.value} />}
           {item.type === "image" && <ImageBlock url={item.url} />}
+          {item.type === "quiz" && (
+            <QuizBlock
+              variants={item.variants}
+              correctIndexes={item.correctIndexes}
+            />
+          )}
         </View>
       </View>
     );
