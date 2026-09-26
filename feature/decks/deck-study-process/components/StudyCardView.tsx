@@ -33,13 +33,9 @@ interface Props {
 
 export const StudyCardView = ({ card, isFirstCard }: Props) => {
   const { width: windowWidth } = useWindowDimensions();
-  // Десктоп (≥768px): прежний «большой» вид карточки (95% ширины, flex-высота).
-  // Мобильные: фикс 372×520, как в редакторе/превью
   const isWide = windowWidth >= CARD_DISPLAY.WIDE_SCREEN_MIN_WIDTH;
-  // Коэффициент масштабирования КОНТЕНТА КАРТОЧКИ: 1 на телефонах (мобильный
-  // дизайн не меняется), до 1.35 на планшетах/десктопе.
-  // Шрифты — через scaledText (мягче, до +20%), точки сложности — статичны
   const { textScale, scaled, scaledText } = useCardScale();
+
   const [isFlipped, setIsFlipped] = useState<boolean>(false);
   const [wasFlipped, setWasFlipped] = useState<boolean>(false);
   const [showUserHint, setShowUserHint] = useState<boolean>(false);
@@ -49,7 +45,6 @@ export const StudyCardView = ({ card, isFirstCard }: Props) => {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const getDifficultyLevel = (): number => {
-    // v2.0.0: difficulty — число FSRS
     if (!card?.difficulty) return 0;
     return Math.max(1, Math.min(5, Math.round(card.difficulty)));
   };
@@ -84,7 +79,8 @@ export const StudyCardView = ({ card, isFirstCard }: Props) => {
     if (!wasFlipped) setWasFlipped(true);
     Animated.spring(flipAnim, {
       toValue: isFlipped ? 0 : 1,
-      useNativeDriver: true,
+      // ВАЖНО: Для веба отключаем nativeDriver, чтобы 3D-трансформация не ломала клики в браузере
+      useNativeDriver: Platform.OS !== "web",
       friction: 8,
       tension: 10,
     }).start();
@@ -103,13 +99,13 @@ export const StudyCardView = ({ card, isFirstCard }: Props) => {
         toValue: 1,
         duration: 800,
         delay: 500,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== "web",
       }).start();
     } else {
       Animated.timing(hintOpacity, {
         toValue: 0,
         duration: 300,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== "web",
       }).start();
     }
   }, [isFirstCard, isFlipped, wasFlipped]);
@@ -120,17 +116,16 @@ export const StudyCardView = ({ card, isFirstCard }: Props) => {
     setShowUserHint(false);
   }, [card?.id]);
 
-  // ⌨️ Пробел — переворот карточки
   useEffect(() => {
-    if (Platform.OS !== 'web') return;
+    if (Platform.OS !== "web") return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.code === 'Space') {
+      if (e.code === "Space") {
         e.preventDefault();
         handleFlip();
       }
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleFlip]);
 
   const frontInterpolate = flipAnim.interpolate({
@@ -150,9 +145,6 @@ export const StudyCardView = ({ card, isFirstCard }: Props) => {
     outputRange: [0, 1],
   });
 
-  // Динамические стили карточки: пересоздаются только при смене scale.
-  // На мобильных (scale = 1) значения равны эталонным — дизайн не меняется,
-  // на планшетах/десктопе контент растёт внутри контейнера 650×750
   const dynamicStyles = useMemo(
     () =>
       StyleSheet.create({
@@ -163,9 +155,7 @@ export const StudyCardView = ({ card, isFirstCard }: Props) => {
         },
         scrollContent: {
           flexGrow: 1,
-          // Контент по центру вертикали карточки
           justifyContent: "center",
-          // Паддинги — зеркало .editor-input { padding: 16px 14px }
           paddingTop: scaled(CARD_DISPLAY.paddingTop),
           paddingBottom: scaled(CARD_DISPLAY.paddingBottom),
           paddingHorizontal: scaled(CARD_DISPLAY.paddingHorizontal),
@@ -210,7 +200,6 @@ export const StudyCardView = ({ card, isFirstCard }: Props) => {
     );
   };
 
-  // Рендер блоков стороны карточки через общий реестр превью
   const renderCardContent = (blocks: Card["front"] | undefined) => (
     <ScrollView
       style={styles.scroll}
@@ -228,22 +217,20 @@ export const StudyCardView = ({ card, isFirstCard }: Props) => {
         dynamicStyles.container,
         isWide
           ? {
-              // Десктоп: контейнер ограничен maxWidth 650 и отцентрован
-              // (alignSelf в dynamicStyles.container),
-              // контент внутри масштабируется через scaled()
               width: CARD_DISPLAY.desktopMaxWidth,
               maxWidth: "100%",
               height: CARD_DISPLAY.desktopHeight,
               maxHeight: "100%",
             }
           : {
-              // Мобильные: при scale = 1 это ровно эталонные 372×520
               width: scaled(CARD_DISPLAY.width),
               height: scaled(CARD_DISPLAY.height),
             },
       ]}
     >
+      {/* Оригинальный Pressable, но теперь дочерние слои управляют своей активностью */}
       <Pressable style={styles.touchArea} onPress={handleFlip}>
+        {/* ЛИЦЕВАЯ СТОРОНА КАРТОЧКИ */}
         <Animated.View
           style={[
             commonStyles.mainBox,
@@ -254,6 +241,8 @@ export const StudyCardView = ({ card, isFirstCard }: Props) => {
               opacity: frontOpacity,
             },
           ]}
+          // ИСПРАВЛЕНИЕ: Отключаем жесты для стороны, когда она перевернута (как в превью)
+          pointerEvents={isFlipped ? "none" : "auto"}
         >
           {renderDifficultyDots()}
           <UserHint
@@ -266,6 +255,7 @@ export const StudyCardView = ({ card, isFirstCard }: Props) => {
           <Animated.View style={{ opacity: hintOpacity }} />
         </Animated.View>
 
+        {/* ОБРАТНАЯ СТОРОНА КАРТОЧКИ */}
         <Animated.View
           style={[
             commonStyles.mainBox,
@@ -273,6 +263,8 @@ export const StudyCardView = ({ card, isFirstCard }: Props) => {
             styles.cardBack,
             { transform: [{ rotateY: backInterpolate }], opacity: backOpacity },
           ]}
+          // ИСПРАВЛЕНИЕ: Включаем жесты только тогда, когда сторона активна (как в превью)
+          pointerEvents={isFlipped ? "auto" : "none"}
         >
           {renderCardContent(card?.back)}
         </Animated.View>
@@ -281,11 +273,7 @@ export const StudyCardView = ({ card, isFirstCard }: Props) => {
   );
 };
 
-// Статичные стили, не зависящие от масштаба экрана.
-// Все размеры контента (паддинги, точки, отступы, шрифт) вынесены
-// в dynamicStyles внутри компонента — они масштабируются через scaled()
 const styles = StyleSheet.create({
-  // Точки сложности НЕ масштабируются — эталонный мобильный размер
   dotsPressArea: {
     width: "100%",
     alignItems: "center",
