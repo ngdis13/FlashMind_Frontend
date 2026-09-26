@@ -4,18 +4,18 @@ import {
   Modal,
   StyleSheet,
   Pressable,
-  Image,
   ScrollView,
   Animated,
   useWindowDimensions,
   View,
 } from "react-native";
-import { Typography } from "@/styles/Typography";
 import { colors } from "@/styles/Colors";
 import { CARD_DISPLAY } from "@/styles/CardDisplay";
 import { CardBlock } from "../types/cardBlocks";
-import { HtmlText } from "./HtmlText";
 import { useCardScale } from "@/utils/hooks/useCardScale";
+import { MainButton } from "@/components/MainButton";
+import { PreviewBlock } from "./preview/PreviewBlock";
+import type { PreviewBlockContext } from "./preview/types";
 
 interface PreviewModalProps {
   isVisible: boolean;
@@ -44,6 +44,12 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
   // Храним состояние переворота
   const [isFlipped, setIsFlipped] = useState(initialSide === "back");
 
+  // Состояние интерактивных quiz-блоков: выбор вариантов и проверка
+  const [quizSelections, setQuizSelections] = useState<
+    Record<string, number[]>
+  >({});
+  const [checkedQuizIds, setCheckedQuizIds] = useState<string[]>([]);
+
   // Одно общее анимированное значение 0..1, как в StudyCardView
   const animatedValue = useRef(
     new Animated.Value(initialSide === "back" ? 1 : 0),
@@ -55,8 +61,48 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
       const shouldBeFlipped = initialSide === "back";
       setIsFlipped(shouldBeFlipped);
       animatedValue.setValue(shouldBeFlipped ? 1 : 0);
+      // Сбрасываем интерактив quiz-блоков при каждом открытии
+      setQuizSelections({});
+      setCheckedQuizIds([]);
     }
   }, [isVisible, initialSide, animatedValue]);
+
+  // Клик по варианту quiz-блока — toggle (верных может быть несколько)
+  const handleToggleQuizOption = (blockId: string, index: number): void => {
+    setQuizSelections((prev) => {
+      const current = prev[blockId] ?? [];
+      const next = current.includes(index)
+        ? current.filter((i) => i !== index)
+        : [...current, index];
+      return { ...prev, [blockId]: next };
+    });
+  };
+
+  // «Проверить» — фиксирует результат для всех quiz-блоков стороны
+  const handleCheckSide = (blocks: CardBlock[]): void => {
+    const ids = blocks.filter((b) => b.type === "quiz").map((b) => b.id);
+    setCheckedQuizIds((prev) => [...new Set([...prev, ...ids])]);
+  };
+
+  // Есть ли на стороне quiz-блоки вообще (кнопка видна всегда, пока есть quiz)
+  const hasQuiz = (blocks: CardBlock[]): boolean =>
+    blocks.some((b) => b.type === "quiz");
+
+  // Все ли quiz-блоки стороны уже проверены (для disabled кнопки)
+  const isSideChecked = (blocks: CardBlock[]): boolean =>
+    blocks
+      .filter((b) => b.type === "quiz")
+      .every((b) => checkedQuizIds.includes(b.id));
+
+  // Контекст, который модалка отдаёт всем блокам превью
+  const previewContext = useMemo<PreviewBlockContext>(
+    () => ({
+      quizSelections,
+      checkedQuizIds,
+      onToggleQuizOption: handleToggleQuizOption,
+    }),
+    [quizSelections, checkedQuizIds],
+  );
 
   // Точь-в-точь нативная механика переворота из обучения.
   // Переворот доступен всегда — даже если одна из сторон ещё не заполнена
@@ -101,85 +147,11 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
     opacity: backOpacity,
   };
 
-  // Картинка превью: сохраняет ориентацию (вертикаль/горизонталь),
-  // выбранную при кропе, и центрируется в карточке
-  const PreviewImage: React.FC<{ url: string }> = ({ url }) => {
-    const [aspect, setAspect] = useState<number>(4 / 3);
-    const [containerW, setContainerW] = useState(0);
-
-    useEffect(() => {
-      let active = true;
-      Image.getSize(
-        url,
-        (w, h) => {
-          if (active && w > 0 && h > 0) setAspect(w / h);
-        },
-        () => {},
-      );
-      return () => {
-        active = false;
-      };
-    }, [url]);
-
-    // Потолок высоты внутри карточки, чтобы картинка не вытеснила текст.
-    // Растёт вместе с карточкой: 260 → 351 на десктопе
-    const MAX_H = scaled(260);
-    const w = containerW ? Math.min(containerW, MAX_H * aspect) : 0;
-    const h = w / aspect;
-
-    return (
-      <View
-        onLayout={(e) => setContainerW(e.nativeEvent.layout.width)}
-        style={{ width: "100%", alignItems: "center" }}
-      >
-        <Image
-          source={{ uri: url }}
-          style={{ width: w, height: h, borderRadius: 16, resizeMode: "cover" }}
-        />
-      </View>
-    );
-  };
-
-  const renderBlocksContent = (blocks: CardBlock[]) => {
-    return blocks.map((block) => {
-      if (block.type === "term" || block.type === "text") {
-        
-        return block.value ? (
-          <HtmlText
-            key={block.id}
-            html={block.value}
-            // Базовый шрифт блока: 18 → 22 на десктопе (как в обучении)
-            fontSize={scaledText(CARD_DISPLAY.fontSize)}
-            // Внутренние заголовки h1–h3 контента растут пропорционально
-            scale={textScale}
-          />
-        ) : (
-          <Typography
-            key={block.id}
-            variant="h2"
-            style={styles.placeholderText}
-          >
-            {block.type === "term" ? "Пустой термин" : "Пустой текст"}
-          </Typography>
-        );
-      }
-
-      if (block.type === "image") {
-        return block.url ? (
-          <PreviewImage key={block.id} url={block.url} />
-        ) : (
-          <Typography
-            key={block.id}
-            variant="h3"
-            style={styles.placeholderText}
-          >
-            [Изображение не загружено]
-          </Typography>
-        );
-      }
-      return null;
-    });
-  };
+  // Рендер блоков стороны через реестр превью: тип блока → компонент
+  const renderBlocksContent = (blocks: CardBlock[]) =>
+    blocks.map((block) => (
+      <PreviewBlock key={block.id} block={block} context={previewContext} />
+    ));
 
   // Динамические стили контента карточки: пересоздаются только при смене
   // scale. На мобильных (scale = 1) значения равны эталонным — 372×520,
@@ -241,6 +213,18 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
             >
               {renderBlocksContent(frontBlocks)}
             </ScrollView>
+
+            {/* Кнопка «Проверить» — видна всегда, после проверки неактивна */}
+            {hasQuiz(frontBlocks) && (
+              <View style={styles.quizCheckWrapper}>
+                <MainButton
+                  style={{ width: "100%" }}
+                  title="Проверить"
+                  onPress={() => handleCheckSide(frontBlocks)}
+                  disabled={isSideChecked(frontBlocks)}
+                />
+              </View>
+            )}
           </Animated.View>
 
           {/* СЛОЙ ОБРАТНОЙ СТОРОНЫ — рендерим всегда, переворот доступен всегда */}
@@ -255,6 +239,18 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
             >
               {renderBlocksContent(backBlocks)}
             </ScrollView>
+
+            {/* Кнопка «Проверить» — видна всегда, после проверки неактивна */}
+            {hasQuiz(backBlocks) && (
+              <View style={styles.quizCheckWrapper}>
+                <MainButton
+                  style={{ width: "100%" }}
+                  title="Проверить"
+                  onPress={() => handleCheckSide(backBlocks)}
+                  disabled={isSideChecked(backBlocks)}
+                />
+              </View>
+            )}
           </Animated.View>
         </Pressable>
       </Pressable>
@@ -301,6 +297,11 @@ const styles = StyleSheet.create({
   scroll: {
     flex: 1,
     width: "100%",
+  },
+  quizCheckWrapper: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    paddingTop: 4,
   },
   termText: {
     textAlign: "center",

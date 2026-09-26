@@ -52,7 +52,7 @@ const getBlockTypeName = (block: CardBlock): string => {
     case "text":
       return "Текст";
     case "quiz":
-      return "Квиз";
+      return "Варианты ответа";
     case "image":
       return "Картинка";
   }

@@ -12,9 +12,14 @@ export const QuizBlock: React.FC<QuizBlockProps> = ({
   variants,
   correctIndexes,
 }) => {
+  // В плашке показываем максимум 4 варианта, остальные — счётчиком
+  const MAX_VISIBLE = 4;
+  const visibleVariants = variants.slice(0, MAX_VISIBLE);
+  const hiddenCount = variants.length - visibleVariants.length;
+
   return (
     <View style={styles.content}>
-      {variants.map((variant, index) => {
+      {visibleVariants.map((variant, index) => {
         const isCorrect = correctIndexes.includes(index);
         return (
           <View key={index} style={styles.row}>
@@ -31,6 +36,11 @@ export const QuizBlock: React.FC<QuizBlockProps> = ({
           </View>
         );
       })}
+      {hiddenCount > 0 && (
+        <Typography variant="h3" style={styles.moreText}>
+          и ещё {hiddenCount}...
+        </Typography>
+      )}
     </View>
   );
 };
@@ -58,5 +68,11 @@ const styles = StyleSheet.create({
   text: {
     flex: 1,
     color: colors.darkGray,
+    fontSize: 14,
+  },
+  moreText: {
+    color: colors.darkGray,
+    fontSize: 14,
+    fontStyle: "italic",
   },
 });

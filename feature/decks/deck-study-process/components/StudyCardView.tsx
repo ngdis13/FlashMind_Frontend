@@ -18,14 +18,13 @@ import { CARD_DISPLAY } from "@/styles/CardDisplay";
 
 // --------------------------- Компоненты ---------------------------
 import { UserHint } from "@/components/UserHint";
-import { HtmlText } from "@/feature-decks/deck-create-card/components/HtmlText";
+import { StudyBlocksView } from "./StudyBlocksView";
 
 // --------------------------- Хуки ---------------------------
 import { useCardScale } from "@/utils/hooks/useCardScale";
 
 // --------------------------- Типы и хелперы ---------------------------
 import { Card } from "@/storage/types/types";
-import { blocksToHtml } from "@/utils/helpers/blocksToHtml";
 
 interface Props {
   card: Card | undefined;
@@ -211,22 +210,15 @@ export const StudyCardView = ({ card, isFirstCard }: Props) => {
     );
   };
 
-  const renderCardContent = (html: string) => (
+  // Рендер блоков стороны карточки через общий реестр превью
+  const renderCardContent = (blocks: Card["front"] | undefined) => (
     <ScrollView
+      style={styles.scroll}
       contentContainerStyle={dynamicStyles.scrollContent}
       showsVerticalScrollIndicator={false}
+      nestedScrollEnabled
     >
-      {html ? (
-        <HtmlText
-          html={html}
-          // Базовый шрифт термина/описания: 18 → 22 на десктопе
-          // (текст растёт мягче контейнера — до +20%)
-          fontSize={scaledText(CARD_DISPLAY.fontSize)}
-          // textScale — чтобы внутренние заголовки h1–h3 контента
-          // росли пропорционально базовому тексту
-          scale={textScale}
-        />
-      ) : null}
+      <StudyBlocksView blocks={blocks} />
     </ScrollView>
   );
 
@@ -270,7 +262,7 @@ export const StudyCardView = ({ card, isFirstCard }: Props) => {
             onClose={handleCloseHint}
             style={dynamicStyles.absoluteHint}
           />
-          {renderCardContent(blocksToHtml(card?.front))}
+          {renderCardContent(card?.front)}
           <Animated.View style={{ opacity: hintOpacity }} />
         </Animated.View>
 
@@ -282,7 +274,7 @@ export const StudyCardView = ({ card, isFirstCard }: Props) => {
             { transform: [{ rotateY: backInterpolate }], opacity: backOpacity },
           ]}
         >
-          {renderCardContent(blocksToHtml(card?.back))}
+          {renderCardContent(card?.back)}
         </Animated.View>
       </Pressable>
     </View>
@@ -309,6 +301,10 @@ const styles = StyleSheet.create({
   },
   dot: { width: 10, height: 10, borderRadius: 5 },
   touchArea: { flex: 1, width: "100%" },
+  scroll: {
+    flex: 1,
+    width: "100%",
+  },
   card: {
     flex: 1,
     backfaceVisibility: "hidden",
