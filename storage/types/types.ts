@@ -48,16 +48,11 @@ export interface DeckSettings {
   color: string;
   desired_retention: number;
   maximum_interval: number;
-  /**
-   * Количество новых карточек в день (1-100)
-   * Пока не поддерживается сервером (API в разработке)
-   */
-  new_cards_per_day?: number;
-  /**
-   * Дневной лимит карточек (1-1000)
-   * Пока не поддерживается сервером (API в разработке)
-   */
+  daily_learning_limit: number;
+  /**Максимум новых карточек, переводимых в обучение*/
   daily_limit?: number;
+  /**Максимум повторов в день*/
+  daily_repeat_limit: number;
 }
 
 /**
@@ -152,11 +147,13 @@ export interface CreateDeckPayload {
  * Payload для обновления колоды (PUT /api/v1/decks/{deck_id})
  */
 export interface UpdateDeckPayload {
-  name: string;
-  description: string;
-  desired_retention: number;
-  maximum_interval: number;
-  color: string;
+  name?: string;
+  description?: string;
+  desired_retention?: number;
+  maximum_interval?: number;
+  color?: string;
+  daily_learning_limit?: number;
+  daily_repeat_limit?: number;
 }
 
 /**

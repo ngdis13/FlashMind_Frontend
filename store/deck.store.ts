@@ -10,9 +10,13 @@ import {
   saveDecks,
   STORAGE_VERSION,
 } from "@/storage/service/decksStorage";
-import { Card, Deck, DeckSettings, UpdateDeckPayload } from "@/storage/types/types";
+import {
+  Card,
+  Deck,
+  DeckSettings,
+  UpdateDeckPayload,
+} from "@/storage/types/types";
 import { calculateExpiryTime } from "@/utils/helpers/calculateExpiryTime";
-import { colors } from "@/styles/Colors";
 
 type DeckState = {
   decksState: DecksStorageState | null;
@@ -223,6 +227,8 @@ export const useDeckStore = create<DeckState>((set, get) => {
             color: serverResponse.settings?.color,
             desired_retention: 0.9,
             maximum_interval: 365,
+            daily_learning_limit: 20,
+            daily_repeat_limit: 50,
           },
           cloud_info: {
             is_approved: false,
@@ -282,6 +288,10 @@ export const useDeckStore = create<DeckState>((set, get) => {
                 data.desired_retention ?? deck.settings.desired_retention,
               maximum_interval:
                 data.maximum_interval ?? deck.settings.maximum_interval,
+              daily_learning_limit:
+                data.daily_learning_limit ?? deck.settings.daily_learning_limit,
+              daily_repeat_limit:
+                data.daily_repeat_limit ?? deck.settings.daily_repeat_limit,
             },
           };
         }
@@ -307,6 +317,11 @@ export const useDeckStore = create<DeckState>((set, get) => {
           maximum_interval:
             data.maximum_interval ?? targetDeck.settings.maximum_interval,
           color: data.color ?? targetDeck.settings.color,
+          daily_learning_limit:
+            data.daily_learning_limit ??
+            targetDeck.settings.daily_learning_limit,
+          daily_repeat_limit:
+            data.daily_repeat_limit ?? targetDeck.settings.daily_repeat_limit,
         };
 
         // Отправляем чистый, строго валидированный объект в API

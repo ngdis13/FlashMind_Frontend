@@ -246,9 +246,11 @@ export default function SettingsDecksScreen() {
       const payload = {
         name: trimmedName,
         description: description.trim() || "",
-        desired_retention: Number((targetRetention / 100).toFixed(2)), // 0.85 - 0.95
-        maximum_interval: Number(maxInterval), // число
-        color: selectedColor, // строка с цветом
+        desired_retention: Number((targetRetention / 100).toFixed(2)),
+        maximum_interval: Number(maxInterval),
+        color: selectedColor,
+        daily_learning_limit: Number(newCardsPerDay),
+        daily_repeat_limit: Number(dailyLimit),
       };
 
       console.log("📤 Отправляем на сервер:", JSON.stringify(payload, null, 2));
@@ -375,10 +377,10 @@ export default function SettingsDecksScreen() {
     setIntensity(mode);
 
     if (mode === "light") {
-      setTargetRetention(85); 
+      setTargetRetention(85);
       setMaxInterval(730);
       setNewCardsPerDay(10);
-      setDailyLimit(50);
+      setDailyLimit(100);
     } else if (mode === "balance") {
       setTargetRetention(92);
       setMaxInterval(365);
@@ -473,9 +475,8 @@ export default function SettingsDecksScreen() {
               : rawInterval;
       }
 
-      // 2. Получаем значения новых настроек (с дефолтами, пока API не готов)
-      const loadedNewCards = deck.settings.new_cards_per_day ?? 20;
-      const loadedDailyLimit = deck.settings.daily_limit ?? 200;
+      const loadedNewCards = deck.settings.daily_learning_limit ?? 20;
+      const loadedDailyLimit = deck.settings.daily_repeat_limit ?? 50;
 
       // 3. Сетим значения в стейты для ползунков
       setTargetRetention(loadedRetention);
@@ -488,7 +489,7 @@ export default function SettingsDecksScreen() {
         loadedRetention === 85 &&
         loadedInterval === 730 &&
         loadedNewCards === 10 &&
-        loadedDailyLimit === 50
+        loadedDailyLimit === 100
       ) {
         setIntensity("light");
       } else if (
@@ -629,15 +630,17 @@ export default function SettingsDecksScreen() {
                     <Typography variant="h2" style={styles.colorText}>
                       Количество новых карточек
                     </Typography>
-                    <Typography variant="h2" style={{ color: colors.mainColor }}>
+                    <Typography
+                      variant="h2"
+                      style={{ color: colors.mainColor }}
+                    >
                       [
                     </Typography>
                     <TextInput
                       style={[
                         styles.valueInput,
                         {
-                          width:
-                            String(newCardsPerDay).length * 10 + 4,
+                          width: String(newCardsPerDay).length * 10 + 4,
                         },
                       ]}
                       value={String(newCardsPerDay)}
@@ -648,7 +651,10 @@ export default function SettingsDecksScreen() {
                         setIntensity("custom");
                       }}
                     />
-                    <Typography variant="h2" style={{ color: colors.mainColor }}>
+                    <Typography
+                      variant="h2"
+                      style={{ color: colors.mainColor }}
+                    >
                       ]
                     </Typography>
                   </View>
@@ -699,7 +705,10 @@ export default function SettingsDecksScreen() {
                     <Typography variant="h2" style={styles.colorText}>
                       Дневной лимит карточек
                     </Typography>
-                    <Typography variant="h2" style={{ color: colors.mainColor }}>
+                    <Typography
+                      variant="h2"
+                      style={{ color: colors.mainColor }}
+                    >
                       [
                     </Typography>
                     <TextInput
@@ -715,7 +724,10 @@ export default function SettingsDecksScreen() {
                         setIntensity("custom");
                       }}
                     />
-                    <Typography variant="h2" style={{ color: colors.mainColor }}>
+                    <Typography
+                      variant="h2"
+                      style={{ color: colors.mainColor }}
+                    >
                       ]
                     </Typography>
                   </View>
@@ -766,15 +778,17 @@ export default function SettingsDecksScreen() {
                     <Typography variant="h2" style={styles.colorText}>
                       Целевое запоминание
                     </Typography>
-                    <Typography variant="h2" style={{ color: colors.mainColor }}>
+                    <Typography
+                      variant="h2"
+                      style={{ color: colors.mainColor }}
+                    >
                       [
                     </Typography>
                     <TextInput
                       style={[
                         styles.valueInput,
                         {
-                          width:
-                            String(targetRetention).length * 10 + 4,
+                          width: String(targetRetention).length * 10 + 4,
                         },
                       ]}
                       value={String(targetRetention)}
@@ -785,7 +799,10 @@ export default function SettingsDecksScreen() {
                         setIntensity("custom");
                       }}
                     />
-                    <Typography variant="h2" style={{ color: colors.mainColor }}>
+                    <Typography
+                      variant="h2"
+                      style={{ color: colors.mainColor }}
+                    >
                       %]
                     </Typography>
                   </View>
@@ -836,7 +853,10 @@ export default function SettingsDecksScreen() {
                     <Typography variant="h2" style={styles.colorText}>
                       Максимальный интервал
                     </Typography>
-                    <Typography variant="h2" style={{ color: colors.mainColor }}>
+                    <Typography
+                      variant="h2"
+                      style={{ color: colors.mainColor }}
+                    >
                       [
                     </Typography>
                     <TextInput
@@ -852,7 +872,10 @@ export default function SettingsDecksScreen() {
                         setIntensity("custom");
                       }}
                     />
-                    <Typography variant="h2" style={{ color: colors.mainColor }}>
+                    <Typography
+                      variant="h2"
+                      style={{ color: colors.mainColor }}
+                    >
                       дней]
                     </Typography>
                   </View>
